@@ -138,6 +138,7 @@ const rAt5Scores = history.map(h => h.benchmarks?.gbrain_evals?.r_at_5 ?? null);
             <th>DAB</th>
             <th>P@5</th>
             <th>R@5</th>
+            <th>LoCoMo</th>
             <th>BEAM 1M</th>
             <th>BEAM 10M</th>
             <th>Notes</th>
@@ -149,6 +150,7 @@ const rAt5Scores = history.map(h => h.benchmarks?.gbrain_evals?.r_at_5 ?? null);
             <td>{latestDab ? `${latestDab.pct}%` : <span class="na">—</span>}</td>
             <td>{latestGbrain ? `${latestGbrain.p_at_5}%` : <span class="na">—</span>}</td>
             <td>{latestGbrain ? `${latestGbrain.r_at_5}%` : <span class="na">—</span>}</td>
+            <td>{latest?.locomo?.locomo?.overall != null ? `${(latest.locomo.locomo.overall * 100).toFixed(1)}%` : <span class="na">—</span>}</td>
             <td class="na">—</td>
             <td class="na">—</td>
             <td>PARA-native, OpenClaw MCP, self-hosted</td>
@@ -160,6 +162,7 @@ const rAt5Scores = history.map(h => h.benchmarks?.gbrain_evals?.r_at_5 ?? null);
             <td>{gbrain.gbrain_evals.r_at_5}%</td>
             <td class="na">—</td>
             <td class="na">—</td>
+            <td class="na">—</td>
             <td>Graph+vector+FTS, 17,888 pages, {gbrain.date}</td>
           </tr>
           <tr>
@@ -167,6 +170,7 @@ const rAt5Scores = history.map(h => h.benchmarks?.gbrain_evals?.r_at_5 ?? null);
             <td class="na">—</td>
             <td class="na">—</td>
             <td class="na">—</td>
+            <td>{mem0.locomo.score}%</td>
             <td>{mem0.beam.score_1m}%</td>
             <td>{mem0.beam.score_10m}%</td>
             <td>~7K tokens/retrieval, conversational memory, {mem0.date}</td>

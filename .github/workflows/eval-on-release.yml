@@ -48,6 +48,12 @@ jobs:
       - name: Run gbrain-evals benchmark
         run: bash benchmarks/gbrain-evals/run.sh
 
+      - name: Run LoCoMo benchmark
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: bash benchmarks/locomo/run.sh
+
       - name: Generate report
         run: python scripts/generate-report.py
 
