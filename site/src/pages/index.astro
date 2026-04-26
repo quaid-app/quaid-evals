@@ -1,0 +1,257 @@
+---
+// src/pages/index.astro
+// Quaid Evals - Home Page
+
+import reportData from '../data/report.json';
+
+const { latest, history, reference, total_runs } = reportData;
+const gbrain = reference.gbrain;
+const mem0 = reference.mem0_v3;
+
+const latestDab = latest?.dab;
+const latestGbrain = latest?.gbrain_evals;
+const latestVersion = latest?.quaid_version ?? 'No runs yet';
+const latestDate = latest?.date ?? '';
+
+// Build chart data
+const chartVersions = history.map(h => h.version);
+const dabScores = history.map(h => h.benchmarks?.dab?.pct ?? null);
+const rAt5Scores = history.map(h => h.benchmarks?.gbrain_evals?.r_at_5 ?? null);
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quaid Evals - Benchmark Results</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0f0e0d;
+      color: #e8e2d9;
+      line-height: 1.6;
+    }
+    header {
+      border-bottom: 1px solid #2a2520;
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 1.25rem; color: #A59A7A; font-weight: 600; }
+    header span { font-size: 0.85rem; color: #6b6258; }
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+    h2 { font-size: 1.1rem; color: #A59A7A; margin-bottom: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .section { margin-bottom: 3rem; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .card {
+      background: #1a1815;
+      border: 1px solid #2a2520;
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+    .card .label { font-size: 0.75rem; color: #6b6258; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+    .card .value { font-size: 2rem; font-weight: 700; color: #A59A7A; }
+    .card .sub { font-size: 0.8rem; color: #6b6258; margin-top: 0.25rem; }
+    .chart-wrap { background: #1a1815; border: 1px solid #2a2520; border-radius: 8px; padding: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #2a2520; color: #6b6258; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
+    td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #1e1c1a; }
+    tr:hover td { background: #1e1c1a; }
+    .quaid { color: #A59A7A; font-weight: 600; }
+    .better { color: #6ec97a; }
+    .worse { color: #e07070; }
+    .na { color: #444; }
+    .tag { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 3px; background: #2a2520; color: #A59A7A; margin-left: 0.4rem; }
+    footer { border-top: 1px solid #2a2520; padding: 1.5rem 2rem; text-align: center; font-size: 0.8rem; color: #444; }
+    a { color: #A59A7A; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Quaid Evals</h1>
+    <span>quaid-app.github.io/quaid-evals · {total_runs} runs</span>
+  </header>
+
+  <main>
+    <!-- Latest scores -->
+    <div class="section">
+      <h2>Latest: {latestVersion} {latestDate ? `(${latestDate})` : ''}</h2>
+      <div class="cards">
+        {latestDab ? (
+          <div class="card">
+            <div class="label">DAB Score</div>
+            <div class="value">{latestDab.total}/{latestDab.max}</div>
+            <div class="sub">{latestDab.pct}% of max</div>
+          </div>
+        ) : (
+          <div class="card">
+            <div class="label">DAB Score</div>
+            <div class="value na">—</div>
+            <div class="sub">No runs yet</div>
+          </div>
+        )}
+        {latestGbrain ? (
+          <>
+            <div class="card">
+              <div class="label">P@5 (gbrain-evals)</div>
+              <div class="value">{latestGbrain.p_at_5}%</div>
+              <div class="sub">GBrain ref: {gbrain.gbrain_evals.p_at_5}%</div>
+            </div>
+            <div class="card">
+              <div class="label">R@5 (gbrain-evals)</div>
+              <div class="value">{latestGbrain.r_at_5}%</div>
+              <div class="sub">GBrain ref: {gbrain.gbrain_evals.r_at_5}%</div>
+            </div>
+          </>
+        ) : (
+          <div class="card">
+            <div class="label">gbrain-evals P@5 / R@5</div>
+            <div class="value na">—</div>
+            <div class="sub">No runs yet</div>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- History chart -->
+    {history.length > 0 && (
+      <div class="section">
+        <h2>Score History</h2>
+        <div class="chart-wrap">
+          <canvas id="historyChart" height="80"></canvas>
+        </div>
+      </div>
+    )}
+
+    <!-- Comparison table -->
+    <div class="section">
+      <h2>Competitive Comparison</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>System</th>
+            <th>DAB</th>
+            <th>P@5</th>
+            <th>R@5</th>
+            <th>BEAM 1M</th>
+            <th>BEAM 10M</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="quaid">Quaid (latest)</span> <span class="tag">ours</span></td>
+            <td>{latestDab ? `${latestDab.pct}%` : <span class="na">—</span>}</td>
+            <td>{latestGbrain ? `${latestGbrain.p_at_5}%` : <span class="na">—</span>}</td>
+            <td>{latestGbrain ? `${latestGbrain.r_at_5}%` : <span class="na">—</span>}</td>
+            <td class="na">—</td>
+            <td class="na">—</td>
+            <td>PARA-native, OpenClaw MCP, self-hosted</td>
+          </tr>
+          <tr>
+            <td><a href={gbrain.source} target="_blank">GBrain</a></td>
+            <td class="na">—</td>
+            <td>{gbrain.gbrain_evals.p_at_5}%</td>
+            <td>{gbrain.gbrain_evals.r_at_5}%</td>
+            <td class="na">—</td>
+            <td class="na">—</td>
+            <td>Graph+vector+FTS, 17,888 pages, {gbrain.date}</td>
+          </tr>
+          <tr>
+            <td><a href="https://mem0.ai" target="_blank">Mem0 v3</a></td>
+            <td class="na">—</td>
+            <td class="na">—</td>
+            <td class="na">—</td>
+            <td>{mem0.beam.score_1m}%</td>
+            <td>{mem0.beam.score_10m}%</td>
+            <td>~7K tokens/retrieval, conversational memory, {mem0.date}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:0.75rem; color:#444; margin-top:0.75rem;">
+        Reference scores from published benchmarks. Different benchmarks test different capabilities — see <a href="https://github.com/quaid-app/quaid-evals">methodology</a>.
+      </p>
+    </div>
+
+    <!-- History table -->
+    {history.length > 0 && (
+      <div class="section">
+        <h2>All Runs</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Date</th>
+              <th>DAB</th>
+              <th>P@5</th>
+              <th>R@5</th>
+            </tr>
+          </thead>
+          <tbody>
+            {history.slice().reverse().map(h => (
+              <tr>
+                <td>{h.version}</td>
+                <td>{h.date}</td>
+                <td>{h.benchmarks?.dab?.pct != null ? `${h.benchmarks.dab.pct}%` : <span class="na">—</span>}</td>
+                <td>{h.benchmarks?.gbrain_evals?.p_at_5 != null ? `${h.benchmarks.gbrain_evals.p_at_5}%` : <span class="na">—</span>}</td>
+                <td>{h.benchmarks?.gbrain_evals?.r_at_5 != null ? `${h.benchmarks.gbrain_evals.r_at_5}%` : <span class="na">—</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </main>
+
+  <footer>
+    <a href="https://quaid.app">quaid.app</a> ·
+    <a href="https://github.com/quaid-app/quaid-evals">github.com/quaid-app/quaid-evals</a> ·
+    Memory that persists. Intelligence that compounds.
+  </footer>
+
+  {history.length > 0 && (
+    <script define:vars={{ chartVersions, dabScores, rAt5Scores }}>
+      const ctx = document.getElementById('historyChart');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartVersions,
+          datasets: [
+            {
+              label: 'DAB %',
+              data: dabScores,
+              borderColor: '#A59A7A',
+              backgroundColor: 'rgba(165,154,122,0.1)',
+              tension: 0.3,
+              spanGaps: true,
+            },
+            {
+              label: 'R@5 %',
+              data: rAt5Scores,
+              borderColor: '#6ec97a',
+              backgroundColor: 'rgba(110,201,122,0.1)',
+              tension: 0.3,
+              spanGaps: true,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: '#e8e2d9' } }
+          },
+          scales: {
+            x: { ticks: { color: '#6b6258' }, grid: { color: '#2a2520' } },
+            y: { min: 0, max: 100, ticks: { color: '#6b6258' }, grid: { color: '#2a2520' } }
+          }
+        }
+      });
+    </script>
+  )}
+</body>
+</html>

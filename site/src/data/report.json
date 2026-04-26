@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-04-27T00:00:00Z",
+  "latest": null,
+  "history": [],
+  "reference": {
+    "gbrain": {
+      "label": "GBrain (Garry Tan)",
+      "source": "https://x.com/garrytan/status/2048503081911128119",
+      "date": "2026-04-27",
+      "gbrain_evals": { "p_at_5": 49.1, "r_at_5": 97.9 },
+      "notes": "145 queries, Opus-generated corpus, 17,888 pages. Graph layer = +31pts precision."
+    },
+    "mem0_v3": {
+      "label": "Mem0 v3",
+      "source": "https://mem0.ai",
+      "date": "2026-04-01",
+      "beam": { "score_1m": 64.1, "score_10m": 48.6 },
+      "locomo": { "score": 91.6 },
+      "longmemeval": { "score": 93.4 },
+      "notes": "~7K tokens per retrieval vs 25K+ for full-context."
+    }
+  },
+  "total_runs": 0
+}
