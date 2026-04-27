@@ -8,9 +8,9 @@ const { latest, history, reference, total_runs } = reportData;
 const gbrain = reference.gbrain;
 const mem0 = reference.mem0_v3;
 
-const latestDab = latest?.dab;
-const latestGbrain = latest?.gbrain_evals;
-const latestVersion = latest?.quaid_version ?? 'No runs yet';
+const latestDab = latest?.benchmarks?.dab;
+const latestGbrain = latest?.benchmarks?.gbrain_evals;
+const latestVersion = latest?.version ?? 'No runs yet';
 const latestDate = latest?.date ?? '';
 
 // Build chart data

@@ -45,40 +45,51 @@ def load_results():
 
 
 def build_history(results):
-    """Build version history for the chart."""
-    history = []
+    """Build version history - merge DAB and gbrain-evals by version+date."""
+    # Group by (version, date)
+    runs = {}
     for r in results:
-        entry = {
-            "version": r.get("quaid_version", "unknown"),
-            "date": r.get("date", ""),
-            "benchmarks": {}
-        }
-        if "dab" in r:
-            entry["benchmarks"]["dab"] = {
-                "total": r["dab"].get("total_score"),
-                "max": r["dab"].get("max_score"),
-                "pct": round(r["dab"]["total_score"] / r["dab"]["max_score"] * 100, 1)
+        key = (r.get("quaid_version", "unknown"), r.get("date", ""))
+        if key not in runs:
+            runs[key] = {"version": key[0], "date": key[1], "benchmarks": {}}
+        benchmark = r.get("benchmark", "")
+        if benchmark == "dab":
+            runs[key]["dab"] = r
+            runs[key]["benchmarks"]["dab"] = {
+                "total": r.get("total_score"),
+                "max": r.get("max_score"),
+                "pct": round(r["total_score"] / r["max_score"] * 100, 1)
             }
-        if "gbrain_evals" in r:
-            entry["benchmarks"]["gbrain_evals"] = {
-                "p_at_5": r["gbrain_evals"].get("p_at_5"),
-                "r_at_5": r["gbrain_evals"].get("r_at_5"),
+        elif benchmark == "gbrain-evals":
+            runs[key]["gbrain_evals"] = r.get("gbrain_evals", {})
+            ge = r.get("gbrain_evals", {})
+            runs[key]["benchmarks"]["gbrain_evals"] = {
+                "p_at_5": ge.get("p_at_5"),
+                "r_at_5": ge.get("r_at_5"),
             }
-        history.append(entry)
+
+    # Sort by date then version (numeric semver sort)
+    def version_key(x):
+        import re
+        v = x.get("version", "0.0.0")
+        parts = re.findall(r'\d+', v)
+        return (x.get("date", ""), [int(p) for p in parts])
+
+    history = sorted(runs.values(), key=version_key)
     return history
 
 
 def main():
     results = load_results()
     history = build_history(results)
-    latest = results[-1] if results else None
+    latest = history[-1] if history else None
 
     report = {
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "latest": latest,
         "history": history,
         "reference": REFERENCE_SCORES,
-        "total_runs": len(results),
+        "total_runs": len(history),
     }
 
     out_path = SITE_DATA_DIR / "report.json"
