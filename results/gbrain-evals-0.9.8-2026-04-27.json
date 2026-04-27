@@ -1,0 +1,90 @@
+{
+  "quaid_version": "0.9.8",
+  "date": "2026-04-27",
+  "benchmark": "gbrain-evals",
+  "gbrain_evals": {
+    "p_at_5": 0.0,
+    "r_at_5": 0.0,
+    "total_queries": 10,
+    "k": 5,
+    "per_query": [
+      {
+        "query_id": "q0",
+        "query": "agent memory architecture",
+        "retrieved": 0,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "q1",
+        "query": "DeFi liquidity protocols",
+        "retrieved": 0,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "q2",
+        "query": "token economics and value",
+        "retrieved": 0,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "q3",
+        "query": "smart contract security",
+        "retrieved": 0,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "q4",
+        "query": "retrieval augmented generation",
+        "retrieved": 0,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "q5",
+        "query": "PARA method organization",
+        "retrieved": 0,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "q6",
+        "query": "Rust systems programming",
+        "retrieved": 0,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "q7",
+        "query": "stablecoin regulation",
+        "retrieved": 0,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "q8",
+        "query": "graph database relationships",
+        "retrieved": 0,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "q9",
+        "query": "vector embedding search",
+        "retrieved": 0,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      }
+    ]
+  },
+  "reference": {
+    "gbrain": {
+      "p_at_5": 49.1,
+      "r_at_5": 97.9,
+      "source": "garrytan Apr 27 2026"
+    }
+  }
+}
