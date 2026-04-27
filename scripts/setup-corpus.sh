@@ -5,7 +5,7 @@
 set -euo pipefail
 
 CORPUS_DIR="/tmp/quaid-bench-corpus"
-CORPUS_REPO="quaid-app/dab-corpus"
+CORPUS_REPO="quaid-app/msmarco-corpus"
 
 echo "Setting up benchmark corpus..."
 
