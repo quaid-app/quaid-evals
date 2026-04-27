@@ -122,19 +122,15 @@ def run_evaluation(backend, queries: list[dict], k: int = 5) -> dict:
         retrieved = []
         for p in pages:
             slug = p.get("slug", "")
-            # slug format: docs::passages/cluster/123-4.md
-            # Try to match: extract the base filename without extension
+            # Extract passage_id from slug: docs::passages/cluster/123-4.md -> 123_4
             basename = slug.split("::")[-1].split("/")[-1].replace(".md", "")
-            # Also try matching passage_id embedded in slug (e.g. 123-4 -> 123_4)
             pid_guess = basename.replace("-", "_")
-            retrieved.append(slug)
-            retrieved.append(basename)
+            # Store ONE canonical id per result (prefer pid_guess)
             retrieved.append(pid_guess)
 
         if all_relevant:
-            hit_count = sum(1 for r in retrieved if r in all_relevant)
-            # Deduplicate: each page can only count once
-            hit_count = min(hit_count, k)
+            hits = set(r for r in retrieved if r in all_relevant)
+            hit_count = len(hits)  # unique hits only
             p = hit_count / k
             r = hit_count / len(relevant_ids) if relevant_ids else (1.0 if retrieved else 0.0)
         else:

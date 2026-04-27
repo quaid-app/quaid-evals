@@ -134,17 +134,19 @@ echo ""
 echo "[8/8] MCP server check..."
 MCP_SCORE=0
 if command -v quaid &>/dev/null; then
-  # Start MCP server briefly and check it responds
-  QUAID_DB="$DB_PATH" timeout 5 quaid serve 2>/dev/null &
-  MCP_PID=$!
-  sleep 2
-  if kill -0 "$MCP_PID" 2>/dev/null; then
+  # MCP stdio server: send a JSON-RPC initialize request, check for valid response
+  MCP_REQUEST='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+  MCP_RESPONSE=$(echo "$MCP_REQUEST" | QUAID_DB="$DB_PATH" timeout 5 quaid serve 2>/dev/null || echo "")
+  if echo "$MCP_RESPONSE" | grep -q '"result"'; then
     MCP_SCORE=20
-    kill "$MCP_PID" 2>/dev/null || true
-    echo "MCP: server started successfully"
+    echo "MCP: server responded to initialize (20/20)"
+  elif echo "$MCP_RESPONSE" | grep -q '"jsonrpc"'; then
+    MCP_SCORE=10
+    echo "MCP: server started and returned JSON-RPC (10/20)"
   else
-    echo "MCP: server failed to start"
+    echo "MCP: no valid response (got: ${MCP_RESPONSE:0:100})"
   fi
+fi
 fi
 
 # Calculate total
