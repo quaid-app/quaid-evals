@@ -8,8 +8,9 @@ Runs DAB, gbrain-evals, and BEAM benchmarks on every release. Publishes results 
 
 | Benchmark | What it tests | Reference |
 |-----------|--------------|-----------|
-| **DAB** (Doug Aillm Benchmark) | Full retrieval quality on 350-page PARA corpus: FTS, semantic, MCP, performance, integrity, collections | Custom - 215 pts max |
-| **gbrain-evals** | P@5 / R@5 against Garry Tan's 145-query eval harness | GBrain: P@5=49.1%, R@5=97.9% |
+| **DAB** (Doug Aillm Benchmark) | Full retrieval quality on MSMARCO corpus: FTS, semantic, MCP, performance, integrity, collections | Custom - 215 pts max |
+| **gbrain-evals** | P@5 / R@5 on MSMARCO dev queries (500 queries, real qrels - industry standard) | GBrain: P@5=49.1%, R@5=97.9% |
+| **LoCoMo** | Multi-session conversational memory recall (~300 questions) | Mem0: 91.6% |
 | **BEAM** | Memory at extreme scale (100K / 1M / 10M tokens) | Mem0: 64.1% @ 1M, 48.6% @ 10M |
 
 ## Run Locally
