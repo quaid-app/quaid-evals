@@ -1,7 +1,6 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://quaid-app.github.io',
-  base: '/quaid-evals',
+  site: 'https://benchmark.quaid.app',
   output: 'static',
 });
