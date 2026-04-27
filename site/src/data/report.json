@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-27T02:59:33.992329Z",
+  "generated_at": "2026-04-27T09:13:18.853059Z",
   "latest": {
     "quaid_version": "0.9.8",
     "date": "2026-04-27",
@@ -3522,9 +3522,24 @@
   },
   "history": [
     {
+      "version": "0.9.10",
+      "date": "2026-04-27",
+      "benchmarks": {}
+    },
+    {
       "version": "0.9.8",
       "date": "2026-04-27",
       "benchmarks": {}
+    },
+    {
+      "version": "0.9.10",
+      "date": "2026-04-27",
+      "benchmarks": {
+        "gbrain_evals": {
+          "p_at_5": 17.44,
+          "r_at_5": 78.17
+        }
+      }
     },
     {
       "version": "0.9.8",
@@ -3565,5 +3580,5 @@
       "notes": "~7K tokens per retrieval vs 25K+ for full-context."
     }
   },
-  "total_runs": 2
+  "total_runs": 4
 }
