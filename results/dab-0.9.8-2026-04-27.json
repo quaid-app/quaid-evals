@@ -17,6 +17,6 @@
   "performance": {
     "fts_latency_ms": 3,
     "semantic_latency_ms": 3,
-    "collection_add_ms": 5068
+    "collection_add_ms": 5073
   }
 }
