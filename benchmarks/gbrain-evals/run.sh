@@ -25,13 +25,16 @@ fi
 
 # Set up Quaid DB with corpus
 echo "Indexing corpus..."
-quaid collection add docs "$CORPUS_DIR" --db "$DB_PATH"
+quaid collection add docs "$CORPUS_DIR/passages" --db "$DB_PATH"
+echo "Generating embeddings..."
+quaid embed --db "$DB_PATH" 2>&1 | tail -1
 
 # Run adapter
 echo "Running eval adapter..."
 python3 benchmarks/gbrain-evals/quaid_adapter.py \
   --db "$DB_PATH" \
   --gbrain-evals-dir "$GBRAIN_EVALS_DIR" \
+  --queries-file "$CORPUS_DIR/queries.json" \
   --output "$OUTPUT" \
   --quaid-version "$QUAID_VERSION"
 

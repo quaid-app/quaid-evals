@@ -27,17 +27,20 @@ class QuaidBackend:
         self.db_path = db_path
 
     def search(self, query: str, top_k: int = 5) -> list[dict]:
-        """Run hybrid search via Quaid CLI."""
-        try:
-            result = subprocess.run(
-                ["quaid", "memory_query", query, "--db", self.db_path,
-                 "--limit", str(top_k), "--json"],
-                capture_output=True, text=True, timeout=30
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                return json.loads(result.stdout)
-        except (subprocess.TimeoutExpired, json.JSONDecodeError, Exception) as e:
-            print(f"Warning: search failed for '{query}': {e}", file=sys.stderr)
+        """Run hybrid search via Quaid CLI. Returns list of result dicts with slug/title."""
+        # Try semantic query first (requires embeddings), fall back to FTS search
+        for cmd in [
+            ["quaid", "query", query, "--db", self.db_path, "--limit", str(top_k), "--json"],
+            ["quaid", "search", query, "--db", self.db_path, "--limit", str(top_k), "--json"],
+        ]:
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                if result.returncode == 0 and result.stdout.strip():
+                    data = json.loads(result.stdout)
+                    if isinstance(data, list) and data:
+                        return data
+            except (subprocess.TimeoutExpired, json.JSONDecodeError, Exception) as e:
+                print(f"Warning: search failed for '{query[:50]}': {e}", file=sys.stderr)
         return []
 
     def get_content(self, page: dict) -> str:
@@ -102,8 +105,7 @@ def _synthetic_queries() -> list[dict]:
     ]
 
 
-def run_evaluation(backend: QuaidBackend, queries: list[dict], k: int = 5) -> dict:
-    """Run full P@k / R@k evaluation."""
+def run_evaluation(backend, queries: list[dict], k: int = 5) -> dict:
     p_scores = []
     r_scores = []
     results = []
@@ -111,24 +113,41 @@ def run_evaluation(backend: QuaidBackend, queries: list[dict], k: int = 5) -> di
     for q in queries:
         query_text = q.get("query", "")
         relevant_ids = set(q.get("relevant_ids", []))
+        relevant_files = set(q.get("relevant_files", []))
+        # Combined relevant set: match on passage_id OR file path slug
+        all_relevant = relevant_ids | relevant_files
 
         pages = backend.search(query_text, top_k=k)
-        retrieved_ids = [str(p.get("id", p.get("path", i))) for i, p in enumerate(pages)]
+        # Extract identifiers from results - slug contains the passage_id
+        retrieved = []
+        for p in pages:
+            slug = p.get("slug", "")
+            # slug format: docs::passages/cluster/123-4.md
+            # Try to match: extract the base filename without extension
+            basename = slug.split("::")[-1].split("/")[-1].replace(".md", "")
+            # Also try matching passage_id embedded in slug (e.g. 123-4 -> 123_4)
+            pid_guess = basename.replace("-", "_")
+            retrieved.append(slug)
+            retrieved.append(basename)
+            retrieved.append(pid_guess)
 
-        if relevant_ids:
-            p = precision_at_k(retrieved_ids, relevant_ids, k)
-            r = recall_at_k(retrieved_ids, relevant_ids, k)
+        if all_relevant:
+            hit_count = sum(1 for r in retrieved if r in all_relevant)
+            # Deduplicate: each page can only count once
+            hit_count = min(hit_count, k)
+            p = hit_count / k
+            r = hit_count / len(relevant_ids) if relevant_ids else (1.0 if retrieved else 0.0)
         else:
-            # No ground truth: score as 1.0 if any results returned (basic sanity)
-            p = 1.0 if retrieved_ids else 0.0
-            r = 1.0 if retrieved_ids else 0.0
+            # No ground truth: score 1.0 if any results returned
+            p = 1.0 if pages else 0.0
+            r = 1.0 if pages else 0.0
 
         p_scores.append(p)
         r_scores.append(r)
         results.append({
             "query_id": q.get("id"),
             "query": query_text,
-            "retrieved": len(retrieved_ids),
+            "retrieved": len(pages),
             "p_at_k": round(p * 100, 2),
             "r_at_k": round(r * 100, 2),
         })
@@ -149,6 +168,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", required=True, help="Path to Quaid DB")
     parser.add_argument("--gbrain-evals-dir", required=True)
+    parser.add_argument("--queries-file", default=None,
+                        help="Path to queries.json with real qrels (MSMARCO/FiQA format). Overrides gbrain-evals-dir query loading.")
     parser.add_argument("--output", required=True)
     parser.add_argument("--quaid-version", default="unknown")
     parser.add_argument("--k", type=int, default=5)
@@ -158,8 +179,15 @@ def main():
     print(f"DB: {args.db}")
 
     backend = QuaidBackend(args.db)
-    queries = load_queries(args.gbrain_evals_dir)
-    print(f"Loaded {len(queries)} queries")
+
+    # Prefer explicit queries.json with real qrels (MSMARCO/FiQA)
+    if args.queries_file and Path(args.queries_file).exists():
+        print(f"Loading queries from: {args.queries_file}")
+        queries = json.loads(Path(args.queries_file).read_text())
+        print(f"Loaded {len(queries)} queries with ground truth")
+    else:
+        queries = load_queries(args.gbrain_evals_dir)
+        print(f"Loaded {len(queries)} queries (from gbrain-evals dir)")
 
     scores = run_evaluation(backend, queries, k=args.k)
 

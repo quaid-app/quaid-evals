@@ -33,6 +33,9 @@ if quaid collection add docs "$CORPUS_DIR" --db "$DB_PATH" 2>&1; then
   COLLECTION_ELAPSED=$(( END - START ))
   IMPORT_SCORE=30
   echo "Collection add: ${COLLECTION_ELAPSED}ms"
+  # Generate embeddings for semantic search
+  echo "  Generating embeddings..."
+  quaid embed --db "$DB_PATH" 2>&1 | tail -1
 else
   COLLECTION_ELAPSED=99999
   IMPORT_SCORE=0
@@ -54,7 +57,7 @@ FTS_QUERIES=(
 FTS_PASS=0
 for QUERY in "${FTS_QUERIES[@]}"; do
   START=$(date +%s%3N)
-  RESULT=$(quaid memory_search "$QUERY" --db "$DB_PATH" --limit 5 2>/dev/null || echo "")
+  RESULT=$(quaid search "$QUERY" --db "$DB_PATH" --limit 5 --json 2>/dev/null || echo "")
   END=$(date +%s%3N)
   ELAPSED=$(( END - START ))
   FTS_LATENCY=$(( FTS_LATENCY + ELAPSED ))
@@ -82,7 +85,7 @@ SEM_QUERIES=(
 SEM_PASS=0
 for QUERY in "${SEM_QUERIES[@]}"; do
   START=$(date +%s%3N)
-  RESULT=$(quaid memory_query "$QUERY" --db "$DB_PATH" --limit 5 2>/dev/null || echo "")
+  RESULT=$(quaid query "$QUERY" --db "$DB_PATH" --limit 5 --json 2>/dev/null || echo "")
   END=$(date +%s%3N)
   ELAPSED=$(( END - START ))
   SEM_LATENCY=$(( SEM_LATENCY + ELAPSED ))
@@ -106,7 +109,7 @@ echo "Performance score: $PERF_SCORE/30"
 # Section 6: Integrity
 echo ""
 echo "[6/8] Integrity check..."
-PAGE_COUNT=$(quaid stats --db "$DB_PATH" 2>/dev/null | grep -oE '[0-9]+ pages?' | head -1 | grep -oE '[0-9]+' || echo "0")
+PAGE_COUNT=$(quaid list --db "$DB_PATH" --json 2>/dev/null | python3 -c "import json,sys; data=json.load(sys.stdin); print(len(data))" 2>/dev/null || echo "0")
 if [ "$PAGE_COUNT" -gt 0 ]; then
   INTEGRITY_SCORE=20
   echo "Integrity: $PAGE_COUNT pages indexed"
@@ -132,7 +135,7 @@ echo "[8/8] MCP server check..."
 MCP_SCORE=0
 if command -v quaid &>/dev/null; then
   # Start MCP server briefly and check it responds
-  QUAID_DB="$DB_PATH" timeout 5 quaid serve --mcp 2>/dev/null &
+  QUAID_DB="$DB_PATH" timeout 5 quaid serve 2>/dev/null &
   MCP_PID=$!
   sleep 2
   if kill -0 "$MCP_PID" 2>/dev/null; then
