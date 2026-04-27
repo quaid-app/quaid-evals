@@ -109,7 +109,7 @@ echo "Performance score: $PERF_SCORE/30"
 # Section 6: Integrity
 echo ""
 echo "[6/8] Integrity check..."
-PAGE_COUNT=$(quaid list --db "$DB_PATH" --json 2>/dev/null | python3 -c "import json,sys; data=json.load(sys.stdin); print(len(data))" 2>/dev/null || echo "0")
+PAGE_COUNT=$(quaid list --db "$DB_PATH" --limit 99999 --json 2>/dev/null | python3 -c "import json,sys; data=json.load(sys.stdin); print(len(data))" 2>/dev/null || echo "0")
 if [ "$PAGE_COUNT" -gt 0 ]; then
   INTEGRITY_SCORE=20
   echo "Integrity: $PAGE_COUNT pages indexed"
@@ -146,7 +146,6 @@ if command -v quaid &>/dev/null; then
   else
     echo "MCP: no valid response (got: ${MCP_RESPONSE:0:100})"
   fi
-fi
 fi
 
 # Calculate total
