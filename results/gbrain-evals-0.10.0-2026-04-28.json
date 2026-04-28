@@ -1,0 +1,3520 @@
+{
+  "quaid_version": "0.10.0",
+  "date": "2026-04-28",
+  "benchmark": "gbrain-evals",
+  "gbrain_evals": {
+    "p_at_5": 17.44,
+    "r_at_5": 78.17,
+    "total_queries": 500,
+    "k": 5,
+    "per_query": [
+      {
+        "query_id": "9652",
+        "query": "walgreens store sales average",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9653",
+        "query": "how much do bartenders make",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9654",
+        "query": "what is a furuncle boil",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9655",
+        "query": "what can urinalysis detect",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9656",
+        "query": "what is vitamin a used for",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9657",
+        "query": "what causes genetic alterations in normal cells",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9658",
+        "query": "cost to frame basement",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9659",
+        "query": "erudite divergent definition",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9660",
+        "query": "why is albumin normally absent in urine",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9661",
+        "query": "where was movie the birds filmed",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9662",
+        "query": "cost to file bankruptcy in virginia",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9663",
+        "query": "what is a hummingbird moth",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9664",
+        "query": "what does a western blot detect",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9665",
+        "query": "what is vegetable bouillon",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9667",
+        "query": "want is tom cruise doing now",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9668",
+        "query": "what means irie",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9669",
+        "query": "what is baseball twine made of",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9670",
+        "query": "What Does Lop means",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9671",
+        "query": "how much do tuna fishers first mates make",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9672",
+        "query": "how to start gypsophila elegans seeds",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9673",
+        "query": "how long to get masters degree",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9674",
+        "query": "what is treatment for jaundice",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9675",
+        "query": "replacing permanent resident card canada",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9676",
+        "query": "what is a purified phytochemical",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9677",
+        "query": "definition of IBR disease",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9678",
+        "query": "what landform makes a u shaped valley",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9679",
+        "query": "ovulation usually occurs on day _____ of a woman's cycle",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9680",
+        "query": "what kind of tick has rocky mountain spotted fever",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9681",
+        "query": "how long can you keep chicken salad in your fridge",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9682",
+        "query": "bulimia nervosa age range",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9683",
+        "query": "how much does an rn make in florida",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9684",
+        "query": "who is discovered silk",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9685",
+        "query": "how long does it take to boil beets",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9686",
+        "query": "what is consumer capitalism",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9687",
+        "query": "at what age do males hit puberty",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9688",
+        "query": "how does laser measure distance",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9689",
+        "query": "what is the statue of on the capitol building",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9690",
+        "query": "hakan what does oil do",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9691",
+        "query": "sustainability is also referred to as",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9692",
+        "query": "what type of enzyme is aldolase",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9693",
+        "query": "what are the two main functions of the skeletal system",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9694",
+        "query": "what is gold formed in",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9695",
+        "query": "lakes around michigan",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9696",
+        "query": "training and qualifications needed to be a social worker",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9697",
+        "query": "what is an example of a psychological need",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9698",
+        "query": "how long to study lpn school",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9699",
+        "query": "is the pharynx located before the mouth ?",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9700",
+        "query": "why do we have different time zones",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9702",
+        "query": "where do roseate spoonbills live",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9703",
+        "query": "meaning of the name darcy",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9704",
+        "query": "how much is a heater core replacement",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9705",
+        "query": "where is energy located in the atp molecule",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9707",
+        "query": "definition of diminution",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9708",
+        "query": "what type of chemical bond has the most potential energy stored in it",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9709",
+        "query": "is ginkgo biloba good for vertigo",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9710",
+        "query": "how tall is a redwood tree",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9711",
+        "query": "what is the meaning of the decameron",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9712",
+        "query": "what is rotation",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9713",
+        "query": "price to resurface rotors",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9714",
+        "query": "where is popocatepetl located",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9715",
+        "query": "which phase of mitosis does dna condense into chromosomes",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9716",
+        "query": "what is highest fico score",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9717",
+        "query": "is net interest expense the same as interest payments",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9718",
+        "query": "what is the meaning of something inside so strong",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9719",
+        "query": "what is the average water pressure for a home",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9720",
+        "query": "how long does ground beef stay good for frozen",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9721",
+        "query": "is accumulated depreciation required to be presented",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9722",
+        "query": "what is parkerized finish",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9723",
+        "query": "how young do babies start teething",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9724",
+        "query": "types of precancerous skin cancer",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9725",
+        "query": "how long to cook lamb chops in nuwave oven",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9726",
+        "query": "temperature range in singapore",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9727",
+        "query": "a antonym for politely",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9728",
+        "query": "large platelets causes",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9729",
+        "query": "what is puerperal sepsis",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9730",
+        "query": "sugars definition",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9731",
+        "query": "normal range for full blood count",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9732",
+        "query": "where is the viaduct in seattle",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9733",
+        "query": "what does blue colour signify",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9734",
+        "query": "what is a urethra",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9735",
+        "query": "can you truncate a table variable",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9736",
+        "query": "does asda have a negative impact on the environment",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9737",
+        "query": "psyllium husk fiber",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9738",
+        "query": "how to keep house plants from becoming leggy",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9739",
+        "query": "unit charge definition",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9740",
+        "query": "immunoglobulin definition",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9741",
+        "query": "what is atherosclerosis caused by",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9742",
+        "query": "how long is a city block in chicago",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9743",
+        "query": "where does the phrase what the dickens come from",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9744",
+        "query": "how to establish salary ranges",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9745",
+        "query": "salary of import and export in usa",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9746",
+        "query": "cholesterol in shrimp good or bad",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9747",
+        "query": "how long is a parvo vaccine good for",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9748",
+        "query": "what shape is streptococcus",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9749",
+        "query": "what is plasma lactate test",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9750",
+        "query": "what does medium do",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9751",
+        "query": "what is a nerve block in the foot",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9752",
+        "query": "does carvedilol affect your libido",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9753",
+        "query": "what is lean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9754",
+        "query": "how long are the longest axons in humans",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 66.67
+      },
+      {
+        "query_id": "9755",
+        "query": "which neuron secretes neurotransmitters in light",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9756",
+        "query": "name meanings felicity",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9757",
+        "query": "where is gerdau steel located",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9758",
+        "query": "where can i buy nematodes",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9759",
+        "query": "caesura literary definition",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9760",
+        "query": "determines meaning",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9761",
+        "query": "how much does pet insurance cost for cats",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9762",
+        "query": "where is retroperitoneal lymph nodes",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9763",
+        "query": "what temperature does a house fire reach",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9765",
+        "query": "what is a pear shaped diamond called",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9766",
+        "query": "what is the bride entrance called",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9767",
+        "query": "what does jitter mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9768",
+        "query": "when did the triceratops appear in the fossil record",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9769",
+        "query": "who was philip kiriakis mother on days",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9771",
+        "query": "major landforms of the amazon rainforest",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9772",
+        "query": "what is the normal range for body fat percentage",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9773",
+        "query": "what is tie dye made of",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9774",
+        "query": "is ruthenium expensive",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9775",
+        "query": "cat named as director of company",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9776",
+        "query": "when did the masking tape come out",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9777",
+        "query": "what is the name of the star called la superba",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9778",
+        "query": "where is sinus located",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9779",
+        "query": "what is lecithin used for in food",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9780",
+        "query": "what are nerve reflexes",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9781",
+        "query": "how far is the moon from planet earth",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9782",
+        "query": "when did etta james start her career",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9783",
+        "query": "what is brodmann areas",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9784",
+        "query": "what age of children fifths disease",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9785",
+        "query": "is influenza a contagious",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9786",
+        "query": "symbolic archetype definition",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9787",
+        "query": "what is hazus",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9788",
+        "query": "How to Get Rid of Food Poisoning",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9789",
+        "query": "tissue is formed from",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9790",
+        "query": "how far to space watermelon plants",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9791",
+        "query": "average cost to become a us citizen",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9792",
+        "query": "which blood type occurs most frequently",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9793",
+        "query": "what is land around australia",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9794",
+        "query": "elvis sings what key",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9795",
+        "query": "how fast do camellias grow",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9796",
+        "query": "what causes alkalosis",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9797",
+        "query": "what is cns toxicity",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9798",
+        "query": "most carbon monoxide is produced by",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9799",
+        "query": "how much does it cost to register a vehicle in ohio",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9800",
+        "query": "what are signs of dementia",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9801",
+        "query": "what does a firewall do",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9802",
+        "query": "what is a captor",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9803",
+        "query": "how to oven roast brussel sprouts",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9805",
+        "query": "what does the surname holt mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9806",
+        "query": "new oil furnace should cost",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9807",
+        "query": "what is progressive reform",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9808",
+        "query": "who invented the first vehicle",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9809",
+        "query": "why do my eyes look squinty in pictures",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9810",
+        "query": "what is cabaret music",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9811",
+        "query": "how much does an mri cost in dallas",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9812",
+        "query": "ainsley name meaning",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9813",
+        "query": "what is a bandog",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9814",
+        "query": "what is craic mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9815",
+        "query": "do you have to be smart to be an ultrasound tech",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9816",
+        "query": "where is the parietal lobe located",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9817",
+        "query": "what is functional constipation",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9818",
+        "query": "what causes a hoarse voice",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9819",
+        "query": "what is a bear's hand called",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9820",
+        "query": "what is mediastinal mass",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9821",
+        "query": "what group does the squirrel monkey belong to",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9822",
+        "query": "what does the name carmel mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9823",
+        "query": "nike name meaning",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9824",
+        "query": "peripheral nervous is part of what system",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9825",
+        "query": "where was chayanne born",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9826",
+        "query": "cost to install a deck",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9827",
+        "query": "qualification of a registered biomedical scientist",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9828",
+        "query": "what is astrocyte function",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9829",
+        "query": "where was laura ingalls wilder born",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9830",
+        "query": "where is Serotonin made in the body",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9831",
+        "query": "weighted average price",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9832",
+        "query": "what is austenitic and martensitic",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9833",
+        "query": "can other fish be placed with bala sharks",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9834",
+        "query": "how often is cal grant disbursed",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9835",
+        "query": "why was the napoleonic code significant",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9837",
+        "query": "what evidence does dna show",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9838",
+        "query": "scarlett johansson comic book movie roles",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9839",
+        "query": "what is adobo chicken",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9840",
+        "query": "where do zebras live",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9841",
+        "query": "what kind of climate do truffles grow in",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9842",
+        "query": "average cost of dog teeth cleaning",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9843",
+        "query": "what does a chromosome do",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9844",
+        "query": "what if jury summons excuses confirmation notice",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9845",
+        "query": "does poppy seed mean mustard seeds",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9846",
+        "query": "what is the importance of having an organizational structure in a project environment",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9847",
+        "query": "temperature effect on cellular respiration",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9848",
+        "query": "with what product did the term brand name originate",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9849",
+        "query": "eye problems caused by graves disease",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9850",
+        "query": "does the cardiovascular system produce hormones",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9851",
+        "query": "how to cook eat crab",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9852",
+        "query": "who wrote Nothing compares to you",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9853",
+        "query": "cost for relining dentures",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9854",
+        "query": "what is sherry wine made of",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9855",
+        "query": "dna in bacteria",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9856",
+        "query": "primary secondary and tertiary sectors definition",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9857",
+        "query": "what is mf ceiling",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9858",
+        "query": "how long does collar dove take to hatch",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9859",
+        "query": "how much does an lpn make an hour in illinois",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9860",
+        "query": "what does the aortic valve do",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9861",
+        "query": "common extensor tendon origin and insertion",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9862",
+        "query": "when was the death penalty abolished",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9864",
+        "query": "what types of movements are observed in transport of bedload",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9865",
+        "query": "what is the average bookkeeper hourly rate",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9866",
+        "query": "what is stone color",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9867",
+        "query": "what does a k in a mustang's vin code mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9868",
+        "query": "what are environmental impacts of hydropower",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9869",
+        "query": "anandi name meaning",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9870",
+        "query": "what is mesothelioma cancer",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9871",
+        "query": "do you have to have a special license to be a plumber virginia",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9872",
+        "query": "what effect would cutting the vagus nerve branch that innervates the stomach on gastric function",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9873",
+        "query": "what does superficial muscles mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9874",
+        "query": "what are kelpies",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9875",
+        "query": "how much money does a hoverboard cost",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9876",
+        "query": "how much does a social worker make in florida",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9877",
+        "query": "how long do you have to be working at a job to get maternity leave",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9878",
+        "query": "what is the average cost of a funeral",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9879",
+        "query": "what is a mango lassi",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9880",
+        "query": "is a swollen tongue a sign of cancer",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9881",
+        "query": "how many hours does a radiologist work",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9882",
+        "query": "salary for insurance agent",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9883",
+        "query": "what is pygeum used for",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9884",
+        "query": "what is transesophageal echocardiogram",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9885",
+        "query": "average price of a kayak pool",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9886",
+        "query": "what are dangerous carbon monoxide levels",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9887",
+        "query": "what are fingernails made of",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9888",
+        "query": "what does the frontal sinus do",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9889",
+        "query": "definition epistle",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9890",
+        "query": "sensorineural hearing loss diagnosis code",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9891",
+        "query": "where did sacagawea grow up",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9892",
+        "query": "what does the amplitude mean in a cosine equation",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9893",
+        "query": "what flavor is black truffle",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9894",
+        "query": "average cost of redoing a small bathroom",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9895",
+        "query": "why is immune system lower?",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9896",
+        "query": "how many kWh does one person use per day",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9897",
+        "query": "how long do lab mixes live",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9898",
+        "query": "what is korean ethnicity",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9899",
+        "query": "how long to bake chicken legs for",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9900",
+        "query": "how much do ladies footballers get paid",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9901",
+        "query": "what are the colors of the Zantedeschia flower",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9902",
+        "query": "how long after conception will a urine pregnancy test show positive",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9903",
+        "query": "what receptor does MIBG target",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9905",
+        "query": "steam cleaning carpet pesticides",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9906",
+        "query": "do nerves contain collagen",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9907",
+        "query": "meaning of name myah",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9908",
+        "query": "when was lady jane grey born",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9909",
+        "query": "how much will new brakes cost for my car",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9910",
+        "query": "is there a age requirement to become ny corrections",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9911",
+        "query": "best way to debug shell script",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9912",
+        "query": "what artery supplies dorsal part of hand",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9913",
+        "query": "what is ionic",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9914",
+        "query": "how to wash clothes with mites",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9915",
+        "query": "what is chyle leak",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9916",
+        "query": "what is gaskin maneuver shoulder dystocia",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9917",
+        "query": "is hepatitis classified as autoimmune disease",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9918",
+        "query": "what is tetramethylammonium chloride used for",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9919",
+        "query": "how to turn xerox printer online",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9920",
+        "query": "what is nitrofurantoin used for",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9921",
+        "query": "how long do artichoke seeds take to germinate",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9922",
+        "query": "why does my gas pedal keep sticking",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9923",
+        "query": "what general function does the skeletal system perform",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9924",
+        "query": "which planets are considered twins",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9925",
+        "query": "correlational study definition",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9926",
+        "query": "silver rate today in vijayawada",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9927",
+        "query": "what is contract furniture",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9928",
+        "query": "cost of postage to france",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9929",
+        "query": "how to cook swordfish in a pan",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9930",
+        "query": "which range of mountains is growing the fastest the himalayas or the andes",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9931",
+        "query": "what is gullah culture",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9932",
+        "query": "size of postcards for us post office",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9933",
+        "query": "types of connective tissue in the heart",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9934",
+        "query": "can you buy a hat band to make a hat fit that is too small",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9935",
+        "query": "what is an evaluation instrument",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9936",
+        "query": "what is ipsec used for",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9938",
+        "query": "which kingdom contain all unicellular organisms",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9939",
+        "query": "how much does it cost to add another cell phone to verizon",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9940",
+        "query": "what is a pterodactyl dinosaur",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9941",
+        "query": "is hilary duff an illuminati",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9942",
+        "query": "what causes lung disease",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 66.67
+      },
+      {
+        "query_id": "9943",
+        "query": "source of radioactive gaseous radon in homes",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9944",
+        "query": "average assistant director of nursing salary",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9945",
+        "query": "absorption of blood from abdominal cavity",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9946",
+        "query": "what does jule mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9948",
+        "query": "does a reduction agent become positive",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9949",
+        "query": "what are is fibromyalgia",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9950",
+        "query": "what is considered a good lsat score",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9951",
+        "query": "xtandi cost per month",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9952",
+        "query": "is cfs a disease",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9953",
+        "query": "body systems affected by kidney stones",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9954",
+        "query": "what is the equation for calculating density",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9955",
+        "query": "what do you use to clean a keyboard",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9956",
+        "query": "is reactive depression a mental illness",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9957",
+        "query": "is basmati rice natural or processed",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9958",
+        "query": "characteristics of spina bifida",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9959",
+        "query": "does fish oil supplement contain DHA",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9960",
+        "query": "salary for qa manager",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9961",
+        "query": "what is nearsightedness called",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9962",
+        "query": "pepita def",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9963",
+        "query": "how much does ups charge to notarize",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9964",
+        "query": "should you use a spirometer to increase lung capacity",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9965",
+        "query": "what is pulmonary fibrosis symptoms",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9966",
+        "query": "does goat cheese contain lactose",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9967",
+        "query": "how much does a redo of rhinoplasty cost",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9968",
+        "query": "what are young rabbits called",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9969",
+        "query": "what are the uses of radon",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9970",
+        "query": "cushing disease is caused by",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9971",
+        "query": "consolute temperature meaning",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "9972",
+        "query": "Where is the river Danube and where is its source and length",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9973",
+        "query": "what is spinosad",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9974",
+        "query": "how long can nicotine be detected in blood",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9975",
+        "query": "what is the grantor of a revocable trust",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9976",
+        "query": "what is the blastula",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9977",
+        "query": "what colours represent what emotions",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9978",
+        "query": "why are elephants considered mammals",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9979",
+        "query": "what is tax identification",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9980",
+        "query": "what is a fabric that are dull",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9981",
+        "query": "what was the main goal of the military reconstruction act",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9982",
+        "query": "what is your spleen responsible for",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9983",
+        "query": "similarities between due process and crime control models",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9984",
+        "query": "what is konjac glucomannan",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9985",
+        "query": "what does drostdy mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9986",
+        "query": "talbots hourly wage",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9987",
+        "query": "how to disable popups",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9988",
+        "query": "what is prader willi syndrome caused by",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9989",
+        "query": "what particles make up a proton",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9990",
+        "query": "average age of women who get married",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9991",
+        "query": "what is a balustrade",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9992",
+        "query": "how to become a cna fast",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9993",
+        "query": "which gene mutation is constitutive mutation gene regulation lac operon",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9994",
+        "query": "what does rms mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9995",
+        "query": "Possible health risks of consuming cilantro leaves",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "9996",
+        "query": "best way to find raikou in crystal",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9997",
+        "query": "cost attend yale",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9998",
+        "query": "how long does a felony conviction stay on your record in california",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "9999",
+        "query": "how much does student digs cost",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10000",
+        "query": "define express included contract terms",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10002",
+        "query": "how to measure oven temperature",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10003",
+        "query": "what kind of fossil is a petoskey stone",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "10004",
+        "query": "what is a novel",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10005",
+        "query": "what do the arteries do in the respiratory system",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10006",
+        "query": "can you connect your laptop to your xbox",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10007",
+        "query": "what is a emg test",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10008",
+        "query": "biological therapy definition",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10009",
+        "query": "why is it called flatbush",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10010",
+        "query": "what created the start of the manhattan project",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10011",
+        "query": "do you store royal icing in the refrigerator",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10012",
+        "query": "cost of screening for ovarian cancer",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10013",
+        "query": "a common sodium deficiency is muscle cramps",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10014",
+        "query": "where did ansel adams live",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10015",
+        "query": "disease synonyms english",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10016",
+        "query": "what does the air temperature controller do",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10017",
+        "query": "how to get spin from a wedge shot",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10018",
+        "query": "what makes a lava lamp work",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10019",
+        "query": "can grapes cause canker sores",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10020",
+        "query": "orthographic projection is a means of representing",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10022",
+        "query": "who invented the first jet plane",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10023",
+        "query": "what is a lease agreement",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10024",
+        "query": "what unit of wavelength is a de broglie",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10025",
+        "query": "what temperature for pork ribs",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10026",
+        "query": "what is albumin in urine",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10027",
+        "query": "salary ranges for nurses",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10028",
+        "query": "is contractor cost wages",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10029",
+        "query": "what is smallest particle size a human eye can see",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10030",
+        "query": "what is the going salary for market risk analyst",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10031",
+        "query": "did prince have children",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10032",
+        "query": "what are the differences between chromosome chromatid and chromatin",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10033",
+        "query": "temperature required to stain a deck",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "10034",
+        "query": "what kind of diversity is in grassland",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10035",
+        "query": "requirements to be a forensic toxicologist",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10036",
+        "query": "what is scorpion fish adaptations",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10037",
+        "query": "what is a nether crystal",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10038",
+        "query": "what property do solids and liquids share",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10039",
+        "query": "how long does it take to qualify for a home loan",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10040",
+        "query": "what does rose quartz known for",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10041",
+        "query": "what caused the great chinese famine",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10042",
+        "query": "what does the name refugio mean?",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10043",
+        "query": "cost of radon mitigation on a slab foundation",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10044",
+        "query": "is dubai a desert",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10045",
+        "query": "how long does it take to receive a insurance check",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10046",
+        "query": "what is saturn second largest moon",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10047",
+        "query": "what does sacramento republic fc mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10048",
+        "query": "tablet android how to close application",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10049",
+        "query": "is wollemi a town",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10050",
+        "query": "what is a habitat of a wolf",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10051",
+        "query": "is barcelona vs atletico madrid on tv",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10052",
+        "query": "best tablet to reduce fever",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10053",
+        "query": "what temperature to cook roast lamb",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10054",
+        "query": "where is catalina island",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10055",
+        "query": "when to claim parent as dependent",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10056",
+        "query": "at what age can a fetus survive",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10057",
+        "query": "should i wear a pad for discharge",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10058",
+        "query": "meaning of name arman",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10059",
+        "query": "what does the peripheral nervous system do",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10060",
+        "query": "how can you tell if there is a problem with your transmission",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10061",
+        "query": "what is there to do in penzance",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10062",
+        "query": "cost of professional cleaning services",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10063",
+        "query": "warning signs of someone contemplating suicide",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10064",
+        "query": "what causes an upper respiratory infection",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10065",
+        "query": "what is jati",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10066",
+        "query": "tv character who sang the opening theme song",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10067",
+        "query": "what is a retail buyer",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10068",
+        "query": "how much does a pilot earn",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10069",
+        "query": "what ligaments and cartilage are in middle of chest",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10070",
+        "query": "what are the three types of vertebrae",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10071",
+        "query": "what is physiology mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10072",
+        "query": "what is the average pay for police officers vs the army",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10073",
+        "query": "is a class a misdemeanor deportable offense to a residence",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10074",
+        "query": "shedding tissues (carbuncles) in eye",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10075",
+        "query": "what does algaecide do",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10076",
+        "query": "sign and symptoms of pneumonia caused by bacillus subtilis",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10077",
+        "query": "what is myasthenia gravis treatment",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10078",
+        "query": "what kind of gravel is bad for a fish tank",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10079",
+        "query": "what is south china tiger habitat location",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10081",
+        "query": "famous actors born in alaska",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10082",
+        "query": "platelet count normal range",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "10083",
+        "query": "why is brassica rapa a good model organism",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10084",
+        "query": "what diseases can skin rashes",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10085",
+        "query": "what is oleoresin",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10086",
+        "query": "pharmacist salary in oregon",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10088",
+        "query": "who is jake mason",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10089",
+        "query": "what age is recommended for a baby to fly",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10090",
+        "query": "will a credit limit increase decline hurt your credit",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10091",
+        "query": "how long should i steam crab legs",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10092",
+        "query": "what factors could cause false positive for blood ethanol test",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10093",
+        "query": "kilaya name meaning",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10094",
+        "query": "what type of government did the bolsheviks established",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10095",
+        "query": "who is the director of ncis",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10096",
+        "query": "average nurse salary singapore",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10097",
+        "query": "what is a shanty town",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10098",
+        "query": "what is chain hotel",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10099",
+        "query": "assistant professor salary in turkey",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10100",
+        "query": "what type of government does djibouti have",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10102",
+        "query": "what is polycythemia",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10103",
+        "query": "how long does it take a guinea egg to hatch",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10104",
+        "query": "html stop underline button text",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10105",
+        "query": "average price of hernia surgery in chicago",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10106",
+        "query": "neutrophil normal range",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10107",
+        "query": "limit of aspirin dose for antiplatelet therapy",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "10108",
+        "query": "what is ferroelectric material",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10109",
+        "query": "what creates earthquakes",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10110",
+        "query": "how much does it cost to build house",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "10111",
+        "query": "bad gasoline how to clean carburetor",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10112",
+        "query": "what is the main function of the superior vena cava",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10113",
+        "query": "how much to pay for drywall work",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10114",
+        "query": "lyme disease what determines geographical region",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10115",
+        "query": "how much does it cost for varicose vein removal",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10116",
+        "query": "what is chromatography",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10117",
+        "query": "how fast do pandas run",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10118",
+        "query": "two basic tissues of which the skin is composed are",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10119",
+        "query": "jackie chan net worth",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10120",
+        "query": "swamp definition",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10121",
+        "query": "process procedure definition",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10122",
+        "query": "what is a compound noun in english",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10123",
+        "query": "how long does it take for a baby to be fully developed",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10124",
+        "query": "how much does a afghan hound cost",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10125",
+        "query": "how much does it cost to rebook a skills test",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10126",
+        "query": "calories in a rasgulla",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10127",
+        "query": "what is the average temperature in pei in july",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10128",
+        "query": "what does it mean dysbacteriosis",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10129",
+        "query": "cost to replace check valve on well pump",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10130",
+        "query": "what is speed of an object",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10131",
+        "query": "how long can you keep hard boiled eggs in the fridge before they go bad",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10132",
+        "query": "what is a patent attorney",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10133",
+        "query": "what is pregnyl used for",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10134",
+        "query": "what is habu sake",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10135",
+        "query": "does transcription require dna polymerase",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10136",
+        "query": "barite is in what mineral group",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10137",
+        "query": "tiny house can i convert a modular home",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10138",
+        "query": "texas When does the legislature meet?",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10139",
+        "query": "what is public health model",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10140",
+        "query": "what is the alaskan delta mountain range",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10141",
+        "query": "What are the symptoms and causes of conjunctivitis",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10142",
+        "query": "what does viral infection means",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10143",
+        "query": "why is genetic engineering bad for humans",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10144",
+        "query": "what are NK cells, scientific name",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10145",
+        "query": "are scissor jacks dangerous",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10146",
+        "query": "what does the name colleen mean",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10147",
+        "query": "what is echocardiogram test",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10148",
+        "query": "where does king salmon live",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10149",
+        "query": "what is the kaaba and where is it located",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10150",
+        "query": "how long should lambs nurse till weaned",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10151",
+        "query": "why is msg unhealthy",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10152",
+        "query": "what is the one part of a nucleotide that differs",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10153",
+        "query": "what can you find within the nucleus of a cell",
+        "retrieved": 5,
+        "p_at_k": 40.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10154",
+        "query": "what is naive",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10155",
+        "query": "why did the first battle of bull run happen",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10156",
+        "query": "In what form is carbohydrate stored in the body",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10157",
+        "query": "what is websense",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10158",
+        "query": "meaning dream of man lying in pool of blood",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10159",
+        "query": "Motor neurons are considered to be what type of neurons",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10160",
+        "query": "is the levator palpebrae superioris an extraocular muscle",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10161",
+        "query": "what is an mri",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10162",
+        "query": "state the names of two scientists who helped develop the periodic table",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10163",
+        "query": "difference between greek and roman culture",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 50.0
+      },
+      {
+        "query_id": "10164",
+        "query": "what does altimeter mean",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      },
+      {
+        "query_id": "10166",
+        "query": "what is shown by a frequency polygon",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10167",
+        "query": "what is usenix",
+        "retrieved": 5,
+        "p_at_k": 20.0,
+        "r_at_k": 100.0
+      },
+      {
+        "query_id": "10168",
+        "query": "what damage does nicotine do to your body",
+        "retrieved": 5,
+        "p_at_k": 0.0,
+        "r_at_k": 0.0
+      }
+    ]
+  },
+  "reference": {
+    "gbrain": {
+      "p_at_5": 49.1,
+      "r_at_5": 97.9,
+      "source": "garrytan Apr 27 2026"
+    }
+  }
+}

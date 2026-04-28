@@ -1,0 +1,22 @@
+{
+  "quaid_version": "0.10.0",
+  "date": "2026-04-28",
+  "benchmark": "dab",
+  "total_score": 213,
+  "max_score": 215,
+  "sections": {
+    "install": {"score": 10, "max": 10},
+    "import": {"score": 30, "max": 30},
+    "fts": {"score": 40, "max": 40},
+    "semantic": {"score": 48, "max": 50},
+    "performance": {"score": 30, "max": 30},
+    "integrity": {"score": 20, "max": 20},
+    "collections": {"score": 15, "max": 15},
+    "mcp": {"score": 20, "max": 20}
+  },
+  "performance": {
+    "fts_latency_ms": 10,
+    "semantic_latency_ms": 327,
+    "collection_add_ms": 5053
+  }
+}
