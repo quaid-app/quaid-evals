@@ -44,6 +44,19 @@ def load_results():
     return results
 
 
+def load_dab_v2_results():
+    """Load DAB v2 full results."""
+    runs = {}
+    for f in sorted(RESULTS_DIR.glob("dab-v2-full-*.json")):
+        try:
+            data = json.loads(f.read_text())
+            key = (data.get("system", "?"), data.get("version", "?"), data.get("date", ""))
+            runs[key] = data
+        except Exception as e:
+            print(f"Warning: could not parse {f}: {e}")
+    return list(runs.values())
+
+
 def build_history(results):
     """Build version history - merge DAB and gbrain-evals by version+date."""
     # Group by (version, date)
@@ -83,8 +96,22 @@ def main():
     results = load_results()
     history = build_history(results)
     latest = history[-1] if history else None
+    
+    # DAB v2 results
+    dab_v2_runs = load_dab_v2_results()
+    import re
+    dab_v2_latest = sorted(dab_v2_runs, key=lambda x: (
+        x.get("date",""), [int(p) for p in re.findall(r'\d+', x.get("version","0"))]
+    ))[-1] if dab_v2_runs else None
 
     report = {
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "latest": latest,
+        "history": history,
+        "dab_v2": {
+            "latest": dab_v2_latest,
+            "all_runs": dab_v2_runs,
+        },
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "latest": latest,
         "history": history,

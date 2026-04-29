@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-29T07:52:37.275780Z",
+  "generated_at": "2026-04-29T10:45:23.477249Z",
   "latest": {
     "version": "0.11.6",
     "date": "2026-04-29",
@@ -17847,6 +17847,11 @@
       }
     },
     {
+      "version": "unknown",
+      "date": "2026-04-29",
+      "benchmarks": {}
+    },
+    {
       "version": "0.11.6",
       "date": "2026-04-29",
       "benchmarks": {
@@ -21416,6 +21421,72 @@
       }
     }
   ],
+  "dab_v2": {
+    "latest": {
+      "system": "quaid",
+      "version": "0.11.6",
+      "date": "2026-04-29",
+      "benchmark": "dab-v2-full",
+      "total": 97,
+      "max": 400,
+      "pct": 24,
+      "sections": {
+        "s1_infrastructure": {
+          "score": 27,
+          "max": 40
+        },
+        "s2_realworld_retrieval": {
+          "score": 50,
+          "max": 100
+        },
+        "s3_conversation_memory": {
+          "score": 0,
+          "max": 100
+        },
+        "s4_knowledge_graph": {
+          "score": 0,
+          "max": 80
+        },
+        "s5_agent_intelligence": {
+          "score": 20,
+          "max": 80
+        }
+      }
+    },
+    "all_runs": [
+      {
+        "system": "quaid",
+        "version": "0.11.6",
+        "date": "2026-04-29",
+        "benchmark": "dab-v2-full",
+        "total": 97,
+        "max": 400,
+        "pct": 24,
+        "sections": {
+          "s1_infrastructure": {
+            "score": 27,
+            "max": 40
+          },
+          "s2_realworld_retrieval": {
+            "score": 50,
+            "max": 100
+          },
+          "s3_conversation_memory": {
+            "score": 0,
+            "max": 100
+          },
+          "s4_knowledge_graph": {
+            "score": 0,
+            "max": 80
+          },
+          "s5_agent_intelligence": {
+            "score": 20,
+            "max": 80
+          }
+        }
+      }
+    ]
+  },
   "reference": {
     "gbrain": {
       "label": "GBrain (Garry Tan)",
@@ -21444,5 +21515,5 @@
       "notes": "~7K tokens per retrieval vs 25K+ for full-context."
     }
   },
-  "total_runs": 5
+  "total_runs": 6
 }
