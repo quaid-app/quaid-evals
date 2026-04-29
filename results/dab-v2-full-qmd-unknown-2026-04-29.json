@@ -1,0 +1,16 @@
+{
+  "system": "qmd",
+  "version": "unknown",
+  "date": "2026-04-29",
+  "benchmark": "dab-v2-full",
+  "total": 68,
+  "max": 400,
+  "pct": 17,
+  "sections": {
+    "s1_infrastructure": {"score": 21, "max": 40},
+    "s2_realworld_retrieval": {"score": 42, "max": 100},
+    "s3_conversation_memory": {"score": 0, "max": 100, "note": "qmd has no conversation memory"},
+    "s4_knowledge_graph": {"score": 0, "max": 80, "note": "qmd has no graph layer"},
+    "s5_agent_intelligence": {"score": 5, "max": 80, "note": "basic search only, no MCP/contradiction/gaps"}
+  }
+}

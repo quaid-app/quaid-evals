@@ -1,0 +1,16 @@
+{
+  "system": "gbrain",
+  "version": "0.22.8",
+  "date": "2026-04-29",
+  "benchmark": "dab-v2-full",
+  "total": 77,
+  "max": 400,
+  "pct": 19,
+  "sections": {
+    "s1_infrastructure": {"score": 15, "max": 40},
+    "s2_realworld_retrieval": {"score": 7, "max": 100},
+    "s3_conversation_memory": {"score": 0, "max": 100, "note": "GBrain has no conversation memory"},
+    "s4_knowledge_graph": {"score": 45, "max": 80, "note": "Partial estimate from published benchmark data"},
+    "s5_agent_intelligence": {"score": 10, "max": 80}
+  }
+}
