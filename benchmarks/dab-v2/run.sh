@@ -50,9 +50,9 @@ S1_SCORE=$((S1_SCORE + S1_1))
 echo "[S1.2] Corpus ingestion..."
 if [ "$SYSTEM" = "quaid" ]; then
   ${SYSTEM} init "$DB_PATH" 2>/dev/null || true
-  START=$(date +%s%3N)
+  START=$(python3 -c "import time; print(int(time.time()*1000))")
   if ${SYSTEM} collection add docs "$CORPUS_DIR" --db "$DB_PATH" 2>&1 | grep -q "status=\"ok\""; then
-    END=$(date +%s%3N)
+    END=$(python3 -c "import time; print(int(time.time()*1000))")
     IMPORT_MS=$((END - START))
     S1_2=8  # 5 pts ingested + 3 pts retrievable
     [ "$IMPORT_MS" -lt 180000 ] && S1_2=10  # +2 pts if <180s
@@ -63,9 +63,9 @@ if [ "$SYSTEM" = "quaid" ]; then
   fi
 elif [ "$SYSTEM" = "qmd" ]; then
   export PATH="$HOME/.bun/bin:$PATH"
-  START=$(date +%s%3N)
+  START=$(python3 -c "import time; print(int(time.time()*1000))")
   qmd update 2>/dev/null && S1_2=8 || S1_2=0
-  END=$(date +%s%3N)
+  END=$(python3 -c "import time; print(int(time.time()*1000))")
   echo "  qmd update: $((END-START))ms → $S1_2/10"
 else
   S1_2=0
