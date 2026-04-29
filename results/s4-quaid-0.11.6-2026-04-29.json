@@ -1,0 +1,13 @@
+{
+  "score": 0,
+  "max": 80,
+  "breakdown": {
+    "s4_1": 0,
+    "s4_2": 0,
+    "s4_3": 0,
+    "s4_4": 0
+  },
+  "system": "quaid",
+  "date": "2026-04-29",
+  "benchmark": "dab-v2-s4"
+}

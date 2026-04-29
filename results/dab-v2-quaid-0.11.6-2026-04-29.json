@@ -5,13 +5,13 @@
   "benchmark": "dab-v2-phase1",
   "phase": "1-infra-retrieval",
   "sections": {
-    "s1_infrastructure": {"score": 37, "max": 40, "breakdown": {"install": 5, "ingest": 10, "fts": 10, "semantic": 10, "api": 2}},
+    "s1_infrastructure": {"score": 27, "max": 40, "breakdown": {"install": 5, "ingest": 0, "fts": 10, "semantic": 10, "api": 2}},
     "s2_realworld_retrieval": {"score": 50, "max": 100, "breakdown": {"paraphrase": 25, "cross_domain": 25, "temporal": 0, "negative": 0}},
     "s3_conversation": {"score": 0, "max": 100, "note": "Phase 2 - requires conversation memory feature"},
     "s4_graph": {"score": 0, "max": 80, "note": "Phase 3 - requires entity extraction feature"},
     "s5_intelligence": {"score": 0, "max": 80, "note": "Phase 4"}
   },
-  "phase1_total": 87,
+  "phase1_total": 77,
   "phase1_max": 140,
-  "full_dab_v2_estimate": 87
+  "full_dab_v2_estimate": 77
 }

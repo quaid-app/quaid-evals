@@ -1,0 +1,16 @@
+{
+  "system": "quaid",
+  "version": "0.11.6",
+  "date": "2026-04-29",
+  "benchmark": "dab-v2-full",
+  "total": 97,
+  "max": 400,
+  "pct": 24,
+  "sections": {
+    "s1_infrastructure": {"score": 27, "max": 40},
+    "s2_realworld_retrieval": {"score": 50, "max": 100},
+    "s3_conversation_memory": {"score": 0, "max": 100},
+    "s4_knowledge_graph": {"score": 0, "max": 80},
+    "s5_agent_intelligence": {"score": 20, "max": 80}
+  }
+}
