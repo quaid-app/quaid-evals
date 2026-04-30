@@ -71,13 +71,13 @@ class QuaidBackend:
     def flush_to_quaid(self) -> bool:
         result = subprocess.run(
             ["quaid", "collection", "add", "lme", self._tmp_dir, "--db", self.db_path],
-            env=self._env, capture_output=True, text=True, timeout=120
+            env=self._env, capture_output=True, text=True, timeout=300
         )
         if result.returncode != 0:
             return False
         embed = subprocess.run(
             ["quaid", "embed", "--db", self.db_path],
-            env=self._env, capture_output=True, text=True, timeout=120
+            env=self._env, capture_output=True, text=True, timeout=600
         )
         return embed.returncode == 0
 
