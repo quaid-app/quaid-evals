@@ -1,6 +1,6 @@
 ---
-// src/pages/index.astro
-// Quaid Evals - Home Page
+// src/pages/index.astro - Quaid Evals v2.1
+// Full benchmark leaderboard with history charts
 
 import reportData from '../data/report.json';
 
@@ -8,6 +8,7 @@ const { latest, history, reference, total_runs, dab_v2 } = reportData;
 const gbrain = reference.gbrain;
 const mem0 = reference.mem0_v3;
 
+// DAB v1 history
 const latestDab = latest?.benchmarks?.dab;
 const latestGbrain = latest?.benchmarks?.gbrain_evals;
 const latestVersion = latest?.version ?? 'No runs yet';
@@ -17,10 +18,21 @@ const latestDate = latest?.date ?? '';
 const dabV2Latest = dab_v2?.latest;
 const dabV2Sections = dabV2Latest?.sections;
 
-// Build chart data
+// Charts
 const chartVersions = history.map(h => h.version);
 const dabScores = history.map(h => h.benchmarks?.dab?.pct ?? null);
 const rAt5Scores = history.map(h => h.benchmarks?.gbrain_evals?.r_at_5 ?? null);
+const p5Scores = history.map(h => h.benchmarks?.gbrain_evals?.p_at_5 ?? null);
+
+// DAB v2 history
+const dab_v2_history = dab_v2?.all_runs ?? [];
+const dab_v2_quaid = dab_v2_history.filter((r: any) => r.system === 'quaid')
+  .sort((a: any, b: any) => a.version?.localeCompare(b.version, undefined, {numeric: true}));
+const dab_v2_qmd = dab_v2_history.filter((r: any) => r.system === 'qmd');
+const dab_v2_gbrain = dab_v2_history.filter((r: any) => r.system === 'gbrain');
+
+// Chart data for DAB v2
+const dab_v2_versions = [...new Set(dab_v2_history.map((r: any) => r.system === 'quaid' ? `Quaid ${r.version}` : `${r.system}`))];
 ---
 
 <!DOCTYPE html>
@@ -28,234 +40,219 @@ const rAt5Scores = history.map(h => h.benchmarks?.gbrain_evals?.r_at_5 ?? null);
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quaid Evals - Benchmark Results</title>
+  <title>Quaid Evals — Agent Memory Benchmark</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: #0f0e0d;
-      color: #e8e2d9;
-      line-height: 1.6;
-    }
-    header {
-      border-bottom: 1px solid #2a2520;
-      padding: 1.5rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #0f0e0d; color: #e8e2d9; line-height: 1.6; }
+    header { border-bottom: 1px solid #2a2520; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; }
     header h1 { font-size: 1.25rem; color: #A59A7A; font-weight: 600; }
     header span { font-size: 0.85rem; color: #6b6258; }
     main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
     h2 { font-size: 1.1rem; color: #A59A7A; margin-bottom: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     .section { margin-bottom: 3rem; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-    .card {
-      background: #1a1815;
-      border: 1px solid #2a2520;
-      border-radius: 8px;
-      padding: 1.25rem;
-    }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .card { background: #1a1815; border: 1px solid #2a2520; border-radius: 8px; padding: 1.25rem; }
     .card .label { font-size: 0.75rem; color: #6b6258; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
-    .card .value { font-size: 2rem; font-weight: 700; color: #A59A7A; }
+    .card .value { font-size: 1.8rem; font-weight: 700; color: #A59A7A; }
     .card .sub { font-size: 0.8rem; color: #6b6258; margin-top: 0.25rem; }
-    .chart-wrap { background: #1a1815; border: 1px solid #2a2520; border-radius: 8px; padding: 1.5rem; }
+    .chart-wrap { background: #1a1815; border: 1px solid #2a2520; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .chart-title { font-size: 0.85rem; color: #A59A7A; margin-bottom: 1rem; font-weight: 600; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #2a2520; color: #6b6258; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
     td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #1e1c1a; }
     tr:hover td { background: #1e1c1a; }
     .quaid { color: #A59A7A; font-weight: 600; }
-    .better { color: #6ec97a; }
-    .worse { color: #e07070; }
     .na { color: #444; }
     .tag { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 3px; background: #2a2520; color: #A59A7A; margin-left: 0.4rem; }
+    .badge-new { background: #2a3520; color: #6ec97a; }
     footer { border-top: 1px solid #2a2520; padding: 1.5rem 2rem; text-align: center; font-size: 0.8rem; color: #444; }
     a { color: #A59A7A; text-decoration: none; }
     a:hover { text-decoration: underline; }
+    .note { font-size: 0.75rem; color: #444; margin-top: 0.75rem; }
+    .grade-green { color: #6ec97a; }
+    .grade-yellow { color: #e0c070; }
+    .grade-orange { color: #e07040; }
+    .grade-red { color: #e07070; }
+    @media (max-width: 700px) { .charts-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <header>
-    <h1>Quaid Evals</h1>
-    <span>quaid-app.github.io/quaid-evals · {total_runs} runs</span>
+    <h1>Quaid Evals — Agent Memory Benchmark</h1>
+    <span>{total_runs} runs · benchmark.quaid.app</span>
   </header>
 
   <main>
-    <!-- Latest scores -->
-    <div class="section">
-      <h2>Latest: {latestVersion} {latestDate ? `(${latestDate})` : ''}</h2>
-      <div class="cards">
-        {latestDab ? (
-          <div class="card">
-            <div class="label">DAB Score</div>
-            <div class="value">{latestDab.total}/{latestDab.max}</div>
-            <div class="sub">{latestDab.pct}% of max</div>
-          </div>
-        ) : (
-          <div class="card">
-            <div class="label">DAB Score</div>
-            <div class="value na">—</div>
-            <div class="sub">No runs yet</div>
-          </div>
-        )}
-        {latestGbrain ? (
-          <>
-            <div class="card">
-              <div class="label">P@5 (gbrain-evals)</div>
-              <div class="value">{latestGbrain.p_at_5}%</div>
-              <div class="sub">GBrain ref: {gbrain.gbrain_evals.p_at_5}%</div>
-            </div>
-            <div class="card">
-              <div class="label">R@5 (gbrain-evals)</div>
-              <div class="value">{latestGbrain.r_at_5}%</div>
-              <div class="sub">GBrain ref: {gbrain.gbrain_evals.r_at_5}%</div>
-            </div>
-          </>
-        ) : (
-          <div class="card">
-            <div class="label">gbrain-evals P@5 / R@5</div>
-            <div class="value na">—</div>
-            <div class="sub">No runs yet</div>
-          </div>
-        )}
-      </div>
-    </div>
 
-    <!-- History chart -->
-    {history.length > 0 && (
-      <div class="section">
-        <h2>Score History</h2>
-        <div class="chart-wrap">
-          <canvas id="historyChart" height="80"></canvas>
+    <!-- DAB v1 Latest (regression gate) -->
+    <div class="section">
+      <h2>DAB v1 — Regression Gate (latest: {latestVersion})</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="label">DAB Score</div>
+          <div class="value">{latestDab ? `${latestDab.total}/${latestDab.max}` : '—'}</div>
+          <div class="sub">{latestDab ? `${latestDab.pct}%` : 'No runs yet'}</div>
+        </div>
+        <div class="card">
+          <div class="label">P@5 (MSMARCO)</div>
+          <div class="value">{latestGbrain?.p_at_5 != null ? `${latestGbrain.p_at_5}%` : '—'}</div>
+          <div class="sub">GBrain ref: {gbrain.gbrain_evals.p_at_5}%</div>
+        </div>
+        <div class="card">
+          <div class="label">R@5 (MSMARCO)</div>
+          <div class="value">{latestGbrain?.r_at_5 != null ? `${latestGbrain.r_at_5}%` : '—'}</div>
+          <div class="sub">GBrain ref: {gbrain.gbrain_evals.r_at_5}%</div>
+        </div>
+        <div class="card">
+          <div class="label">Date</div>
+          <div class="value" style="font-size:1.1rem">{latestDate || '—'}</div>
+          <div class="sub">v{latestVersion}</div>
         </div>
       </div>
-    )}
 
-    <!-- Comparison table -->
+      <!-- DAB v1 + P@5/R@5 history chart -->
+      {history.length > 1 && (
+        <div class="charts-grid">
+          <div class="chart-wrap">
+            <div class="chart-title">DAB Score History (%)</div>
+            <canvas id="dabHistory" height="120"></canvas>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-title">MSMARCO P@5 / R@5 History (%)</div>
+            <canvas id="msmarcoHistory" height="120"></canvas>
+          </div>
+        </div>
+      )}
+    </div>
+
+    <!-- DAB v2.1 -->
     <div class="section">
-      <h2>Competitive Comparison</h2>
+      <h2>DAB v2.1 — Competitive Benchmark <span class="tag badge-new">new</span></h2>
+      <p style="font-size:0.85rem; color:#6b6258; margin-bottom:1.5rem;">420pt framework across 5 sections. No current system passes 50%. "Three Pillars": §2 Retrieval / §3 Conversation / §4 Graph all weighted equally at 100pts. Latency penalty applied.</p>
+
+      {dabV2Latest && (
+        <>
+          <div class="cards">
+            <div class="card">
+              <div class="label">Quaid (measured)</div>
+              <div class="value">{dabV2Latest.total}/420</div>
+              <div class="sub">{dabV2Latest.pct}% — v{dabV2Latest.version}</div>
+            </div>
+            {dabV2Sections && (
+              <>
+                <div class="card">
+                  <div class="label">§1 Infrastructure</div>
+                  <div class="value" style={`color:${(dabV2Sections.s1_infrastructure?.score ?? 0) >= 35 ? '#6ec97a' : '#e07040'}`}>{dabV2Sections.s1_infrastructure?.score ?? 0}/40</div>
+                </div>
+                <div class="card">
+                  <div class="label">§2 Retrieval</div>
+                  <div class="value" style={`color:${(dabV2Sections.s2_realworld_retrieval?.score ?? 0) >= 80 ? '#6ec97a' : '#e07040'}`}>{dabV2Sections.s2_realworld_retrieval?.score ?? 0}/100</div>
+                </div>
+                <div class="card">
+                  <div class="label">§3 Conversation</div>
+                  <div class="value" style="color:#e07070">{dabV2Sections.s3_conversation?.score ?? 0}/100</div>
+                  <div class="sub">requires #105</div>
+                </div>
+                <div class="card">
+                  <div class="label">§4 Graph</div>
+                  <div class="value" style="color:#e07070">{dabV2Sections.s4_graph?.score ?? 0}/100</div>
+                  <div class="sub">requires #107</div>
+                </div>
+                <div class="card">
+                  <div class="label">§5 Intelligence</div>
+                  <div class="value">{dabV2Sections.s5_intelligence?.score ?? 0}/80</div>
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
+
+      <!-- DAB v2.1 competitive table -->
       <table>
         <thead>
           <tr>
             <th>System</th>
-            <th>DAB</th>
-            <th>P@5</th>
-            <th>R@5</th>
-            <th>LoCoMo</th>
-            <th>BEAM 1M</th>
-            <th>BEAM 10M</th>
-            <th>Notes</th>
+            <th>§1 Infra /40</th>
+            <th>§2 Retrieval /100</th>
+            <th>§3 Conversation /100</th>
+            <th>§4 Graph /100</th>
+            <th>§5 Intel /80</th>
+            <th>Total /420</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><span class="quaid">Quaid (latest)</span> <span class="tag">ours</span></td>
-            <td>{latestDab ? `${latestDab.pct}%` : <span class="na">—</span>}</td>
-            <td>{latestGbrain ? `${latestGbrain.p_at_5}%` : <span class="na">—</span>}</td>
-            <td>{latestGbrain ? `${latestGbrain.r_at_5}%` : <span class="na">—</span>}</td>
-            <td>{latest?.locomo?.locomo?.overall != null ? `${(latest.locomo.locomo.overall * 100).toFixed(1)}%` : <span class="na">—</span>}</td>
-            <td class="na">—</td>
-            <td class="na">—</td>
-            <td>PARA-native, OpenClaw MCP, self-hosted</td>
+            <td><span class="quaid">Quaid</span> <span class="tag">measured</span></td>
+            <td>{dabV2Sections?.s1_infrastructure?.score ?? '—'}</td>
+            <td>{dabV2Sections?.s2_realworld_retrieval?.score ?? '—'}</td>
+            <td class="na">0</td>
+            <td class="na">0</td>
+            <td>{dabV2Sections?.s5_intelligence?.score ?? '—'}</td>
+            <td class="quaid">{dabV2Latest?.total ?? '—'} ({dabV2Latest?.pct ?? '—'}%)</td>
+            <td><span class="grade-red">🔴 Needs Work</span></td>
           </tr>
           <tr>
-            <td><a href={gbrain.source} target="_blank">GBrain</a></td>
-            <td class="na">—</td>
-            <td>{gbrain.gbrain_evals.p_at_5}%</td>
-            <td>{gbrain.gbrain_evals.r_at_5}%</td>
-            <td class="na">—</td>
-            <td class="na">—</td>
-            <td class="na">—</td>
-            <td>Graph+vector+FTS, 17,888 pages, {gbrain.date}</td>
+            <td>GBrain <span class="tag">measured</span></td>
+            <td>15</td>
+            <td>7</td>
+            <td class="na">0</td>
+            <td class="na">45 est.</td>
+            <td>10</td>
+            <td>77 (18%)</td>
+            <td><span class="grade-red">🔴 Needs Work</span></td>
           </tr>
           <tr>
-            <td><a href="https://mem0.ai" target="_blank">Mem0 v3</a></td>
-            <td class="na">—</td>
-            <td class="na">—</td>
-            <td class="na">—</td>
-            <td>{mem0.locomo.score}%</td>
-            <td>{mem0.beam.score_1m}%</td>
-            <td>{mem0.beam.score_10m}%</td>
-            <td>~7K tokens/retrieval, conversational memory, {mem0.date}</td>
+            <td>Mem0 v3 <span class="tag">estimated</span></td>
+            <td>~30</td>
+            <td>~30</td>
+            <td>~82</td>
+            <td class="na">0</td>
+            <td>~10</td>
+            <td>~152 (36%)</td>
+            <td><span class="grade-red">🔴 Needs Work</span></td>
+          </tr>
+          <tr>
+            <td>qmd <span class="tag">measured</span></td>
+            <td>21</td>
+            <td>45</td>
+            <td class="na">0</td>
+            <td class="na">0</td>
+            <td>5</td>
+            <td>71 (17%)</td>
+            <td><span class="grade-red">🔴 Needs Work</span></td>
           </tr>
         </tbody>
       </table>
-      <p style="font-size:0.75rem; color:#444; margin-top:0.75rem;">
-        Reference scores from published benchmarks. Different benchmarks test different capabilities — see <a href="https://github.com/quaid-app/quaid-evals">methodology</a>.
-      </p>
+      <p class="note">Scores updated automatically. Estimated scores based on published benchmarks. <a href="https://github.com/quaid-app/quaid-evals">View methodology →</a></p>
     </div>
 
-  <!-- DAB v2 Section -->
-    {dabV2Latest && (
+    <!-- DAB v2 history chart (Quaid improvement over time) -->
+    {dab_v2_quaid.length > 1 && (
       <div class="section">
-        <h2>DAB v2 — Agent Memory Benchmark <span class="tag">new</span></h2>
-        <p style="font-size:0.85rem; color:#6b6258; margin-bottom:1rem;">400pt framework testing real-world retrieval, conversation memory, knowledge graph, and agent intelligence. No current system passes 50%.</p>
-        <div class="cards">
-          <div class="card">
-            <div class="label">DAB v2 Total</div>
-            <div class="value">{dabV2Latest.total}/400</div>
-            <div class="sub">{dabV2Latest.pct}% — {dabV2Latest.version}</div>
-          </div>
-          {dabV2Sections && Object.entries(dabV2Sections).map(([k, v]) => (
-            <div class="card">
-              <div class="label">{k.replace('s1_','§1 ').replace('s2_','§2 ').replace('s3_','§3 ').replace('s4_','§4 ').replace('s5_','§5 ').replace(/_/g,' ')}</div>
-              <div class="value" style={v.score === 0 ? 'color:#e07070' : v.score >= v.max * 0.8 ? 'color:#6ec97a' : ''}>{v.score}/{v.max}</div>
-              <div class="sub">{Math.round(v.score/v.max*100)}%</div>
-            </div>
-          ))}
+        <h2>DAB v2.1 — Quaid Score History</h2>
+        <div class="chart-wrap">
+          <div class="chart-title">Phase 1 Score (§1+§2, max 140) over Quaid versions</div>
+          <canvas id="dab2History" height="80"></canvas>
         </div>
-        <table>
-          <thead><tr><th>System</th><th>§1 Infra</th><th>§2 Retrieval</th><th>§3 Conv</th><th>§4 Graph</th><th>§5 Intel</th><th>Total</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><span class="quaid">Quaid (measured)</span> <span class="tag">ours</span></td>
-              <td>{dabV2Sections?.s1_infrastructure?.score ?? '—'}/40</td>
-              <td>{dabV2Sections?.s2_realworld_retrieval?.score ?? '—'}/100</td>
-              <td class="na">{dabV2Sections?.s3_conversation_memory?.score ?? 0}/100</td>
-              <td class="na">{dabV2Sections?.s4_knowledge_graph?.score ?? 0}/80</td>
-              <td>{dabV2Sections?.s5_agent_intelligence?.score ?? '—'}/80</td>
-              <td class="quaid">{dabV2Latest.total}/400 ({dabV2Latest.pct}%)</td>
-            </tr>
-            <tr>
-              <td>GBrain (estimated)</td>
-              <td>~38/40</td><td>~75/100</td><td class="na">0/100</td><td>~60/80</td><td>~15/80</td>
-              <td>~188/400 (47%)</td>
-            </tr>
-            <tr>
-              <td>Mem0 v3 (estimated)</td>
-              <td>~30/40</td><td>~30/100</td><td>~82/100</td><td class="na">0/80</td><td>~10/80</td>
-              <td>~152/400 (38%)</td>
-            </tr>
-            <tr>
-              <td>qmd (estimated)</td>
-              <td>~35/40</td><td>~55/100</td><td class="na">0/100</td><td class="na">0/80</td><td>~5/80</td>
-              <td>~95/400 (24%)</td>
-            </tr>
-          </tbody>
-        </table>
-        <p style="font-size:0.75rem; color:#444; margin-top:0.75rem;">Quaid scores measured. GBrain/Mem0/qmd scores are estimates pending benchmark runs. Estimated scores marked accordingly.</p>
       </div>
     )}
 
-    <!-- History table -->
+    <!-- All Runs -->
     {history.length > 0 && (
       <div class="section">
-        <h2>All Runs</h2>
+        <h2>DAB v1 Run History</h2>
         <table>
           <thead>
-            <tr>
-              <th>Version</th>
-              <th>Date</th>
-              <th>DAB</th>
-              <th>P@5</th>
-              <th>R@5</th>
-            </tr>
+            <tr><th>Version</th><th>Date</th><th>DAB %</th><th>P@5</th><th>R@5</th></tr>
           </thead>
           <tbody>
-            {history.slice().reverse().map(h => (
+            {history.slice().reverse().slice(0, 10).map(h => (
               <tr>
-                <td>{h.version}</td>
+                <td>v{h.version}</td>
                 <td>{h.date}</td>
                 <td>{h.benchmarks?.dab?.pct != null ? `${h.benchmarks.dab.pct}%` : <span class="na">—</span>}</td>
                 <td>{h.benchmarks?.gbrain_evals?.p_at_5 != null ? `${h.benchmarks.gbrain_evals.p_at_5}%` : <span class="na">—</span>}</td>
@@ -266,52 +263,91 @@ const rAt5Scores = history.map(h => h.benchmarks?.gbrain_evals?.r_at_5 ?? null);
         </table>
       </div>
     )}
+
   </main>
 
   <footer>
     <a href="https://quaid.app">quaid.app</a> ·
-    <a href="https://github.com/quaid-app/quaid-evals">github.com/quaid-app/quaid-evals</a> ·
+    <a href="https://github.com/quaid-app/quaid-evals">quaid-app/quaid-evals</a> ·
     Memory that persists. Intelligence that compounds.
   </footer>
 
-  {history.length > 0 && (
-    <script define:vars={{ chartVersions, dabScores, rAt5Scores }}>
-      const ctx = document.getElementById('historyChart');
-      new Chart(ctx, {
+  <!-- Charts -->
+  <script define:vars={{ chartVersions, dabScores, rAt5Scores, p5Scores, dab_v2_quaid }}>
+    const CHART_DEFAULTS = {
+      responsive: true,
+      plugins: { legend: { labels: { color: '#e8e2d9', font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { color: '#6b6258', font: { size: 10 } }, grid: { color: '#2a2520' } },
+        y: { min: 0, max: 100, ticks: { color: '#6b6258' }, grid: { color: '#2a2520' } }
+      }
+    };
+
+    // DAB Score History
+    const dabCtx = document.getElementById('dabHistory');
+    if (dabCtx && dabScores.some(s => s !== null)) {
+      new Chart(dabCtx, {
+        type: 'line',
+        data: {
+          labels: chartVersions,
+          datasets: [{
+            label: 'DAB %',
+            data: dabScores,
+            borderColor: '#A59A7A',
+            backgroundColor: 'rgba(165,154,122,0.1)',
+            tension: 0.3, spanGaps: true, pointRadius: 4
+          }]
+        },
+        options: { ...CHART_DEFAULTS, scales: { ...CHART_DEFAULTS.scales, y: { min: 0, max: 100, ticks: { color: '#6b6258' }, grid: { color: '#2a2520' } } } }
+      });
+    }
+
+    // MSMARCO P@5/R@5 History
+    const msCtx = document.getElementById('msmarcoHistory');
+    if (msCtx && (p5Scores.some(s => s !== null) || rAt5Scores.some(s => s !== null))) {
+      new Chart(msCtx, {
         type: 'line',
         data: {
           labels: chartVersions,
           datasets: [
-            {
-              label: 'DAB %',
-              data: dabScores,
-              borderColor: '#A59A7A',
-              backgroundColor: 'rgba(165,154,122,0.1)',
-              tension: 0.3,
-              spanGaps: true,
-            },
-            {
-              label: 'R@5 %',
-              data: rAt5Scores,
-              borderColor: '#6ec97a',
-              backgroundColor: 'rgba(110,201,122,0.1)',
-              tension: 0.3,
-              spanGaps: true,
-            }
+            { label: 'P@5 %', data: p5Scores, borderColor: '#A59A7A', backgroundColor: 'rgba(165,154,122,0.1)', tension: 0.3, spanGaps: true, pointRadius: 4 },
+            { label: 'R@5 %', data: rAt5Scores, borderColor: '#6ec97a', backgroundColor: 'rgba(110,201,122,0.1)', tension: 0.3, spanGaps: true, pointRadius: 4 },
+          ]
+        },
+        options: { ...CHART_DEFAULTS }
+      });
+    }
+
+    // DAB v2 History (Quaid only)
+    const dab2Ctx = document.getElementById('dab2History');
+    if (dab2Ctx && dab_v2_quaid.length > 1) {
+      const labels = dab_v2_quaid.map(r => `v${r.version}`);
+      const s1 = dab_v2_quaid.map(r => r.sections?.s1_infrastructure?.score ?? null);
+      const s2 = dab_v2_quaid.map(r => r.sections?.s2_realworld_retrieval?.score ?? null);
+      const total = dab_v2_quaid.map(r => r.phase1_total ?? null);
+
+      new Chart(dab2Ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: '§1 Infra /40', data: s1, borderColor: '#6ec97a', backgroundColor: 'rgba(110,201,122,0.1)', tension: 0.3, spanGaps: true, yAxisID: 'y1' },
+            { label: '§2 Retrieval /100', data: s2, borderColor: '#A59A7A', backgroundColor: 'rgba(165,154,122,0.1)', tension: 0.3, spanGaps: true, yAxisID: 'y2' },
+            { label: 'Phase 1 Total /140', data: total, borderColor: '#e0c070', backgroundColor: 'rgba(224,192,112,0.1)', tension: 0.3, spanGaps: true, borderWidth: 2, yAxisID: 'y2' },
           ]
         },
         options: {
           responsive: true,
-          plugins: {
-            legend: { labels: { color: '#e8e2d9' } }
-          },
+          plugins: { legend: { labels: { color: '#e8e2d9', font: { size: 11 } } } },
           scales: {
             x: { ticks: { color: '#6b6258' }, grid: { color: '#2a2520' } },
-            y: { min: 0, max: 100, ticks: { color: '#6b6258' }, grid: { color: '#2a2520' } }
+            y1: { type: 'linear', position: 'left', min: 0, max: 40, ticks: { color: '#6b6258' }, grid: { color: '#2a2520' }, title: { display: true, text: '§1 pts', color: '#6b6258' } },
+            y2: { type: 'linear', position: 'right', min: 0, max: 140, ticks: { color: '#6b6258' }, grid: { drawOnChartArea: false }, title: { display: true, text: '§2/Total pts', color: '#6b6258' } },
           }
         }
       });
-    </script>
-  )}
+    }
+  </script>
+
 </body>
 </html>
