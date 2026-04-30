@@ -10,7 +10,7 @@ on:
       benchmarks:
         description: 'Benchmarks to run (comma-separated: dab,gbrain-evals,locomo,beam)'
         required: false
-        default: 'dab,gbrain-evals'
+        default: 'dab,gbrain-evals,locomo'
 
 jobs:
   benchmark:

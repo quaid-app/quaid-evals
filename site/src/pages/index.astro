@@ -2,8 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import reportData from '../data/report.json';
 
-const { latest, history, reference, total_runs, dab_v2 } = reportData;
+const { latest, history, reference, total_runs, dab_v2, locomo, beam } = reportData;
 const gbrain = reference.gbrain;
+const mem0 = reference.mem0_v3;
 
 const latestDab = latest?.benchmarks?.dab;
 const latestGbrain = latest?.benchmarks?.gbrain_evals;
@@ -35,6 +36,19 @@ const scoreTone = (value, strong, okay) => {
   if (value >= okay) return 'is-warning';
   return 'is-alert';
 };
+
+const formatPercent = (value) => {
+  if (value == null) return 'pending';
+  if (typeof value === 'string') return value;
+  return `${value.toFixed(Number.isInteger(value) ? 0 : 1)}%`;
+};
+
+const locomoStatus = locomo?.status === 'measured'
+  ? formatPercent(locomo?.scores?.overall)
+  : 'pending';
+const beamStatus = beam?.status === 'measured'
+  ? `10M ${formatPercent(beam?.scores?.score_10m)}`
+  : 'pending';
 ---
 
 <BaseLayout
@@ -204,6 +218,29 @@ const scoreTone = (value, strong, okay) => {
         </table>
       </div>
       <p class="note">Measured values come from published runs in this repo. Mem0 remains an estimate.</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Industry Benchmarks</h2>
+      </div>
+      <div class="card-grid">
+        <div class="panel metric-card">
+          <div class="metric-label">LoCoMo</div>
+          <div class="metric-value is-bronze">{formatPercent(mem0.locomo.overall)}</div>
+          <div class="metric-sub">Mem0 v3 reference overall</div>
+          <div class="metric-sub">Quaid: {locomoStatus}</div>
+          <a class="inline-link" href="/locomo">View benchmark</a>
+        </div>
+        <div class="panel metric-card">
+          <div class="metric-label">BEAM</div>
+          <div class="metric-value is-bronze">{formatPercent(mem0.beam.score_10m)}</div>
+          <div class="metric-sub">Mem0 v3 BEAM 10M reference</div>
+          <div class="metric-sub">Quaid: {beamStatus}</div>
+          <a class="inline-link" href="/beam">View benchmark</a>
+        </div>
+      </div>
+      <p class="note">These are the same benchmarks used by Mem0, Hindsight, and other leading memory systems.</p>
     </section>
 
     {dabV2Quaid.length > 1 && (

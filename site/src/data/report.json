@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-30T03:50:17.148971Z",
+  "generated_at": "2026-04-30T08:02:07.987825Z",
   "latest": {
     "version": "0.13.0",
     "date": "2026-04-30",
@@ -24990,6 +24990,11 @@
       }
     },
     {
+      "version": "0.22.8",
+      "date": "2026-04-29",
+      "benchmarks": {}
+    },
+    {
       "version": "0.13.0",
       "date": "2026-04-30",
       "benchmarks": {
@@ -28559,6 +28564,20 @@
       }
     }
   ],
+  "locomo": {
+    "version": null,
+    "date": null,
+    "scores": null,
+    "status": "pending",
+    "all_runs": []
+  },
+  "beam": {
+    "version": null,
+    "date": null,
+    "scores": null,
+    "status": "pending",
+    "all_runs": []
+  },
   "dab_v2": {
     "latest": {
       "system": "gbrain",
@@ -28714,13 +28733,33 @@
         "score_10m": 48.6
       },
       "locomo": {
-        "score": 91.6
+        "single_hop": 97.0,
+        "multi_hop": 93.0,
+        "temporal": 93.0,
+        "open_domain": 76.0,
+        "overall": 91.6
       },
       "longmemeval": {
         "score": 93.4
       },
       "notes": "~7K tokens per retrieval vs 25K+ for full-context."
+    },
+    "hindsight": {
+      "label": "Hindsight",
+      "source": null,
+      "date": null,
+      "beam": {
+        "score_1m": "TBD",
+        "score_10m": "SOTA"
+      },
+      "locomo": {
+        "single_hop": "n/a",
+        "multi_hop": "n/a",
+        "temporal": "n/a",
+        "overall": "SOTA"
+      },
+      "notes": "Headline positioning from published benchmark materials. Public per-type LoCoMo breakdown is not included here."
     }
   },
-  "total_runs": 8
+  "total_runs": 9
 }

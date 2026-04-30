@@ -9,6 +9,10 @@ on:
         description: 'Quaid version to test'
         required: false
         default: 'latest'
+      benchmarks:
+        description: 'Benchmarks to run (comma-separated: dab,gbrain-evals,locomo,beam)'
+        required: false
+        default: 'dab,gbrain-evals,locomo'
 
 jobs:
   benchmark:
@@ -28,6 +32,12 @@ jobs:
           VERSION="${{ github.event.client_payload.version || inputs.quaid_version || 'latest' }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Determine benchmarks
+        id: benchmarks
+        run: |
+          BENCHMARKS="${{ github.event.client_payload.benchmarks || inputs.benchmarks || 'dab,gbrain-evals,locomo' }}"
+          echo "benchmarks=$BENCHMARKS" >> $GITHUB_OUTPUT
+
       - name: Install Quaid
         run: bash scripts/install-quaid.sh "${{ steps.version.outputs.version }}"
 
@@ -43,16 +53,25 @@ jobs:
         run: pip install -r scripts/requirements.txt
 
       - name: Run DAB benchmark
+        if: contains(steps.benchmarks.outputs.benchmarks, 'dab')
         run: bash benchmarks/dab/run.sh
 
       - name: Run gbrain-evals benchmark
+        if: contains(steps.benchmarks.outputs.benchmarks, 'gbrain-evals')
         run: bash benchmarks/gbrain-evals/run.sh
 
       - name: Run LoCoMo benchmark
+        if: contains(steps.benchmarks.outputs.benchmarks, 'locomo')
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: bash benchmarks/locomo/run.sh
+
+      - name: Run BEAM benchmark
+        if: contains(steps.benchmarks.outputs.benchmarks, 'beam')
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: bash benchmarks/beam/run.sh
 
       - name: Generate report
         run: python scripts/generate-report.py
