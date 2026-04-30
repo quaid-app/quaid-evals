@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-30T13:28:30.274781Z",
+  "generated_at": "2026-04-30T13:50:13.470295Z",
   "latest": {
     "version": "0.13.0",
     "date": "2026-04-30",
@@ -28678,11 +28678,28 @@
     "all_runs": []
   },
   "beam": {
-    "version": null,
-    "date": null,
-    "scores": null,
-    "status": "pending",
-    "all_runs": []
+    "version": "0.13.0",
+    "date": "2026-04-30",
+    "scores": {
+      "score_100k": null,
+      "score_500k": null,
+      "score_1m": null,
+      "score_10m": null
+    },
+    "status": "measured",
+    "all_runs": [
+      {
+        "version": "0.13.0",
+        "date": "2026-04-30",
+        "scores": {
+          "score_100k": null,
+          "score_500k": null,
+          "score_1m": null,
+          "score_10m": null
+        },
+        "status": "measured"
+      }
+    ]
   },
   "dab_v2": {
     "latest": {
