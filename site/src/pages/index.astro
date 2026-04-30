@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import reportData from '../data/report.json';
 
-const { latest, history, reference, total_runs, dab_v2, locomo, beam } = reportData;
+const { latest, history, reference, total_runs, dab_v2, locomo, longmemeval, beam } = reportData;
 const gbrain = reference.gbrain;
 const mem0 = reference.mem0_v3;
 
@@ -45,6 +45,9 @@ const formatPercent = (value) => {
 
 const locomoStatus = locomo?.status === 'measured'
   ? formatPercent(locomo?.scores?.overall)
+  : 'pending';
+const longmemevalStatus = longmemeval?.status === 'measured'
+  ? formatPercent(longmemeval?.scores?.overall)
   : 'pending';
 const beamStatus = beam?.status === 'measured'
   ? `10M ${formatPercent(beam?.scores?.score_10m)}`
@@ -231,6 +234,13 @@ const beamStatus = beam?.status === 'measured'
           <div class="metric-sub">Mem0 v3 reference overall</div>
           <div class="metric-sub">Quaid: {locomoStatus}</div>
           <a class="inline-link" href="/locomo">View benchmark</a>
+        </div>
+        <div class="panel metric-card">
+          <div class="metric-label">LongMemEval</div>
+          <div class="metric-value is-bronze">{formatPercent(mem0.longmemeval.overall)}</div>
+          <div class="metric-sub">Mem0 v3 93.4% reference</div>
+          <div class="metric-sub">Quaid: {longmemevalStatus}</div>
+          <a class="inline-link" href="/longmemeval">View benchmark</a>
         </div>
         <div class="panel metric-card">
           <div class="metric-label">BEAM</div>

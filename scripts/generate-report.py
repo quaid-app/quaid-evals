@@ -32,7 +32,20 @@ REFERENCE_SCORES = {
             "open_domain": 76.0,
             "overall": 91.6,
         },
-        "longmemeval": {"score": 93.4},
+        "longmemeval": {
+            "overall": 93.4,
+            "overall_raw": 0.934,
+            "total_questions": 500,
+            "by_type": {
+                "multi-session": {"count": 133, "score": 93.0, "score_raw": 0.93, "display": "~93%"},
+                "temporal-reasoning": {"count": 133, "score": 93.0, "score_raw": 0.93, "display": "93%"},
+                "knowledge-update": {"count": 78, "score": 90.0, "score_raw": 0.90, "display": "~90%"},
+                "single-session-user": {"count": 70, "score": 95.0, "score_raw": 0.95, "display": "~95%"},
+                "single-session-assistant": {"count": 56, "score": 100.0, "score_raw": 1.0, "display": "100%"},
+                "single-session-preference": {"count": 30, "score": 90.0, "score_raw": 0.90, "display": "~90%"},
+            },
+            "notes": "Per-type LongMemEval references are rounded from published benchmark materials."
+        },
         "notes": "~7K tokens per retrieval vs 25K+ for full-context."
     },
     "hindsight": {
@@ -146,6 +159,35 @@ def extract_beam_scores(result):
     }
 
 
+def extract_longmemeval_scores(result):
+    payload = result.get("longmemeval", {})
+    by_type = payload.get("by_type", {})
+
+    def type_stats(*names):
+        for name in names:
+            if name in by_type:
+                stats = by_type[name] or {}
+                return {
+                    "score": normalize_percent(stats.get("avg")),
+                    "count": stats.get("count"),
+                }
+        return {"score": None, "count": None}
+
+    return {
+        "overall": normalize_percent(payload.get("overall")),
+        "pass_rate": normalize_percent(payload.get("pass_rate")),
+        "total_questions": payload.get("total_questions"),
+        "by_type": {
+            "multi-session": type_stats("multi-session", "multi_session"),
+            "temporal-reasoning": type_stats("temporal-reasoning", "temporal_reasoning"),
+            "knowledge-update": type_stats("knowledge-update", "knowledge_update"),
+            "single-session-user": type_stats("single-session-user", "single_session_user"),
+            "single-session-assistant": type_stats("single-session-assistant", "single_session_assistant", "agent_recall"),
+            "single-session-preference": type_stats("single-session-preference", "single_session_preference"),
+        },
+    }
+
+
 def load_benchmark_summary(pattern, extract_scores, version_field="quaid_version"):
     runs = []
     for path in sorted(RESULTS_DIR.glob(pattern)):
@@ -212,6 +254,14 @@ def build_history(results):
                 "score_10m": scores.get("score_10m"),
                 "status": "measured",
             }
+        elif benchmark == "longmemeval":
+            scores = extract_longmemeval_scores(r)
+            runs[key]["longmemeval"] = r.get("longmemeval", {})
+            runs[key]["benchmarks"]["longmemeval"] = {
+                "overall": scores.get("overall"),
+                "pass_rate": scores.get("pass_rate"),
+                "status": "measured",
+            }
 
     return sorted(runs.values(), key=lambda run: (run.get("date", ""), semver_parts(run.get("version", "0"))))
 
@@ -227,6 +277,7 @@ def main():
         x.get("date", ""), semver_parts(x.get("version", "0"))
     ))[-1] if dab_v2_runs else None
     locomo = load_benchmark_summary("locomo-*.json", extract_locomo_scores)
+    longmemeval = load_benchmark_summary("longmemeval-*.json", extract_longmemeval_scores)
     beam = load_benchmark_summary("beam-*.json", extract_beam_scores)
 
     report = {
@@ -234,6 +285,7 @@ def main():
         "latest": latest,
         "history": history,
         "locomo": locomo,
+        "longmemeval": longmemeval,
         "beam": beam,
         "dab_v2": {
             "latest": dab_v2_latest,

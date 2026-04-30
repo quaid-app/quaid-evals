@@ -1,0 +1,145 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import reportData from '../data/report.json';
+
+const longmemeval = reportData.longmemeval;
+const mem0 = reportData.reference?.mem0_v3?.longmemeval ?? {};
+
+const formatPercent = (value) => {
+  if (value == null) return 'pending';
+  if (typeof value === 'string') return value;
+  return `${value.toFixed(Number.isInteger(value) ? 0 : 1)}%`;
+};
+
+const currentScores = longmemeval?.scores ?? {};
+const currentByType = currentScores?.by_type ?? {};
+const currentStatus = longmemeval?.status ?? 'pending';
+const currentVersion = longmemeval?.version ? `v${longmemeval.version}` : 'No Quaid run yet';
+const currentDate = longmemeval?.date ?? 'Waiting for results/longmemeval-*.json';
+const statusTone = currentStatus === 'measured' ? 'is-success' : 'is-warning';
+
+const rows = [
+  { key: 'multi-session', label: 'multi-session' },
+  { key: 'temporal-reasoning', label: 'temporal-reasoning' },
+  { key: 'knowledge-update', label: 'knowledge-update' },
+  { key: 'single-session-user', label: 'single-session-user' },
+  { key: 'single-session-assistant', label: 'single-session-assistant' },
+  { key: 'single-session-preference', label: 'single-session-preference' },
+];
+---
+
+<BaseLayout
+  title="LongMemEval | Quaid Evals"
+  description="LongMemEval is the ICLR 2025 conversational memory benchmark with a fresh per-question corpus."
+>
+  <div class="page">
+    <section class="hero">
+      <div class="page-kicker">Industry Benchmark</div>
+      <h1>LongMemEval</h1>
+      <p>ICLR 2025. 500 questions, 6 types, per-question corpus.</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>What LongMemEval Is</h2>
+      </div>
+      <p>
+        LongMemEval tests long-term conversational memory with six question types covering cross-session recall,
+        temporal reasoning, memory updates, user facts, assistant facts, and preferences.
+      </p>
+      <p>
+        The benchmark is designed for systems that can turn messy dialogue into durable memory, then retrieve the
+        right fact under question-specific context.
+      </p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Key Difference From LoCoMo</h2>
+      </div>
+      <p>
+        Each question has its own haystack sessions, up to 53 sessions, ingested fresh for that question only. That
+        gives true isolation with no cross-question memory pollution.
+      </p>
+      <div class="callout">
+        <strong>LoCoMo:</strong>
+        <span>Shared corpus. All questions hit the same memory store.</span>
+        <strong>LongMemEval:</strong>
+        <span>Per-question corpus. Every question starts from a fresh ingest.</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Reference Scores</h2>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Count</th>
+              <th>Mem0 v3</th>
+              <th>Quaid</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr>
+                <td>{row.label}</td>
+                <td>{mem0.by_type?.[row.key]?.count ?? 'n/a'}</td>
+                <td>{mem0.by_type?.[row.key]?.display ?? formatPercent(mem0.by_type?.[row.key]?.score)}</td>
+                <td>
+                  {currentStatus === 'measured'
+                    ? formatPercent(currentByType?.[row.key]?.score)
+                    : 'pending'}
+                </td>
+              </tr>
+            ))}
+            <tr>
+              <td>Overall</td>
+              <td>{mem0.total_questions ?? 500}</td>
+              <td>{formatPercent(mem0.overall)}</td>
+              <td>{currentStatus === 'measured' ? formatPercent(currentScores.overall) : 'pending'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">{mem0.notes}</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Why Quaid Is Pending</h2>
+      </div>
+      <p>
+        Same gap as LoCoMo. Quaid currently stores raw conversation turns as documents instead of extracting durable
+        facts, so the benchmark stays unfairly hard until the memory layer changes.
+      </p>
+      <p>
+        <a class="inline-link" href="https://github.com/quaid-app/quaid/issues/105">Issue #105</a> closes this by
+        adding fact extraction on top of raw turn storage.
+      </p>
+    </section>
+
+    <div class="split-grid">
+      <section class="panel">
+        <div class="section-heading">
+          <h2>How To Run</h2>
+        </div>
+        <pre class="mono-run"><code>OPENAI_API_KEY=sk-... bash benchmarks/longmemeval/run.sh
+MAX_QUESTIONS=50 OPENAI_API_KEY=sk-... bash benchmarks/longmemeval/run.sh</code></pre>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Current Status</h2>
+        </div>
+        <div class={`pill ${statusTone}`}>{currentStatus}</div>
+        <div class="metric-sub">{currentVersion}</div>
+        <div class="metric-sub">{currentDate}</div>
+        <p class="note">LLM judge required. Default answerer and judge model: GPT-4o.</p>
+      </section>
+    </div>
+  </div>
+</BaseLayout>

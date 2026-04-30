@@ -10,7 +10,7 @@ on:
         required: false
         default: 'latest'
       benchmarks:
-        description: 'Benchmarks to run (comma-separated: dab,gbrain-evals,locomo,beam)'
+        description: 'Benchmarks to run (comma-separated: dab,gbrain-evals,locomo,longmemeval,beam)'
         required: false
         default: 'dab,gbrain-evals,locomo'
 
@@ -66,6 +66,13 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: bash benchmarks/locomo/run.sh
+
+      - name: Run LongMemEval benchmark
+        if: contains(steps.benchmarks.outputs.benchmarks, 'longmemeval')
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: bash benchmarks/longmemeval/run.sh
 
       - name: Run BEAM benchmark
         if: contains(steps.benchmarks.outputs.benchmarks, 'beam')
