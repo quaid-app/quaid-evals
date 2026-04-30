@@ -202,16 +202,46 @@ def run_longmemeval(
     judge_model: str,
     provider: str,
     top_k: int = 20,
+    checkpoint_path: str = None,
 ) -> dict:
-    """Run LongMemEval: per-question ingest + retrieve + evaluate."""
+    """Run LongMemEval: per-question ingest + retrieve + evaluate.
+    
+    Supports checkpoint/resume: saves progress every 10 questions so
+    a timed-out run can be resumed without restarting from scratch.
+    """
+    import time
+
+    # Load checkpoint if exists
+    completed = {}
+    if checkpoint_path and Path(checkpoint_path).exists():
+        try:
+            checkpoint = json.loads(Path(checkpoint_path).read_text())
+            completed = {item["question_id"]: item for item in checkpoint.get("results", [])}
+            print(f"Resuming from checkpoint: {len(completed)} questions already done")
+        except Exception as e:
+            print(f"Warning: could not load checkpoint: {e}")
 
     results_by_type: dict[str, list[float]] = {}
     all_scores: list[float] = []
+
+    # Pre-populate from checkpoint
+    for item in completed.values():
+        score = item["score"]
+        q_type = item["type"]
+        all_scores.append(score)
+        if q_type not in results_by_type:
+            results_by_type[q_type] = []
+        results_by_type[q_type].append(score)
 
     print(f"Evaluating {len(questions)} questions (per-question ingest)...")
 
     for i, qa in enumerate(questions):
         q_id = qa.get("question_id", str(i))
+
+        # Skip already completed
+        if q_id in completed:
+            continue
+
         question = qa["question"]
         ground_truth = qa["answer"]
         q_type = qa.get("question_type", "unknown")
@@ -255,15 +285,29 @@ def run_longmemeval(
             results_by_type[q_type] = []
         results_by_type[q_type].append(score)
 
+        # Record in completed
+        completed[q_id] = {"question_id": q_id, "score": score, "type": q_type}
+
         # Cleanup DB
         try:
             Path(db_path).unlink(missing_ok=True)
         except Exception:
             pass
 
-        if (i + 1) % 10 == 0:
+        completed_count = len(all_scores)
+        if completed_count % 10 == 0:
             avg = sum(all_scores) / len(all_scores)
-            print(f"  Progress: {i+1}/{len(questions)} | running avg: {avg:.3f}")
+            print(f"  Progress: {completed_count}/{len(questions)} | running avg: {avg:.3f}")
+            # Save checkpoint
+            if checkpoint_path:
+                try:
+                    Path(checkpoint_path).write_text(json.dumps({
+                        "completed": completed_count,
+                        "total": len(questions),
+                        "results": list(completed.values())
+                    }))
+                except Exception:
+                    pass
 
     overall = sum(all_scores) / len(all_scores) if all_scores else 0.0
     by_type = {
@@ -321,6 +365,7 @@ def main():
         judge_model=args.judge_model,
         provider=args.provider,
         top_k=args.top_k,
+        checkpoint_path=f"{args.db}-checkpoint.json",
     )
 
     output = {
