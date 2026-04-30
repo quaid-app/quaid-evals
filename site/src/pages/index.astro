@@ -89,11 +89,11 @@ const scoreTone = (value, strong, okay) => {
       <section class="chart-grid">
         <div class="panel chart-card">
           <div class="chart-title">DAB v1 score history</div>
-          <canvas id="dabHistory" height="150"></canvas>
+          <div class="chart-canvas-wrap"><canvas id="dabHistory"></canvas></div>
         </div>
         <div class="panel chart-card">
           <div class="chart-title">MSMARCO P@5 and R@5</div>
-          <canvas id="msmarcoHistory" height="150"></canvas>
+          <div class="chart-canvas-wrap"><canvas id="msmarcoHistory"></canvas></div>
         </div>
       </section>
     )}
@@ -209,7 +209,7 @@ const scoreTone = (value, strong, okay) => {
     {dabV2Quaid.length > 1 && (
       <section class="panel chart-card">
         <div class="chart-title">DAB v2 Quaid history</div>
-        <canvas id="dab2History" height="110"></canvas>
+        <div class="chart-canvas-wrap"><canvas id="dab2History"></canvas></div>
       </section>
     )}
 
