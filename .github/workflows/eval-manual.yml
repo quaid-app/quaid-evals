@@ -27,6 +27,7 @@ on:
 jobs:
   benchmark:
     runs-on: ubuntu-latest
+    timeout-minutes: 300  # 5 hours - LongMemEval full run ~2.5hrs
     permissions:
       contents: write
       pages: write
