@@ -1,0 +1,347 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import reportData from '../data/report.json';
+
+const { history, dab_v2 } = reportData;
+
+const formatPercent = (value, digits = 1) => {
+  if (value == null) return 'n/a';
+  if (typeof value === 'string') return value;
+  const precision = Number.isInteger(value) ? 0 : digits;
+  return `${value.toFixed(precision)}%`;
+};
+
+const chartVersions = history.map((run) => `v${run.version}`);
+const dabScores = history.map((run) => run.benchmarks?.dab?.pct ?? null);
+const p5Scores = history.map((run) => run.benchmarks?.gbrain_evals?.p_at_5 ?? null);
+const rAt5Scores = history.map((run) => run.benchmarks?.gbrain_evals?.r_at_5 ?? null);
+const msmarcoValues = [...p5Scores, ...rAt5Scores].filter((value) => typeof value === 'number');
+const msmarcoMax = msmarcoValues.length > 0
+  ? Math.max(100, Math.ceil(Math.max(...msmarcoValues) / 25) * 25)
+  : 100;
+
+const dabV2History = dab_v2?.all_runs ?? [];
+const dabV2Quaid = dabV2History
+  .filter((run) => run.system === 'quaid')
+  .sort((left, right) =>
+    String(left.version ?? '').localeCompare(String(right.version ?? ''), undefined, { numeric: true })
+  );
+const dabV2Labels = dabV2Quaid.map((run) => `v${run.version}`);
+const dabV2Phase1Scores = dabV2Quaid.map((run) => run.sections?.s1_infrastructure?.score ?? null);
+const dabV2TotalPct = dabV2Quaid.map((run) => run.pct ?? null);
+const recentRuns = history.slice().reverse().slice(0, 10);
+---
+
+<BaseLayout
+  title="History | Quaid Evals"
+  description="Version history for DAB v1, MSMARCO retrieval, and DAB v2 phase tracking."
+>
+  <script
+    slot="head"
+    is:inline
+    src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"
+  ></script>
+
+  <div class="page history-page">
+    <section class="hero">
+      <div class="page-kicker">History</div>
+      <h1>Benchmark history</h1>
+      <p>Version-by-version benchmark series for Quaid releases and competitive benchmark snapshots.</p>
+    </section>
+
+    <section class="chart-grid">
+      <div class="panel chart-card">
+        <div class="section-heading">
+          <h2>DAB v1 score history</h2>
+          <p>Release-gate percentage by Quaid version.</p>
+        </div>
+        <div class="chart-stage">
+          <div class="chart-canvas-wrap"><canvas id="dabHistory"></canvas></div>
+        </div>
+      </div>
+
+      <div class="panel chart-card">
+        <div class="section-heading">
+          <h2>MSMARCO P@5 / R@5</h2>
+          <p>Retrieval quality trend from the published GBrain eval harness.</p>
+        </div>
+        <div class="chart-stage">
+          <div class="chart-canvas-wrap"><canvas id="msmarcoHistory"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    {dabV2Quaid.length > 0 && (
+      <section class="panel chart-card">
+        <div class="section-heading">
+          <h2>DAB v2 phase 1 history</h2>
+          <p>Infrastructure section score with total percentage for the published Quaid DAB v2 runs.</p>
+        </div>
+        <div class="chart-stage">
+          <div class="chart-canvas-wrap"><canvas id="dab2History"></canvas></div>
+        </div>
+        {dabV2Quaid.length < 2 && (
+          <p class="note">Only one published Quaid DAB v2 run is available so far.</p>
+        )}
+      </section>
+    )}
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Run history</h2>
+        <p>Last 10 published runs from the report index.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Date</th>
+              <th>DAB %</th>
+              <th>P@5</th>
+              <th>R@5</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentRuns.map((run) => (
+              <tr>
+                <td>v{run.version}</td>
+                <td>{run.date}</td>
+                <td>{formatPercent(run.benchmarks?.dab?.pct)}</td>
+                <td>{formatPercent(run.benchmarks?.gbrain_evals?.p_at_5, 2)}</td>
+                <td>{formatPercent(run.benchmarks?.gbrain_evals?.r_at_5, 2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script define:vars={{ chartVersions, dabScores, p5Scores, rAt5Scores, msmarcoMax, dabV2Labels, dabV2Phase1Scores, dabV2TotalPct }}>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof Chart === 'undefined') return;
+
+      const rootStyles = getComputedStyle(document.documentElement);
+      const cssVar = (name) => rootStyles.getPropertyValue(name).trim();
+      const fontUi = cssVar('--font-ui');
+      const bone = cssVar('--q-bone');
+      const muted = cssVar('--q-muted');
+      const bronze = cssVar('--q-bronze');
+      const bronzeSoft = cssVar('--q-bronze-22');
+      const mem0 = cssVar('--q-mem0');
+      const mem0Soft = cssVar('--q-mem0-28');
+      const hindsight = cssVar('--q-hindsight');
+      const hindsightSoft = cssVar('--q-hindsight-28');
+      const grid = cssVar('--q-bronze-12');
+      const charcoal = cssVar('--q-charcoal');
+
+      const lineDefaults = {
+        type: 'line',
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: bone,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                font: { family: fontUi, size: 11 },
+              },
+            },
+            tooltip: {
+              titleColor: bone,
+              bodyColor: bone,
+              backgroundColor: charcoal,
+              borderColor: grid,
+              borderWidth: 1,
+              padding: 12,
+            },
+          },
+          scales: {
+            x: {
+              ticks: { color: muted, font: { family: fontUi, size: 10 } },
+              grid: { color: grid },
+            },
+            y: {
+              ticks: { color: muted, font: { family: fontUi, size: 10 } },
+              grid: { color: grid },
+            },
+          },
+        },
+      };
+
+      const dabCtx = document.getElementById('dabHistory');
+      if (dabCtx && dabScores.some((score) => score !== null)) {
+        new Chart(dabCtx, {
+          ...lineDefaults,
+          data: {
+            labels: chartVersions,
+            datasets: [
+              {
+                label: 'DAB %',
+                data: dabScores,
+                borderColor: bronze,
+                backgroundColor: bronzeSoft,
+                fill: true,
+                tension: 0.28,
+                spanGaps: true,
+                pointRadius: 3.5,
+                pointHoverRadius: 4.5,
+              },
+            ],
+          },
+          options: {
+            ...lineDefaults.options,
+            scales: {
+              ...lineDefaults.options.scales,
+              y: {
+                min: 0,
+                max: 100,
+                ticks: {
+                  color: muted,
+                  font: { family: fontUi, size: 10 },
+                  callback: (value) => `${value}%`,
+                },
+                grid: { color: grid },
+              },
+            },
+          },
+        });
+      }
+
+      const msCtx = document.getElementById('msmarcoHistory');
+      if (msCtx && (p5Scores.some((score) => score !== null) || rAt5Scores.some((score) => score !== null))) {
+        new Chart(msCtx, {
+          ...lineDefaults,
+          data: {
+            labels: chartVersions,
+            datasets: [
+              {
+                label: 'P@5 %',
+                data: p5Scores,
+                borderColor: bronze,
+                backgroundColor: bronzeSoft,
+                tension: 0.28,
+                spanGaps: true,
+                pointRadius: 3.5,
+                pointHoverRadius: 4.5,
+              },
+              {
+                label: 'R@5 %',
+                data: rAt5Scores,
+                borderColor: mem0,
+                backgroundColor: mem0Soft,
+                tension: 0.28,
+                spanGaps: true,
+                pointRadius: 3.5,
+                pointHoverRadius: 4.5,
+              },
+            ],
+          },
+          options: {
+            ...lineDefaults.options,
+            scales: {
+              ...lineDefaults.options.scales,
+              y: {
+                min: 0,
+                max: msmarcoMax,
+                ticks: {
+                  color: muted,
+                  font: { family: fontUi, size: 10 },
+                  callback: (value) => `${value}%`,
+                },
+                grid: { color: grid },
+              },
+            },
+          },
+        });
+      }
+
+      const dab2Ctx = document.getElementById('dab2History');
+      if (dab2Ctx && dabV2Labels.length > 0) {
+        new Chart(dab2Ctx, {
+          ...lineDefaults,
+          data: {
+            labels: dabV2Labels,
+            datasets: [
+              {
+                label: 'Phase 1 / Infrastructure',
+                data: dabV2Phase1Scores,
+                borderColor: hindsight,
+                backgroundColor: hindsightSoft,
+                tension: 0.28,
+                spanGaps: true,
+                pointRadius: 3.5,
+                pointHoverRadius: 4.5,
+                yAxisID: 'y',
+              },
+              {
+                label: 'Total %',
+                data: dabV2TotalPct,
+                borderColor: bronze,
+                backgroundColor: bronzeSoft,
+                tension: 0.28,
+                spanGaps: true,
+                pointRadius: 3.5,
+                pointHoverRadius: 4.5,
+                yAxisID: 'y2',
+              },
+            ],
+          },
+          options: {
+            ...lineDefaults.options,
+            scales: {
+              x: {
+                ticks: { color: muted, font: { family: fontUi, size: 10 } },
+                grid: { color: grid },
+              },
+              y: {
+                min: 0,
+                max: 40,
+                ticks: { color: muted, font: { family: fontUi, size: 10 } },
+                grid: { color: grid },
+              },
+              y2: {
+                min: 0,
+                max: 100,
+                position: 'right',
+                ticks: {
+                  color: muted,
+                  font: { family: fontUi, size: 10 },
+                  callback: (value) => `${value}%`,
+                },
+                grid: { drawOnChartArea: false },
+              },
+            },
+          },
+        });
+      }
+    });
+  </script>
+
+  <style>
+    .history-page {
+      gap: 1.75rem;
+    }
+
+    .chart-card {
+      gap: 1rem;
+    }
+
+    .chart-stage {
+      padding: 0.9rem 1rem 0.85rem;
+      border: var(--q-border);
+      border-radius: calc(var(--q-card-radius) - 1px);
+      background:
+        linear-gradient(180deg, var(--q-bronze-08), transparent 52%),
+        linear-gradient(180deg, var(--q-stone), var(--q-charcoal));
+    }
+  </style>
+</BaseLayout>

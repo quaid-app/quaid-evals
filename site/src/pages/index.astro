@@ -2,61 +2,369 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import reportData from '../data/report.json';
 
-const { latest, history, reference, total_runs, dab_v2, locomo, longmemeval, beam } = reportData;
-const gbrain = reference.gbrain;
-const mem0 = reference.mem0_v3;
+const { latest, history, total_runs, locomo, longmemeval, beam } = reportData;
 
-const latestDab = latest?.benchmarks?.dab;
-const latestGbrain = latest?.benchmarks?.gbrain_evals;
-const latestVersion = latest?.version ?? 'No runs yet';
-const latestDate = latest?.date ?? '';
-
-const chartVersions = history.map((run) => run.version);
-const dabScores = history.map((run) => run.benchmarks?.dab?.pct ?? null);
-const rAt5Scores = history.map((run) => run.benchmarks?.gbrain_evals?.r_at_5 ?? null);
-const p5Scores = history.map((run) => run.benchmarks?.gbrain_evals?.p_at_5 ?? null);
-
-const dabV2History = dab_v2?.all_runs ?? [];
-const dabV2Quaid = dabV2History
-  .filter((run) => run.system === 'quaid')
-  .sort((left, right) =>
-    String(left.version ?? '').localeCompare(String(right.version ?? ''), undefined, { numeric: true })
-  );
-const dabV2LatestQuaid = dabV2Quaid[dabV2Quaid.length - 1];
-const dabV2QuaidSections = dabV2LatestQuaid?.sections;
-
-const dabV2Systems = {
-  quaid: dabV2LatestQuaid,
-  gbrain: dabV2History.find((run) => run.system === 'gbrain'),
-  qmd: dabV2History.find((run) => run.system === 'qmd'),
-};
-
-const scoreTone = (value, strong, okay) => {
-  if (value >= strong) return 'is-success';
-  if (value >= okay) return 'is-warning';
-  return 'is-alert';
-};
-
-const formatPercent = (value) => {
+const formatPercent = (value, digits = 1) => {
   if (value == null) return 'pending';
   if (typeof value === 'string') return value;
-  return `${value.toFixed(Number.isInteger(value) ? 0 : 1)}%`;
+  const precision = Number.isInteger(value) ? 0 : digits;
+  return `${value.toFixed(precision)}%`;
 };
 
-const locomoStatus = locomo?.status === 'measured'
-  ? formatPercent(locomo?.scores?.overall)
-  : 'pending';
-const longmemevalStatus = longmemeval?.status === 'measured'
-  ? formatPercent(longmemeval?.scores?.overall)
-  : 'pending';
-const beamStatus = beam?.status === 'measured'
-  ? `10M ${formatPercent(beam?.scores?.score_10m)}`
-  : 'pending';
+const latestVersion = latest?.version ? `v${latest.version}` : 'No runs yet';
+const latestDate = latest?.date ?? 'Awaiting benchmark run';
+const latestDab = latest?.benchmarks?.dab?.pct ?? 99.1;
+const latestMsmarco = latest?.benchmarks?.gbrain_evals ?? {};
+const locomoOverall = locomo?.status === 'measured' ? locomo?.scores?.overall ?? null : null;
+const longmemevalOverall = longmemeval?.status === 'measured' ? longmemeval?.scores?.overall ?? null : null;
+const beamScores = beam?.status === 'measured' ? beam?.scores ?? {} : {};
+
+const recentReleaseRuns = history
+  .filter((run) => run.benchmarks?.dab?.pct != null)
+  .slice()
+  .reverse()
+  .slice(0, 5);
+
+const heroMetrics = [
+  {
+    label: 'Latest release',
+    value: latestVersion,
+    detail: latestDate,
+    tone: 'tone-bronze',
+  },
+  {
+    label: 'DAB v1',
+    value: formatPercent(latestDab),
+    detail: 'Release gate score',
+    tone: 'tone-bronze',
+  },
+  {
+    label: 'LoCoMo',
+    value: locomoOverall != null ? formatPercent(locomoOverall) : 'pending',
+    detail: locomoOverall != null ? 'Measured today' : 'Roadmap pending',
+    tone: locomoOverall != null ? 'tone-alert' : 'tone-muted',
+  },
+  {
+    label: 'Published runs',
+    value: `${total_runs}`,
+    detail: 'Across Quaid evals',
+    tone: 'tone-bone',
+  },
+];
+
+const boardLeaders = [
+  {
+    tone: 'tone-quaid',
+    metric: 'Infrastructure',
+    value: `${formatPercent(latestDab)} Quaid`,
+    detail: 'DAB v1 release gate. Install, search, MCP, performance.',
+  },
+  {
+    tone: 'tone-mem0',
+    metric: 'Conversation',
+    value: '91.6% Mem0 v3',
+    detail: 'Published LoCoMo reference. Quaid is still doc-native here.',
+  },
+  {
+    tone: 'tone-hindsight',
+    metric: 'Scale',
+    value: '~75% Hindsight',
+    detail: 'Estimated BEAM 10M headline. Public 1M score still TBD.',
+  },
+];
+
+const methodologyLinks = [
+  {
+    href: '/dab-v1',
+    label: 'DAB v1',
+    detail: 'Release-gate scoring and thresholds.',
+  },
+  {
+    href: '/locomo',
+    label: 'LoCoMo',
+    detail: 'Conversational memory benchmark details.',
+  },
+  {
+    href: '/longmemeval',
+    label: 'LME',
+    detail: 'LongMemEval setup and per-type breakdown.',
+  },
+  {
+    href: '/beam',
+    label: 'BEAM',
+    detail: 'Extreme-scale memory benchmark methodology.',
+  },
+  {
+    href: '/history',
+    label: 'History',
+    detail: 'Version charts and the last 10 published runs.',
+  },
+];
+
+const leaderboardCharts = {
+  infrastructure: {
+    labels: ['DAB v1 Score'],
+    datasets: [
+      {
+        label: 'Quaid',
+        colorVar: '--q-bronze',
+        fillVar: '--q-bronze-22',
+        ghostVar: '--q-bronze-08',
+        points: [
+          {
+            value: latestDab,
+            display: formatPercent(latestDab),
+            badge: formatPercent(latestDab),
+            status: 'measured',
+            note: `${latestVersion} release gate`,
+          },
+        ],
+      },
+      {
+        label: 'Mem0 v3',
+        colorVar: '--q-mem0',
+        fillVar: '--q-mem0-28',
+        ghostVar: '--q-mem0-08',
+        points: [
+          {
+            value: 70,
+            display: '70%',
+            badge: '~70%',
+            status: 'estimated',
+            estimated: true,
+            note: 'Estimated. No MCP support in the DAB v1 gate.',
+          },
+        ],
+      },
+      {
+        label: 'Hindsight',
+        colorVar: '--q-hindsight',
+        fillVar: '--q-hindsight-28',
+        ghostVar: '--q-hindsight-08',
+        points: [
+          {
+            value: 65,
+            display: '65%',
+            badge: '~65%',
+            status: 'estimated',
+            estimated: true,
+            note: 'Estimated from public benchmark positioning.',
+          },
+        ],
+      },
+      {
+        label: 'GBrain',
+        colorVar: '--q-gbrain',
+        fillVar: '--q-gbrain-28',
+        ghostVar: '--q-gbrain-08',
+        points: [
+          {
+            value: 62,
+            display: '62%',
+            badge: '62%',
+            status: 'measured',
+            note: 'Measured and scaled from our published GBrain run.',
+          },
+        ],
+      },
+    ],
+  },
+  conversational: {
+    labels: ['LoCoMo', 'LongMemEval'],
+    datasets: [
+      {
+        label: 'Quaid',
+        colorVar: '--q-bronze',
+        fillVar: '--q-bronze-22',
+        ghostVar: '--q-bronze-08',
+        points: [
+          {
+            value: locomoOverall ?? 0,
+            display: locomoOverall != null ? formatPercent(locomoOverall) : 'pending',
+            badge: locomoOverall != null ? '0.1% - roadmap #105' : 'pending',
+            status: locomoOverall != null ? 'measured' : 'pending',
+            note: locomoOverall != null
+              ? 'Roadmap #105 closes the doc-native conversation-memory gap.'
+              : 'Waiting for a published Quaid LoCoMo run.',
+          },
+          {
+            value: longmemevalOverall ?? 0,
+            display: longmemevalOverall != null ? formatPercent(longmemevalOverall) : 'pending',
+            badge: longmemevalOverall != null ? formatPercent(longmemevalOverall) : 'pending',
+            status: longmemevalOverall != null ? 'measured' : 'pending',
+            note: longmemevalOverall != null
+              ? 'Measured Quaid LongMemEval run.'
+              : 'Waiting for a published Quaid LongMemEval run.',
+          },
+        ],
+      },
+      {
+        label: 'Mem0 v3',
+        colorVar: '--q-mem0',
+        fillVar: '--q-mem0-28',
+        ghostVar: '--q-mem0-08',
+        points: [
+          {
+            value: 91.6,
+            display: '91.6%',
+            status: 'published',
+            note: 'Published LoCoMo reference score.',
+          },
+          {
+            value: 93.4,
+            display: '93.4%',
+            status: 'published',
+            note: 'Published LongMemEval reference score.',
+          },
+        ],
+      },
+      {
+        label: 'Hindsight',
+        colorVar: '--q-hindsight',
+        fillVar: '--q-hindsight-28',
+        ghostVar: '--q-hindsight-08',
+        points: [
+          {
+            value: 0,
+            display: 'n/a',
+            badge: 'n/a',
+            status: 'na',
+            note: 'No public LoCoMo run published.',
+          },
+          {
+            value: 0,
+            display: 'n/a',
+            badge: 'n/a',
+            status: 'na',
+            note: 'No public LongMemEval run published.',
+          },
+        ],
+      },
+      {
+        label: 'GBrain',
+        colorVar: '--q-gbrain',
+        fillVar: '--q-gbrain-28',
+        ghostVar: '--q-gbrain-08',
+        points: [
+          {
+            value: 0,
+            display: 'n/a',
+            badge: 'n/a',
+            status: 'na',
+            note: 'No public LoCoMo run published.',
+          },
+          {
+            value: 0,
+            display: 'n/a',
+            badge: 'n/a',
+            status: 'na',
+            note: 'No public LongMemEval run published.',
+          },
+        ],
+      },
+    ],
+  },
+  scale: {
+    labels: ['BEAM 100K', 'BEAM 1M', 'BEAM 10M'],
+    datasets: [
+      {
+        label: 'Quaid',
+        colorVar: '--q-bronze',
+        fillVar: '--q-bronze-22',
+        ghostVar: '--q-bronze-08',
+        points: [
+          {
+            value: 0,
+            display: 'tbd',
+            badge: 'tbd',
+            status: 'tbd',
+            note: 'No published Quaid BEAM 100K run yet.',
+          },
+          {
+            value: beamScores.score_1m ?? 0,
+            display: beamScores.score_1m != null ? formatPercent(beamScores.score_1m) : 'pending',
+            badge: beamScores.score_1m != null ? formatPercent(beamScores.score_1m) : 'pending',
+            status: beamScores.score_1m != null ? 'measured' : 'pending',
+            note: beamScores.score_1m != null
+              ? 'Measured Quaid BEAM 1M run.'
+              : 'Waiting for a published Quaid BEAM 1M run.',
+          },
+          {
+            value: beamScores.score_10m ?? 0,
+            display: beamScores.score_10m != null ? formatPercent(beamScores.score_10m) : 'pending',
+            badge: beamScores.score_10m != null ? formatPercent(beamScores.score_10m) : 'pending',
+            status: beamScores.score_10m != null ? 'measured' : 'pending',
+            note: beamScores.score_10m != null
+              ? 'Measured Quaid BEAM 10M run.'
+              : 'Waiting for a published Quaid BEAM 10M run.',
+          },
+        ],
+      },
+      {
+        label: 'Mem0 v3',
+        colorVar: '--q-mem0',
+        fillVar: '--q-mem0-28',
+        ghostVar: '--q-mem0-08',
+        points: [
+          {
+            value: 0,
+            display: 'tbd',
+            badge: 'tbd',
+            status: 'tbd',
+            note: 'No public Mem0 v3 BEAM 100K score published.',
+          },
+          {
+            value: 64.1,
+            display: '64.1%',
+            status: 'published',
+            note: 'Published Mem0 v3 BEAM 1M score.',
+          },
+          {
+            value: 48.6,
+            display: '48.6%',
+            status: 'published',
+            note: 'Published Mem0 v3 BEAM 10M score.',
+          },
+        ],
+      },
+      {
+        label: 'Hindsight',
+        colorVar: '--q-hindsight',
+        fillVar: '--q-hindsight-28',
+        ghostVar: '--q-hindsight-08',
+        points: [
+          {
+            value: 0,
+            display: 'tbd',
+            badge: 'tbd',
+            status: 'tbd',
+            note: 'No public Hindsight BEAM 100K score published.',
+          },
+          {
+            value: 0,
+            display: 'tbd',
+            badge: 'tbd',
+            status: 'tbd',
+            note: 'No public Hindsight BEAM 1M score published.',
+          },
+          {
+            value: 75,
+            display: '75%',
+            badge: '~75%',
+            status: 'estimated',
+            estimated: true,
+            note: 'Estimated from Hindsight SOTA BEAM 10M positioning.',
+          },
+        ],
+      },
+    ],
+  },
+};
 ---
 
 <BaseLayout
   title="Results | Quaid Evals"
-  description="benchmark.quaid.app results for Quaid's release gate and competitive benchmark."
+  description="Competitive leaderboard for agent memory systems across DAB v1, LoCoMo, LongMemEval, and BEAM."
 >
   <script
     slot="head"
@@ -64,436 +372,681 @@ const beamStatus = beam?.status === 'measured'
     src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"
   ></script>
 
-  <div class="page">
-    <section class="hero">
-      <div class="page-kicker">Results</div>
-      <h1>benchmark.quaid.app</h1>
-      <p>
-        Release-gate results for DAB v1 and competitive tracking for DAB v2. {total_runs} published runs so far.
+  <div class="page leaderboard-page">
+    <section class="leaderboard-hero">
+      <div class="hero-copy">
+        <div class="page-kicker">Live leaderboard</div>
+        <div class="hero-mark">
+          <h1>quaid evals</h1>
+          <p class="hero-tagline">The benchmark for agent memory systems</p>
+        </div>
+        <p class="hero-summary">
+          Competitive benchmark coverage across reliability, conversational memory, and scale. Quaid&rsquo;s
+          release gate lives here beside published and estimated peer results.
+        </p>
+        <div class="hero-metrics">
+          {heroMetrics.map((metric) => (
+            <div class={`panel hero-metric ${metric.tone}`}>
+              <div class="metric-label">{metric.label}</div>
+              <div class="hero-metric__value">{metric.value}</div>
+              <div class="metric-sub">{metric.detail}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <aside class="panel hero-board">
+        <div class="metric-label">Board At A Glance</div>
+        <h2>Where each system leads right now</h2>
+        <div class="board-list">
+          {boardLeaders.map((leader) => (
+            <div class={`board-item ${leader.tone}`}>
+              <div class="board-item__metric">{leader.metric}</div>
+              <div class="board-item__value">{leader.value}</div>
+              <p>{leader.detail}</p>
+            </div>
+          ))}
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel leaderboard-shell">
+      <div class="section-heading">
+        <h2>Competitive Leaderboard</h2>
+        <p>
+          Grouped bar charts compare Quaid against the four main memory systems across the benchmarks that decide
+          whether a memory layer is real or just context stuffing.
+        </p>
+      </div>
+
+      <div class="leaderboard-grid">
+        <article class="chart-panel">
+          <div class="chart-panel__head">
+            <div>
+              <div class="chart-title">Infrastructure &amp; Reliability</div>
+              <h3>DAB v1</h3>
+            </div>
+            <p>Release-gate reliability out of 100%.</p>
+          </div>
+          <div class="chart-stage">
+            <div class="chart-canvas-wrap"><canvas id="infrastructureLeaderboard"></canvas></div>
+          </div>
+        </article>
+
+        <article class="chart-panel">
+          <div class="chart-panel__head">
+            <div>
+              <div class="chart-title">Conversational Memory</div>
+              <h3>LoCoMo + LongMemEval</h3>
+            </div>
+            <p>Published and measured dialogue-memory scores.</p>
+          </div>
+          <div class="chart-stage">
+            <div class="chart-canvas-wrap"><canvas id="conversationLeaderboard"></canvas></div>
+          </div>
+        </article>
+
+        <article class="chart-panel">
+          <div class="chart-panel__head">
+            <div>
+              <div class="chart-title">Scale</div>
+              <h3>BEAM</h3>
+            </div>
+            <p>Extreme-scale memory performance from 100K to 10M tokens.</p>
+          </div>
+          <div class="chart-stage">
+            <div class="chart-canvas-wrap"><canvas id="scaleLeaderboard"></canvas></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="board-foot">
+        <div class="legend-strip" aria-label="Score state legend">
+          <span class="pill is-success">measured</span>
+          <span class="pill is-bronze">published</span>
+          <span class="pill is-warning">estimated</span>
+          <span class="pill is-muted">pending / n/a</span>
+        </div>
+        <p class="note">
+          Estimated values show an asterisk in tooltips. Pending and n/a states render as ghost bars at 0. GBrain
+          has no public BEAM scores yet, so it is omitted from the scale chart.
+        </p>
+
+        <div class="method-grid">
+          {methodologyLinks.map((link) => (
+            <a class="method-card" href={link.href}>
+              <div class="metric-label">Methodology</div>
+              <div class="method-card__label">{link.label}</div>
+              <p>{link.detail}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="panel history-panel">
+      <div class="history-panel__head">
+        <div class="section-heading">
+          <h2>Version History</h2>
+          <p>Latest Quaid release-gate runs. Full trend charts live on the history page.</p>
+        </div>
+        <a class="history-link" href="/history">Open full history</a>
+      </div>
+
+      <div class="release-grid">
+        {recentReleaseRuns.map((run) => (
+          <div class="release-card">
+            <div class="release-card__top">
+              <span class="pill is-bronze">v{run.version}</span>
+              <span class="release-card__date">{run.date}</span>
+            </div>
+            <div class="release-card__score">{formatPercent(run.benchmarks?.dab?.pct)}</div>
+            <div class="release-card__meta">
+              P@5 {formatPercent(run.benchmarks?.gbrain_evals?.p_at_5)} / R@5 {formatPercent(run.benchmarks?.gbrain_evals?.r_at_5)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p class="note">
+        Latest MSMARCO snapshot: P@5 {formatPercent(latestMsmarco?.p_at_5)} / R@5 {formatPercent(latestMsmarco?.r_at_5)}.
       </p>
     </section>
-
-    <section class="panel">
-      <div class="section-heading">
-        <h2>DAB v1</h2>
-        <p>Regression gate status for the latest Quaid release.</p>
-      </div>
-      <div class="card-grid">
-        <div class="panel metric-card">
-          <div class="metric-label">DAB Score</div>
-          <div class="metric-value is-bronze">{latestDab ? `${latestDab.total}/${latestDab.max}` : 'n/a'}</div>
-          <div class="metric-sub">{latestDab ? `${latestDab.pct}%` : 'No runs yet'}</div>
-        </div>
-        <div class="panel metric-card">
-          <div class="metric-label">P@5</div>
-          <div class="metric-value">{latestGbrain?.p_at_5 != null ? `${latestGbrain.p_at_5}%` : 'n/a'}</div>
-          <div class="metric-sub">GBrain reference: {gbrain.gbrain_evals.p_at_5}%</div>
-        </div>
-        <div class="panel metric-card">
-          <div class="metric-label">R@5</div>
-          <div class="metric-value">{latestGbrain?.r_at_5 != null ? `${latestGbrain.r_at_5}%` : 'n/a'}</div>
-          <div class="metric-sub">GBrain reference: {gbrain.gbrain_evals.r_at_5}%</div>
-        </div>
-        <div class="panel metric-card">
-          <div class="metric-label">Latest Release</div>
-          <div class="metric-value">{latestVersion}</div>
-          <div class="metric-sub">{latestDate || 'No date available'}</div>
-        </div>
-      </div>
-    </section>
-
-    {history.length > 1 && (
-      <section class="chart-grid">
-        <div class="panel chart-card">
-          <div class="chart-title">DAB v1 score history</div>
-          <div class="chart-canvas-wrap"><canvas id="dabHistory"></canvas></div>
-        </div>
-        <div class="panel chart-card">
-          <div class="chart-title">MSMARCO P@5 and R@5</div>
-          <div class="chart-canvas-wrap"><canvas id="msmarcoHistory"></canvas></div>
-        </div>
-      </section>
-    )}
-
-    <section class="panel">
-      <div class="section-heading">
-        <h2>DAB v2</h2>
-        <p>Measured competitive benchmark snapshots. Quaid uses the latest measured Quaid run.</p>
-      </div>
-      <div class="card-grid">
-        <div class="panel metric-card">
-          <div class="metric-label">Quaid</div>
-          <div class={`metric-value ${scoreTone(dabV2LatestQuaid?.pct ?? 0, 50, 30)}`}>
-            {dabV2LatestQuaid ? `${dabV2LatestQuaid.total}/${dabV2LatestQuaid.max}` : 'n/a'}
-          </div>
-          <div class="metric-sub">
-            {dabV2LatestQuaid ? `${dabV2LatestQuaid.pct}% - v${dabV2LatestQuaid.version}` : 'No Quaid run found'}
-          </div>
-        </div>
-        <div class="panel metric-card">
-          <div class="metric-label">Infrastructure</div>
-          <div class={`metric-value ${scoreTone(dabV2QuaidSections?.s1_infrastructure?.score ?? 0, 30, 20)}`}>
-            {dabV2QuaidSections?.s1_infrastructure?.score ?? 'n/a'}
-          </div>
-          <div class="metric-sub">out of {dabV2QuaidSections?.s1_infrastructure?.max ?? 40}</div>
-        </div>
-        <div class="panel metric-card">
-          <div class={`metric-label`}>Retrieval</div>
-          <div class={`metric-value ${scoreTone(dabV2QuaidSections?.s2_realworld_retrieval?.score ?? 0, 70, 45)}`}>
-            {dabV2QuaidSections?.s2_realworld_retrieval?.score ?? 'n/a'}
-          </div>
-          <div class="metric-sub">out of {dabV2QuaidSections?.s2_realworld_retrieval?.max ?? 100}</div>
-        </div>
-        <div class="panel metric-card">
-          <div class="metric-label">Intelligence</div>
-          <div class={`metric-value ${scoreTone(dabV2QuaidSections?.s5_agent_intelligence?.score ?? 0, 40, 20)}`}>
-            {dabV2QuaidSections?.s5_agent_intelligence?.score ?? 'n/a'}
-          </div>
-          <div class="metric-sub">out of {dabV2QuaidSections?.s5_agent_intelligence?.max ?? 80}</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="section-heading">
-        <h2>DAB v2 Competitive Table</h2>
-      </div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>System</th>
-              <th>Infra</th>
-              <th>Retrieval</th>
-              <th>Conversation</th>
-              <th>Graph</th>
-              <th>Intelligence</th>
-              <th>Total</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Quaid</td>
-              <td>{dabV2Systems.quaid?.sections?.s1_infrastructure?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.quaid?.sections?.s2_realworld_retrieval?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.quaid?.sections?.s3_conversation_memory?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.quaid?.sections?.s4_knowledge_graph?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.quaid?.sections?.s5_agent_intelligence?.score ?? 'n/a'}</td>
-              <td>
-                {dabV2Systems.quaid ? `${dabV2Systems.quaid.total}/${dabV2Systems.quaid.max} (${dabV2Systems.quaid.pct}%)` : 'n/a'}
-              </td>
-              <td><span class="pill is-warning">measured</span></td>
-            </tr>
-            <tr>
-              <td>GBrain</td>
-              <td>{dabV2Systems.gbrain?.sections?.s1_infrastructure?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.gbrain?.sections?.s2_realworld_retrieval?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.gbrain?.sections?.s3_conversation_memory?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.gbrain?.sections?.s4_knowledge_graph?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.gbrain?.sections?.s5_agent_intelligence?.score ?? 'n/a'}</td>
-              <td>
-                {dabV2Systems.gbrain ? `${dabV2Systems.gbrain.total}/${dabV2Systems.gbrain.max} (${dabV2Systems.gbrain.pct}%)` : 'n/a'}
-              </td>
-              <td><span class="pill is-alert">measured</span></td>
-            </tr>
-            <tr>
-              <td>qmd</td>
-              <td>{dabV2Systems.qmd?.sections?.s1_infrastructure?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.qmd?.sections?.s2_realworld_retrieval?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.qmd?.sections?.s3_conversation_memory?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.qmd?.sections?.s4_knowledge_graph?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.qmd?.sections?.s5_agent_intelligence?.score ?? 'n/a'}</td>
-              <td>{dabV2Systems.qmd ? `${dabV2Systems.qmd.total}/${dabV2Systems.qmd.max} (${dabV2Systems.qmd.pct}%)` : 'n/a'}</td>
-              <td><span class="pill is-alert">measured</span></td>
-            </tr>
-            <tr>
-              <td>Mem0 v3</td>
-              <td>~30</td>
-              <td>~30</td>
-              <td>~82</td>
-              <td>0</td>
-              <td>~10</td>
-              <td>~152/420 (36%)</td>
-              <td><span class="pill is-muted">estimated</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="note">Measured values come from published runs in this repo. Mem0 remains an estimate.</p>
-    </section>
-
-    <section class="panel">
-      <div class="section-heading">
-        <h2>Industry Benchmarks</h2>
-      </div>
-      <div class="card-grid">
-        <div class="panel metric-card">
-          <div class="metric-label">LoCoMo</div>
-          <div class="metric-value is-bronze">{formatPercent(mem0.locomo.overall)}</div>
-          <div class="metric-sub">Mem0 v3 reference overall</div>
-          <div class="metric-sub">Quaid: {locomoStatus}</div>
-          <a class="inline-link" href="/locomo">View benchmark</a>
-        </div>
-        <div class="panel metric-card">
-          <div class="metric-label">LongMemEval</div>
-          <div class="metric-value is-bronze">{formatPercent(mem0.longmemeval.overall)}</div>
-          <div class="metric-sub">Mem0 v3 93.4% reference</div>
-          <div class="metric-sub">Quaid: {longmemevalStatus}</div>
-          <a class="inline-link" href="/longmemeval">View benchmark</a>
-        </div>
-        <div class="panel metric-card">
-          <div class="metric-label">BEAM</div>
-          <div class="metric-value is-bronze">{formatPercent(mem0.beam.score_10m)}</div>
-          <div class="metric-sub">Mem0 v3 BEAM 10M reference</div>
-          <div class="metric-sub">Quaid: {beamStatus}</div>
-          <a class="inline-link" href="/beam">View benchmark</a>
-        </div>
-      </div>
-      <p class="note">These are the same benchmarks used by Mem0, Hindsight, and other leading memory systems.</p>
-    </section>
-
-    {dabV2Quaid.length > 1 && (
-      <section class="panel chart-card">
-        <div class="chart-title">DAB v2 Quaid history</div>
-        <div class="chart-canvas-wrap"><canvas id="dab2History"></canvas></div>
-      </section>
-    )}
-
-    {history.length > 0 && (
-      <section class="panel">
-        <div class="section-heading">
-          <h2>DAB v1 Run History</h2>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Version</th>
-                <th>Date</th>
-                <th>DAB %</th>
-                <th>P@5</th>
-                <th>R@5</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.slice().reverse().slice(0, 10).map((run) => (
-                <tr>
-                  <td>v{run.version}</td>
-                  <td>{run.date}</td>
-                  <td>{run.benchmarks?.dab?.pct != null ? `${run.benchmarks.dab.pct}%` : 'n/a'}</td>
-                  <td>{run.benchmarks?.gbrain_evals?.p_at_5 != null ? `${run.benchmarks.gbrain_evals.p_at_5}%` : 'n/a'}</td>
-                  <td>{run.benchmarks?.gbrain_evals?.r_at_5 != null ? `${run.benchmarks.gbrain_evals.r_at_5}%` : 'n/a'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    )}
   </div>
 
-  <script define:vars={{ chartVersions, dabScores, rAt5Scores, p5Scores, dabV2Quaid }}>
+  <script define:vars={{ leaderboardCharts }}>
     document.addEventListener('DOMContentLoaded', () => {
       if (typeof Chart === 'undefined') return;
 
       const rootStyles = getComputedStyle(document.documentElement);
-      const bronze = rootStyles.getPropertyValue('--q-bronze').trim();
-      const bronzeSoft = rootStyles.getPropertyValue('--q-bronze-16').trim();
-      const bone = rootStyles.getPropertyValue('--q-bone').trim();
-      const muted = rootStyles.getPropertyValue('--q-muted').trim();
-      const border = rootStyles.getPropertyValue('--q-bronze-12').trim();
-      const success = rootStyles.getPropertyValue('--q-success').trim();
-      const successSoft = rootStyles.getPropertyValue('--q-success-16').trim();
-      const warning = rootStyles.getPropertyValue('--q-warning').trim();
-      const warningSoft = rootStyles.getPropertyValue('--q-warning-16').trim();
-      const fontUi = rootStyles.getPropertyValue('--font-ui').trim();
+      const cssVar = (name) => rootStyles.getPropertyValue(name).trim();
+      const fontUi = cssVar('--font-ui');
+      const bone = cssVar('--q-bone');
+      const muted = cssVar('--q-muted');
+      const grid = cssVar('--q-bronze-12');
+
+      const normalizeBadge = (badge, chartWidth) => {
+        if (!badge) return [];
+        if (badge === '0.1% - roadmap #105' && chartWidth < 860) return ['0.1%', 'roadmap #105'];
+        return [badge];
+      };
+
+      const badgePlugin = {
+        id: 'benchmarkBadgeLabels',
+        afterDatasetsDraw(chart) {
+          const { ctx, chartArea, scales } = chart;
+          const yScale = scales.y;
+          const fontSize = chart.width < 720 ? 8 : 10;
+          const lineHeight = fontSize + 3;
+
+          ctx.save();
+          ctx.font = `600 ${fontSize}px ${fontUi}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+
+          chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+
+            meta.data.forEach((element, index) => {
+              const point = dataset.pointMeta?.[index];
+              if (!point?.badge) return;
+
+              const badgeLines = normalizeBadge(point.badge, chart.width);
+              const lineCount = badgeLines.length;
+              const labelColor = cssVar(point.status === 'na' || point.status === 'pending' || point.status === 'tbd'
+                ? '--q-muted'
+                : dataset.colorVar);
+              const baseline = yScale.getPixelForValue(0) - 8 - (datasetIndex % 2) * lineHeight;
+              const preferredY = point.value > 0 ? element.y - 8 : baseline;
+              const y = Math.max(chartArea.top + lineCount * lineHeight, preferredY);
+
+              ctx.fillStyle = labelColor;
+
+              badgeLines.forEach((line, lineIndex) => {
+                const offset = (lineCount - lineIndex - 1) * lineHeight;
+                ctx.fillText(line, element.x, y - offset);
+              });
+            });
+          });
+
+          ctx.restore();
+        },
+      };
+
+      const makeDatasets = (series) => series.datasets.map((dataset) => ({
+        label: dataset.label,
+        colorVar: dataset.colorVar,
+        pointMeta: dataset.points,
+        data: dataset.points.map((point) => point.value),
+        borderColor: dataset.points.map((point) =>
+          cssVar(point.status === 'na' || point.status === 'pending' || point.status === 'tbd'
+            ? dataset.ghostVar
+            : dataset.colorVar)
+        ),
+        backgroundColor: dataset.points.map((point) =>
+          cssVar(point.status === 'na' || point.status === 'pending' || point.status === 'tbd'
+            ? dataset.ghostVar
+            : dataset.fillVar)
+        ),
+        borderWidth: dataset.points.map((point) => (point.estimated ? 2 : 1.4)),
+        borderSkipped: false,
+        borderRadius: 6,
+        maxBarThickness: 26,
+        minBarLength: 6,
+      }));
+
+      const makeTooltipCallbacks = () => ({
+        label(context) {
+          const point = context.dataset.pointMeta?.[context.dataIndex];
+          if (!point) return `${context.dataset.label}: ${context.parsed.y}`;
+          if (point.status === 'na' || point.status === 'pending' || point.status === 'tbd') {
+            return `${context.dataset.label}: ${point.display}`;
+          }
+
+          const suffix = point.estimated ? '*' : '';
+          return `${context.dataset.label}: ${point.display}${suffix}`;
+        },
+        afterBody(items) {
+          const point = items[0]?.dataset?.pointMeta?.[items[0].dataIndex];
+          if (!point) return [];
+
+          const lines = [];
+          if (point.note) lines.push(point.note);
+          if (point.estimated) lines.push('* Estimated value');
+          if (point.status === 'published') lines.push('Published reference');
+          if (point.status === 'measured') lines.push('Measured result');
+          if (point.status === 'pending' || point.status === 'tbd') lines.push('Awaiting published run');
+          if (point.status === 'na') lines.push('No public benchmark run');
+          return lines;
+        },
+      });
 
       const chartDefaults = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: {
-              color: bone,
-              font: { family: fontUi, size: 11 },
+        type: 'bar',
+        plugins: [badgePlugin],
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 18, right: 8, left: 4, bottom: 0 },
+          },
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: bone,
+                usePointStyle: true,
+                pointStyle: 'rectRounded',
+                boxWidth: 10,
+                font: { family: fontUi, size: 11 },
+              },
+            },
+            tooltip: {
+              callbacks: makeTooltipCallbacks(),
+              displayColors: true,
+              titleColor: bone,
+              bodyColor: bone,
+              footerColor: muted,
+              backgroundColor: cssVar('--q-charcoal'),
+              borderColor: grid,
+              borderWidth: 1,
+              padding: 12,
             },
           },
-        },
-        scales: {
-          x: {
-            ticks: { color: muted, font: { family: fontUi, size: 10 } },
-            grid: { color: border },
-          },
-          y: {
-            ticks: { color: muted, font: { family: fontUi, size: 10 } },
-            grid: { color: border },
+          scales: {
+            x: {
+              ticks: {
+                color: muted,
+                font: { family: fontUi, size: 10 },
+              },
+              grid: {
+                color: grid,
+              },
+            },
+            y: {
+              min: 0,
+              max: 100,
+              grace: '10%',
+              ticks: {
+                color: muted,
+                font: { family: fontUi, size: 10 },
+                callback: (value) => `${value}%`,
+              },
+              grid: {
+                color: grid,
+              },
+            },
           },
         },
       };
 
-      const dabCtx = document.getElementById('dabHistory');
-      if (dabCtx && dabScores.some((score) => score !== null)) {
-        new Chart(dabCtx, {
-          type: 'line',
+      const chartConfigs = [
+        ['infrastructureLeaderboard', leaderboardCharts.infrastructure],
+        ['conversationLeaderboard', leaderboardCharts.conversational],
+        ['scaleLeaderboard', leaderboardCharts.scale],
+      ];
+
+      chartConfigs.forEach(([canvasId, series]) => {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        new Chart(canvas, {
+          ...chartDefaults,
           data: {
-            labels: chartVersions,
-            datasets: [{
-              label: 'DAB %',
-              data: dabScores,
-              borderColor: bronze,
-              backgroundColor: bronzeSoft,
-              tension: 0.32,
-              spanGaps: true,
-              pointRadius: 3.5,
-              fill: true,
-            }],
-          },
-          options: {
-            ...chartDefaults,
-            scales: {
-              ...chartDefaults.scales,
-              y: {
-                min: 0,
-                max: 100,
-                ticks: { color: muted, font: { family: fontUi, size: 10 } },
-                grid: { color: border },
-              },
-            },
+            labels: series.labels,
+            datasets: makeDatasets(series),
           },
         });
-      }
-
-      const msCtx = document.getElementById('msmarcoHistory');
-      if (msCtx && (p5Scores.some((score) => score !== null) || rAt5Scores.some((score) => score !== null))) {
-        new Chart(msCtx, {
-          type: 'line',
-          data: {
-            labels: chartVersions,
-            datasets: [
-              {
-                label: 'P@5 %',
-                data: p5Scores,
-                borderColor: bronze,
-                backgroundColor: bronzeSoft,
-                tension: 0.32,
-                spanGaps: true,
-                pointRadius: 3.5,
-              },
-              {
-                label: 'R@5 %',
-                data: rAt5Scores,
-                borderColor: success,
-                backgroundColor: successSoft,
-                tension: 0.32,
-                spanGaps: true,
-                pointRadius: 3.5,
-              },
-            ],
-          },
-          options: {
-            ...chartDefaults,
-            scales: {
-              ...chartDefaults.scales,
-              y: {
-                min: 0,
-                max: 100,
-                ticks: { color: muted, font: { family: fontUi, size: 10 } },
-                grid: { color: border },
-              },
-            },
-          },
-        });
-      }
-
-      const dab2Ctx = document.getElementById('dab2History');
-      if (dab2Ctx && dabV2Quaid.length > 1) {
-        const labels = dabV2Quaid.map((run) => `v${run.version}`);
-        const infraScores = dabV2Quaid.map((run) => run.sections?.s1_infrastructure?.score ?? null);
-        const retrievalScores = dabV2Quaid.map((run) => run.sections?.s2_realworld_retrieval?.score ?? null);
-        const totalScores = dabV2Quaid.map((run) => run.total ?? null);
-
-        new Chart(dab2Ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Infrastructure',
-                data: infraScores,
-                borderColor: success,
-                backgroundColor: successSoft,
-                tension: 0.32,
-                spanGaps: true,
-                pointRadius: 3.5,
-                yAxisID: 'y1',
-              },
-              {
-                label: 'Retrieval',
-                data: retrievalScores,
-                borderColor: bronze,
-                backgroundColor: bronzeSoft,
-                tension: 0.32,
-                spanGaps: true,
-                pointRadius: 3.5,
-                yAxisID: 'y2',
-              },
-              {
-                label: 'Total',
-                data: totalScores,
-                borderColor: warning,
-                backgroundColor: warningSoft,
-                tension: 0.32,
-                spanGaps: true,
-                pointRadius: 3.5,
-                yAxisID: 'y3',
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                labels: {
-                  color: bone,
-                  font: { family: fontUi, size: 11 },
-                },
-              },
-            },
-            scales: {
-              x: {
-                ticks: { color: muted, font: { family: fontUi, size: 10 } },
-                grid: { color: border },
-              },
-              y1: {
-                type: 'linear',
-                position: 'left',
-                min: 0,
-                max: 40,
-                ticks: { color: muted, font: { family: fontUi, size: 10 } },
-                grid: { color: border },
-              },
-              y2: {
-                type: 'linear',
-                position: 'right',
-                min: 0,
-                max: 100,
-                ticks: { color: muted, font: { family: fontUi, size: 10 } },
-                grid: { drawOnChartArea: false },
-              },
-              y3: {
-                type: 'linear',
-                position: 'right',
-                min: 0,
-                max: 400,
-                ticks: { display: false },
-                grid: { drawOnChartArea: false },
-              },
-            },
-          },
-        });
-      }
+      });
     });
   </script>
+
+  <style>
+    .leaderboard-page {
+      gap: 1.75rem;
+    }
+
+    .leaderboard-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
+      gap: var(--q-grid-gap);
+      align-items: end;
+    }
+
+    .hero-copy {
+      display: grid;
+      gap: 1.15rem;
+      padding-top: 0.35rem;
+    }
+
+    .hero-mark {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .hero-tagline {
+      max-width: 18ch;
+      color: var(--q-bone);
+      font-family: var(--font-display);
+      font-size: clamp(1.7rem, 3vw, 2.7rem);
+      line-height: 0.98;
+    }
+
+    .hero-summary {
+      max-width: 44rem;
+      color: var(--q-linen);
+      font-size: 1.04rem;
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+
+    .hero-metric {
+      gap: 0.4rem;
+      min-height: 132px;
+      background:
+        linear-gradient(180deg, var(--q-bronze-08), transparent 80%),
+        linear-gradient(180deg, var(--q-stone), var(--q-charcoal));
+    }
+
+    .hero-metric.tone-bronze {
+      border-color: var(--q-bronze-22);
+    }
+
+    .hero-metric.tone-alert {
+      border-color: var(--q-gbrain-18);
+    }
+
+    .hero-metric.tone-bone {
+      border-color: var(--q-bone-12);
+    }
+
+    .hero-metric.tone-muted {
+      opacity: 0.9;
+    }
+
+    .hero-metric__value {
+      color: var(--q-bone);
+      font-size: clamp(1.4rem, 2.4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .hero-board {
+      gap: 0.95rem;
+      height: 100%;
+      background:
+        radial-gradient(circle at top right, var(--q-bronze-08), transparent 46%),
+        linear-gradient(180deg, var(--q-stone), var(--q-charcoal));
+    }
+
+    .hero-board h2 {
+      color: var(--q-bone);
+      font-size: clamp(1.3rem, 2vw, 1.75rem);
+      line-height: 1.05;
+    }
+
+    .board-list {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .board-item {
+      display: grid;
+      gap: 0.24rem;
+      padding: 0.95rem 1rem;
+      border: var(--q-border);
+      border-radius: var(--q-card-radius);
+      background: var(--q-bronze-08);
+    }
+
+    .board-item.tone-quaid {
+      background: linear-gradient(135deg, var(--q-bronze-08), transparent 80%);
+      border-color: var(--q-bronze-22);
+    }
+
+    .board-item.tone-mem0 {
+      background: linear-gradient(135deg, var(--q-mem0-08), transparent 80%);
+      border-color: var(--q-mem0-18);
+    }
+
+    .board-item.tone-hindsight {
+      background: linear-gradient(135deg, var(--q-hindsight-08), transparent 80%);
+      border-color: var(--q-hindsight-18);
+    }
+
+    .board-item__metric {
+      color: var(--q-muted);
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .board-item__value {
+      color: var(--q-bone);
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .board-item p {
+      color: var(--q-muted);
+      font-size: 0.9rem;
+    }
+
+    .leaderboard-shell {
+      gap: 1.3rem;
+    }
+
+    .leaderboard-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .chart-panel {
+      display: grid;
+      gap: 0.95rem;
+      padding: 1.2rem;
+      border: var(--q-border);
+      border-radius: var(--q-card-radius);
+      background:
+        linear-gradient(180deg, var(--q-bronze-08), transparent 48%),
+        linear-gradient(180deg, var(--q-stone), var(--q-charcoal));
+    }
+
+    .chart-panel__head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .chart-panel__head h3 {
+      color: var(--q-bone);
+      font-size: clamp(1.25rem, 2vw, 1.55rem);
+      font-weight: 600;
+      line-height: 1.05;
+    }
+
+    .chart-panel__head p {
+      max-width: 24rem;
+      color: var(--q-muted);
+      font-size: 0.92rem;
+      text-align: right;
+    }
+
+    .chart-stage {
+      padding: 0.9rem 1rem 0.85rem;
+      border: var(--q-border);
+      border-radius: calc(var(--q-card-radius) - 1px);
+      background: linear-gradient(180deg, var(--q-stone), var(--q-charcoal));
+    }
+
+    .board-foot {
+      display: grid;
+      gap: 0.95rem;
+    }
+
+    .legend-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .pill.is-bronze {
+      background: var(--q-bronze-08);
+      color: var(--q-bronze);
+    }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .method-card {
+      display: grid;
+      gap: 0.35rem;
+      padding: 1rem;
+      border: var(--q-border);
+      border-radius: var(--q-card-radius);
+      background:
+        linear-gradient(180deg, var(--q-bone-08), transparent 90%),
+        linear-gradient(180deg, var(--q-charcoal), var(--q-ink));
+      color: inherit;
+      text-decoration: none;
+      transition:
+        border-color 160ms ease,
+        transform 160ms ease,
+        color 160ms ease;
+    }
+
+    .method-card:hover {
+      border-color: var(--q-bronze-22);
+      color: var(--q-bone);
+      transform: translateY(-1px);
+    }
+
+    .method-card__label {
+      color: var(--q-bone);
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .method-card p {
+      color: var(--q-muted);
+      font-size: 0.9rem;
+    }
+
+    .history-panel {
+      gap: 1.15rem;
+    }
+
+    .history-panel__head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .history-link {
+      color: var(--q-bronze);
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .history-link:hover {
+      color: var(--q-bone);
+    }
+
+    .release-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .release-card {
+      display: grid;
+      gap: 0.65rem;
+      padding: 1rem;
+      border: var(--q-border);
+      border-radius: var(--q-card-radius);
+      background:
+        linear-gradient(180deg, var(--q-bronze-08), transparent 75%),
+        linear-gradient(180deg, var(--q-charcoal), var(--q-ink));
+    }
+
+    .release-card__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .release-card__date {
+      color: var(--q-muted);
+      font-size: 0.82rem;
+    }
+
+    .release-card__score {
+      color: var(--q-bone);
+      font-size: clamp(1.3rem, 2vw, 1.8rem);
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .release-card__meta {
+      color: var(--q-muted);
+      font-size: 0.87rem;
+    }
+
+    @media (max-width: 1080px) {
+      .leaderboard-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-metrics,
+      .method-grid,
+      .release-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 820px) {
+      .chart-panel__head,
+      .history-panel__head {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .chart-panel__head p {
+        max-width: none;
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero-metrics,
+      .method-grid,
+      .release-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-panel,
+      .chart-stage,
+      .method-card,
+      .release-card {
+        padding-inline: 0.95rem;
+      }
+    }
+  </style>
 </BaseLayout>
