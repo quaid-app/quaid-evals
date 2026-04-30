@@ -11,6 +11,10 @@ on:
         description: 'Benchmarks to run (comma-separated: dab,gbrain-evals,locomo,longmemeval,beam)'
         required: false
         default: 'dab,gbrain-evals,locomo'
+      lme_max_questions:
+        description: 'LongMemEval max questions (leave blank for full 500)'
+        required: false
+        default: ''
 
 jobs:
   benchmark:
@@ -58,6 +62,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MAX_QUESTIONS: ${{ inputs.lme_max_questions }}
         run: bash benchmarks/longmemeval/run.sh
 
       - name: Run BEAM benchmark
