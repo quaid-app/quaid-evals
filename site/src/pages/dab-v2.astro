@@ -1,0 +1,187 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const pillars = [
+  {
+    title: 'Retrieval',
+    points: '100pts',
+    detail: 'Exact lookup, paraphrase recall, ranking quality, long-tail coverage, latency-aware search.',
+  },
+  {
+    title: 'Conversation',
+    points: '100pts',
+    detail: 'Multi-turn memory, fact carryover, contradiction handling, temporal recall, state preservation.',
+  },
+  {
+    title: 'Graph',
+    points: '100pts',
+    detail: 'Entity extraction, edge creation, multi-hop traversal, graph updates, relationship repair.',
+  },
+];
+
+const sections = [
+  {
+    title: 'Infrastructure',
+    points: '40pts',
+    tests: [
+      'Install and version check',
+      'Database bootstrap and migrations',
+      'Corpus ingest and persistence',
+      'MCP startup and tool discovery',
+    ],
+  },
+  {
+    title: 'Retrieval',
+    points: '100pts',
+    tests: [
+      'Exact FTS recall on known documents',
+      'Semantic paraphrase recall on natural queries',
+      'Ranking quality under noisy distractors',
+      'Hybrid search consistency across repeated runs',
+      'Latency-sensitive search at larger corpus sizes',
+    ],
+  },
+  {
+    title: 'Conversation',
+    points: '100pts',
+    tests: [
+      'Multi-turn memory retention',
+      'Persona and preference carryover',
+      'Conflict detection across turns',
+      'Temporal grounding of prior facts',
+      'Long-context extraction without tool drift',
+    ],
+  },
+  {
+    title: 'Graph',
+    points: '100pts',
+    tests: [
+      'Entity extraction and normalization',
+      'Relationship creation from free text',
+      'Multi-hop traversal and retrieval',
+      'Contradiction handling in graph updates',
+      'Graph repair after partial writes',
+    ],
+  },
+  {
+    title: 'Intelligence',
+    points: '80pts',
+    tests: [
+      'Memory tool selection',
+      'Gap detection when evidence is missing',
+      'Context pruning under token pressure',
+      'Evidence citation and answer discipline',
+    ],
+  },
+];
+
+const competitors = [
+  ['Quaid', '35', '80', '0', '0', '15', '130/420 (31%)', 'measured'],
+  ['GBrain', '15', '7', '0', '45', '10', '77/420 (18%)', 'measured'],
+  ['Mem0 v3', '~30', '~30', '~82', '0', '~10', '~152/420 (36%)', 'estimated'],
+  ['qmd', '21', '45', '0', '0', '5', '71/420 (17%)', 'measured'],
+];
+---
+
+<BaseLayout
+  title="DAB v2.1 | Quaid Evals"
+  description="DAB v2.1 is Quaid's 420-point competitive benchmark."
+>
+  <div class="page">
+    <section class="hero">
+      <div class="page-kicker">Methodology</div>
+      <h1>DAB v2.1</h1>
+      <p>420-point competitive benchmark. No system scores above 50%.</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Why v1 Is Not Enough</h2>
+      </div>
+      <p>
+        DAB v1 is a release gate. It catches regressions in install, ingestion, search, and MCP behavior, but it
+        does not separate basic functionality from strong retrieval, conversation memory, graph reasoning, or
+        latency under competitive workloads.
+      </p>
+    </section>
+
+    <section class="three-up">
+      {pillars.map((pillar) => (
+        <div class="panel">
+          <div class="metric-label">{pillar.points}</div>
+          <h2>{pillar.title}</h2>
+          <p>{pillar.detail}</p>
+        </div>
+      ))}
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Sections</h2>
+        <p>Five scored sections. Three of them form the benchmark core.</p>
+      </div>
+      <div class="card-grid">
+        {sections.map((section) => (
+          <div class="panel">
+            <div class="metric-label">{section.points}</div>
+            <h3>{section.title}</h3>
+            <ul class="content-list">
+              {section.tests.map((test) => (
+                <li>{test}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="callout is-alert">
+      <strong>Latency Penalty</strong>
+      <p>&gt;2s = 50% pts, &gt;5s = 0 pts.</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Competitive Snapshot</h2>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>System</th>
+              <th>Infra</th>
+              <th>Retrieval</th>
+              <th>Conversation</th>
+              <th>Graph</th>
+              <th>Intelligence</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {competitors.map(([system, infra, retrieval, conversation, graph, intelligence, total, status]) => (
+              <tr>
+                <td>{system}</td>
+                <td>{infra}</td>
+                <td>{retrieval}</td>
+                <td>{conversation}</td>
+                <td>{graph}</td>
+                <td>{intelligence}</td>
+                <td>{total}</td>
+                <td>{status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Competitor scores estimated from published benchmarks. Quaid measured.</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>How To Run</h2>
+      </div>
+      <pre class="mono-run"><code>MEMORY_CMD=quaid bash benchmarks/dab-v2/run.sh</code></pre>
+    </section>
+  </div>
+</BaseLayout>

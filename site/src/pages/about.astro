@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="About | Quaid Evals"
+  description="About the Quaid benchmark site and why the project publishes results."
+>
+  <div class="page">
+    <section class="hero">
+      <div class="page-kicker">About</div>
+      <h1>Quaid Evals</h1>
+      <p>Benchmark pages for a local-first memory system.</p>
+    </section>
+
+    <section class="split-grid">
+      <div class="panel">
+        <div class="section-heading">
+          <h2>What This Is</h2>
+        </div>
+        <ul class="content-list">
+          <li>Quaid is local-first agent memory with an MCP server and no cloud dependency.</li>
+          <li>Results are published for transparency so anyone can reproduce the numbers.</li>
+          <li>Every release runs through GitHub Actions before scores land on the site.</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <div class="section-heading">
+          <h2>Methodology</h2>
+        </div>
+        <ul class="content-list">
+          <li>Open corpora only, including FiQA and MSMARCO.</li>
+          <li>No synthetic data in the published benchmark runs.</li>
+          <li>Contributions and issue reports live in the public repo.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Links</h2>
+      </div>
+      <ul class="content-list">
+        <li><a class="inline-link" href="https://quaid.app">quaid.app</a></li>
+        <li><a class="inline-link" href="https://github.com/quaid-app/quaid-evals">github.com/quaid-app/quaid-evals</a></li>
+      </ul>
+    </section>
+  </div>
+</BaseLayout>

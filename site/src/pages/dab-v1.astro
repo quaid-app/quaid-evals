@@ -1,0 +1,89 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import reportData from '../data/report.json';
+
+const latestDab = reportData.latest?.benchmarks?.dab;
+const currentScore = latestDab
+  ? `${latestDab.total}/${latestDab.max} (${Math.round(latestDab.pct)}%)`
+  : '213/215 (99%)';
+
+const rows = [
+  ['Infrastructure', '25', 'Install, version check, DB init, ingestion'],
+  ['FTS Search', '25', 'Full-text search across 10 queries'],
+  ['Semantic Search', '25', 'Vector similarity, paraphrase recall, 5 queries'],
+  ['MCP Server', '25', 'JSON-RPC compliance, 20 tool calls'],
+  ['Performance', '25', 'FTS <100ms, semantic <500ms latency targets'],
+  ['Data Integrity', '25', 'Write atomicity, no loss under load'],
+  ['Retrieval Quality', '30', 'P@5 and R@5 on FiQA 500-query corpus'],
+  ['Regression', '35', 'Version consistency, schema migration'],
+];
+---
+
+<BaseLayout
+  title="DAB v1 | Quaid Evals"
+  description="DAB v1 is Quaid's 215-point regression gate for every release."
+>
+  <div class="page">
+    <section class="hero">
+      <div class="page-kicker">Methodology</div>
+      <h1>DAB v1</h1>
+      <p>215-point regression gate. Runs on every Quaid release.</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Scoring Breakdown</h2>
+        <p>Each section is deterministic and release-blocking.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Points</th>
+              <th>What it tests</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(([name, points, tests]) => (
+              <tr>
+                <td>{name}</td>
+                <td>{points}</td>
+                <td>{tests}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="split-grid">
+      <section class="panel">
+        <div class="section-heading">
+          <h2>How To Run</h2>
+        </div>
+        <pre class="mono-run"><code>MEMORY_CMD=quaid bash benchmarks/dab/run.sh</code></pre>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Thresholds</h2>
+        </div>
+        <ul class="content-list">
+          <li><strong>215</strong> = perfect</li>
+          <li><strong>193+</strong> = passing</li>
+          <li><strong>Below 193</strong> = regression blocked</li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Current Score</h2>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value is-bronze">{currentScore}</div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
