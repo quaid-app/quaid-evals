@@ -210,11 +210,68 @@ Respond with ONLY a number between 0 and 1."""
 
 # ─── LoCoMo dataset loading ───────────────────────────────────────────────────
 
-def load_locomo_data(benchmarks_dir: str) -> tuple[list, list]:
-    """Load LoCoMo conversations and questions from the benchmark repo."""
-    base = Path(benchmarks_dir)
+LOCOMO_DATASET_URL = "https://raw.githubusercontent.com/snap-research/locomo/main/data/locomo10.json"
 
-    # Try multiple possible paths in the repo
+def load_locomo_data(benchmarks_dir: str) -> tuple[list, list]:
+    """Load LoCoMo conversations and questions.
+    
+    Uses the locomo10.json from snap-research/locomo (same source as mem0ai benchmark).
+    Downloads automatically if not cached.
+    """
+    import urllib.request
+
+    # Cache path
+    cache_dir = Path("/tmp/locomo-dataset")
+    cache_dir.mkdir(exist_ok=True)
+    dataset_path = cache_dir / "locomo10.json"
+
+    if not dataset_path.exists():
+        print(f"Downloading LoCoMo dataset from snap-research/locomo...")
+        urllib.request.urlretrieve(LOCOMO_DATASET_URL, dataset_path)
+        print(f"Downloaded to: {dataset_path}")
+
+    raw = json.loads(dataset_path.read_text())
+
+    # locomo10.json structure:
+    # List of 10 conversation objects, each with:
+    #   - sample_id: str
+    #   - conversation: {speaker_a, speaker_b, session_1..N (list of turns), session_N_date_time}
+    #   - qa: list of {question, answer, evidence, category}
+    # category: 1=single-hop, 2=multi-hop, 3=temporal, 4=open-domain, 5=adversarial
+    CATEGORY_MAP = {1: "single-hop", 2: "multi-hop", 3: "temporal", 4: "open-domain", 5: "adversarial"}
+
+    conversations = []
+    qa_pairs = []
+    for item in raw:
+        conv_id = item.get("sample_id", str(len(conversations)))
+        conv_data = item.get("conversation", {})
+        # Collect all sessions
+        sessions = []
+        i = 1
+        while f"session_{i}" in conv_data:
+            turns = conv_data[f"session_{i}"]
+            date = conv_data.get(f"session_{i}_date_time", "")
+            sessions.append({"session_id": i, "date": date, "turns": turns})
+            i += 1
+        conv = {"conversation_id": conv_id, "sessions": sessions}
+        conversations.append(conv)
+        for qa in item.get("qa", []):
+            cat_num = qa.get("category", 0)
+            qa_pairs.append({
+                "conversation_id": conv_id,
+                "question": qa.get("question", ""),
+                "answer": qa.get("answer", ""),
+                "type": CATEGORY_MAP.get(cat_num, f"cat_{cat_num}"),
+                "evidence": qa.get("evidence", ""),
+            })
+
+    print(f"Loaded {len(conversations)} conversations, {len(qa_pairs)} QA pairs from locomo10.json")
+    return conversations, qa_pairs
+
+
+def _load_locomo_data_legacy(benchmarks_dir: str) -> tuple[list, list]:
+    """Legacy loader - kept for reference."""
+    base = Path(benchmarks_dir)
     conv_paths = [
         base / "data" / "locomo" / "conversations.json",
         base / "benchmarks" / "locomo" / "data" / "conversations.json",
@@ -242,29 +299,8 @@ def load_locomo_data(benchmarks_dir: str) -> tuple[list, list]:
             break
 
     if conversations is None or qa_pairs is None:
-        # Fallback: search recursively
-        for f in base.rglob("*.json"):
-            try:
-                data = json.loads(f.read_text())
-                if isinstance(data, list) and data:
-                    first = data[0]
-                    if "conversation" in first or "turns" in first:
-                        conversations = data
-                        print(f"Found conversations at: {f}")
-                    elif "question" in first and "answer" in first:
-                        qa_pairs = data
-                        print(f"Found QA at: {f}")
-            except Exception:
-                pass
-
-    if conversations is None:
         raise FileNotFoundError(
-            f"Could not find LoCoMo conversation data in {benchmarks_dir}. "
-            "Ensure mem0ai/memory-benchmarks is cloned correctly."
-        )
-    if qa_pairs is None:
-        raise FileNotFoundError(
-            f"Could not find LoCoMo QA data in {benchmarks_dir}."
+            f"Legacy data paths not found in {benchmarks_dir}."
         )
 
     return conversations, qa_pairs
@@ -287,19 +323,36 @@ def run_locomo(
     # Stage 1: Ingest all conversation turns
     print(f"\n[1/3] Ingesting {len(conversations)} conversations...")
     for conv_idx, conv in enumerate(conversations):
-        session_id = conv.get("conversation_id", str(conv_idx))
-        turns = conv.get("turns", conv.get("conversation", []))
-        for turn_idx, turn in enumerate(turns):
-            speaker = turn.get("speaker", turn.get("role", "unknown"))
-            text = turn.get("text", turn.get("content", ""))
-            timestamp = turn.get("timestamp", turn.get("time", ""))
-            if text:
-                backend.add(text, {
-                    "speaker": speaker,
-                    "session_id": session_id,
-                    "turn_id": turn_idx,
-                    "timestamp": timestamp,
-                })
+        conv_id = conv.get("conversation_id", str(conv_idx))
+        sessions = conv.get("sessions", [])
+        # Support both new format (list of session dicts) and old flat turns list
+        if sessions and isinstance(sessions[0], dict) and "turns" in sessions[0]:
+            # New format: [{session_id, date, turns: [...]}, ...]
+            for session in sessions:
+                session_id = session.get("session_id", conv_id)
+                session_date = session.get("date", "")
+                for turn_idx, turn in enumerate(session.get("turns", [])):
+                    speaker = turn.get("speaker", turn.get("role", "unknown"))
+                    text = turn.get("text", turn.get("content", ""))
+                    if text:
+                        backend.add(text, {
+                            "speaker": speaker,
+                            "conv_id": conv_id,
+                            "session_id": str(session_id),
+                            "turn_id": turn_idx,
+                            "date": session_date,
+                        })
+        else:
+            # Old flat format
+            for turn_idx, turn in enumerate(sessions):
+                speaker = turn.get("speaker", turn.get("role", "unknown"))
+                text = turn.get("text", turn.get("content", ""))
+                if text:
+                    backend.add(text, {
+                        "speaker": speaker,
+                        "session_id": conv_id,
+                        "turn_id": turn_idx,
+                    })
 
     print(f"  Wrote {backend._page_count} conversation turns")
     print("  Indexing into Quaid...")
