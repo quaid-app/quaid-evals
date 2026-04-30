@@ -1,84 +1,210 @@
-<!DOCTYPE html><html lang="en" data-astro-cid-j7pv25f6> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Quaid Evals — Agent Memory Benchmark</title><style>[data-astro-cid-j7pv25f6]{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif;background:#0f0e0d;color:#e8e2d9;line-height:1.6}header[data-astro-cid-j7pv25f6]{border-bottom:1px solid #2a2520;padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center}header[data-astro-cid-j7pv25f6] h1[data-astro-cid-j7pv25f6]{font-size:1.25rem;color:#a59a7a;font-weight:600}header[data-astro-cid-j7pv25f6] span[data-astro-cid-j7pv25f6]{font-size:.85rem;color:#6b6258}main[data-astro-cid-j7pv25f6]{max-width:1100px;margin:0 auto;padding:2rem}h2[data-astro-cid-j7pv25f6]{font-size:1.1rem;color:#a59a7a;margin-bottom:1rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}.section[data-astro-cid-j7pv25f6]{margin-bottom:3rem}.cards[data-astro-cid-j7pv25f6]{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}.card[data-astro-cid-j7pv25f6]{background:#1a1815;border:1px solid #2a2520;border-radius:8px;padding:1.25rem}.card[data-astro-cid-j7pv25f6] .label[data-astro-cid-j7pv25f6]{font-size:.75rem;color:#6b6258;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}.card[data-astro-cid-j7pv25f6] .value[data-astro-cid-j7pv25f6]{font-size:1.8rem;font-weight:700;color:#a59a7a}.card[data-astro-cid-j7pv25f6] .sub[data-astro-cid-j7pv25f6]{font-size:.8rem;color:#6b6258;margin-top:.25rem}.chart-wrap[data-astro-cid-j7pv25f6]{background:#1a1815;border:1px solid #2a2520;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}.chart-title[data-astro-cid-j7pv25f6]{font-size:.85rem;color:#a59a7a;margin-bottom:1rem;font-weight:600}.charts-grid[data-astro-cid-j7pv25f6]{display:grid;grid-template-columns:1fr 1fr;gap:1rem}table[data-astro-cid-j7pv25f6]{width:100%;border-collapse:collapse;font-size:.9rem}th[data-astro-cid-j7pv25f6]{text-align:left;padding:.6rem .75rem;border-bottom:1px solid #2a2520;color:#6b6258;font-weight:600;font-size:.75rem;text-transform:uppercase}td[data-astro-cid-j7pv25f6]{padding:.6rem .75rem;border-bottom:1px solid #1e1c1a}tr[data-astro-cid-j7pv25f6]:hover td[data-astro-cid-j7pv25f6]{background:#1e1c1a}.quaid[data-astro-cid-j7pv25f6]{color:#a59a7a;font-weight:600}.na[data-astro-cid-j7pv25f6]{color:#444}.tag[data-astro-cid-j7pv25f6]{display:inline-block;font-size:.7rem;padding:.15rem .5rem;border-radius:3px;background:#2a2520;color:#a59a7a;margin-left:.4rem}.badge-new[data-astro-cid-j7pv25f6]{background:#2a3520;color:#6ec97a}footer[data-astro-cid-j7pv25f6]{border-top:1px solid #2a2520;padding:1.5rem 2rem;text-align:center;font-size:.8rem;color:#444}a[data-astro-cid-j7pv25f6]{color:#a59a7a;text-decoration:none}a[data-astro-cid-j7pv25f6]:hover{text-decoration:underline}.note[data-astro-cid-j7pv25f6]{font-size:.75rem;color:#444;margin-top:.75rem}.grade-green[data-astro-cid-j7pv25f6]{color:#6ec97a}.grade-yellow[data-astro-cid-j7pv25f6]{color:#e0c070}.grade-orange[data-astro-cid-j7pv25f6]{color:#e07040}.grade-red[data-astro-cid-j7pv25f6]{color:#e07070}@media (max-width: 700px){.charts-grid[data-astro-cid-j7pv25f6]{grid-template-columns:1fr}}
-</style><script type="module" src="/_astro/hoisted.DFGFj7JW.js"></script></head> <body data-astro-cid-j7pv25f6> <header data-astro-cid-j7pv25f6> <h1 data-astro-cid-j7pv25f6>Quaid Evals — Agent Memory Benchmark</h1> <span data-astro-cid-j7pv25f6>8 runs · benchmark.quaid.app</span> </header> <main data-astro-cid-j7pv25f6> <!-- DAB v1 Latest (regression gate) --> <div class="section" data-astro-cid-j7pv25f6> <h2 data-astro-cid-j7pv25f6>DAB v1 — Regression Gate (latest: 0.13.0)</h2> <div class="cards" data-astro-cid-j7pv25f6> <div class="card" data-astro-cid-j7pv25f6> <div class="label" data-astro-cid-j7pv25f6>DAB Score</div> <div class="value" data-astro-cid-j7pv25f6>213/215</div> <div class="sub" data-astro-cid-j7pv25f6>99.1%</div> </div> <div class="card" data-astro-cid-j7pv25f6> <div class="label" data-astro-cid-j7pv25f6>P@5 (MSMARCO)</div> <div class="value" data-astro-cid-j7pv25f6>17.44%</div> <div class="sub" data-astro-cid-j7pv25f6>GBrain ref: 49.1%</div> </div> <div class="card" data-astro-cid-j7pv25f6> <div class="label" data-astro-cid-j7pv25f6>R@5 (MSMARCO)</div> <div class="value" data-astro-cid-j7pv25f6>78.17%</div> <div class="sub" data-astro-cid-j7pv25f6>GBrain ref: 97.9%</div> </div> <div class="card" data-astro-cid-j7pv25f6> <div class="label" data-astro-cid-j7pv25f6>Date</div> <div class="value" style="font-size:1.1rem" data-astro-cid-j7pv25f6>2026-04-30</div> <div class="sub" data-astro-cid-j7pv25f6>v0.13.0</div> </div> </div> <!-- DAB v1 + P@5/R@5 history chart --> <div class="charts-grid" data-astro-cid-j7pv25f6> <div class="chart-wrap" data-astro-cid-j7pv25f6> <div class="chart-title" data-astro-cid-j7pv25f6>DAB Score History (%)</div> <canvas id="dabHistory" height="120" data-astro-cid-j7pv25f6></canvas> </div> <div class="chart-wrap" data-astro-cid-j7pv25f6> <div class="chart-title" data-astro-cid-j7pv25f6>MSMARCO P@5 / R@5 History (%)</div> <canvas id="msmarcoHistory" height="120" data-astro-cid-j7pv25f6></canvas> </div> </div> </div> <!-- DAB v2.1 --> <div class="section" data-astro-cid-j7pv25f6> <h2 data-astro-cid-j7pv25f6>DAB v2.1 — Competitive Benchmark <span class="tag badge-new" data-astro-cid-j7pv25f6>new</span></h2> <p style="font-size:0.85rem; color:#6b6258; margin-bottom:1.5rem;" data-astro-cid-j7pv25f6>420pt framework across 5 sections. No current system passes 50%. "Three Pillars": §2 Retrieval / §3 Conversation / §4 Graph all weighted equally at 100pts. Latency penalty applied.</p>  <div class="cards" data-astro-cid-j7pv25f6> <div class="card" data-astro-cid-j7pv25f6> <div class="label" data-astro-cid-j7pv25f6>Quaid (measured)</div> <div class="value" data-astro-cid-j7pv25f6>77/420</div> <div class="sub" data-astro-cid-j7pv25f6>19% — v0.22.8</div> </div>  <div class="card" data-astro-cid-j7pv25f6> <div class="label" data-astro-cid-j7pv25f6>§1 Infrastructure</div> <div class="value" style="color:#e07040" data-astro-cid-j7pv25f6>15/40</div> </div> <div class="card" data-astro-cid-j7pv25f6> <div class="label" data-astro-cid-j7pv25f6>§2 Retrieval</div> <div class="value" style="color:#e07040" data-astro-cid-j7pv25f6>7/100</div> </div> <div class="card" data-astro-cid-j7pv25f6> <div class="label" data-astro-cid-j7pv25f6>§3 Conversation</div> <div class="value" style="color:#e07070" data-astro-cid-j7pv25f6>0/100</div> <div class="sub" data-astro-cid-j7pv25f6>requires #105</div> </div> <div class="card" data-astro-cid-j7pv25f6> <div class="label" data-astro-cid-j7pv25f6>§4 Graph</div> <div class="value" style="color:#e07070" data-astro-cid-j7pv25f6>0/100</div> <div class="sub" data-astro-cid-j7pv25f6>requires #107</div> </div> <div class="card" data-astro-cid-j7pv25f6> <div class="label" data-astro-cid-j7pv25f6>§5 Intelligence</div> <div class="value" data-astro-cid-j7pv25f6>0/80</div> </div>  </div>  <!-- DAB v2.1 competitive table --> <table data-astro-cid-j7pv25f6> <thead data-astro-cid-j7pv25f6> <tr data-astro-cid-j7pv25f6> <th data-astro-cid-j7pv25f6>System</th> <th data-astro-cid-j7pv25f6>§1 Infra /40</th> <th data-astro-cid-j7pv25f6>§2 Retrieval /100</th> <th data-astro-cid-j7pv25f6>§3 Conversation /100</th> <th data-astro-cid-j7pv25f6>§4 Graph /100</th> <th data-astro-cid-j7pv25f6>§5 Intel /80</th> <th data-astro-cid-j7pv25f6>Total /420</th> <th data-astro-cid-j7pv25f6>Status</th> </tr> </thead> <tbody data-astro-cid-j7pv25f6> <tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6><span class="quaid" data-astro-cid-j7pv25f6>Quaid</span> <span class="tag" data-astro-cid-j7pv25f6>measured</span></td> <td data-astro-cid-j7pv25f6>15</td> <td data-astro-cid-j7pv25f6>7</td> <td class="na" data-astro-cid-j7pv25f6>0</td> <td class="na" data-astro-cid-j7pv25f6>0</td> <td data-astro-cid-j7pv25f6>—</td> <td class="quaid" data-astro-cid-j7pv25f6>77 (19%)</td> <td data-astro-cid-j7pv25f6><span class="grade-red" data-astro-cid-j7pv25f6>🔴 Needs Work</span></td> </tr> <tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>GBrain <span class="tag" data-astro-cid-j7pv25f6>measured</span></td> <td data-astro-cid-j7pv25f6>15</td> <td data-astro-cid-j7pv25f6>7</td> <td class="na" data-astro-cid-j7pv25f6>0</td> <td class="na" data-astro-cid-j7pv25f6>45 est.</td> <td data-astro-cid-j7pv25f6>10</td> <td data-astro-cid-j7pv25f6>77 (18%)</td> <td data-astro-cid-j7pv25f6><span class="grade-red" data-astro-cid-j7pv25f6>🔴 Needs Work</span></td> </tr> <tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>Mem0 v3 <span class="tag" data-astro-cid-j7pv25f6>estimated</span></td> <td data-astro-cid-j7pv25f6>~30</td> <td data-astro-cid-j7pv25f6>~30</td> <td data-astro-cid-j7pv25f6>~82</td> <td class="na" data-astro-cid-j7pv25f6>0</td> <td data-astro-cid-j7pv25f6>~10</td> <td data-astro-cid-j7pv25f6>~152 (36%)</td> <td data-astro-cid-j7pv25f6><span class="grade-red" data-astro-cid-j7pv25f6>🔴 Needs Work</span></td> </tr> <tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>qmd <span class="tag" data-astro-cid-j7pv25f6>measured</span></td> <td data-astro-cid-j7pv25f6>21</td> <td data-astro-cid-j7pv25f6>45</td> <td class="na" data-astro-cid-j7pv25f6>0</td> <td class="na" data-astro-cid-j7pv25f6>0</td> <td data-astro-cid-j7pv25f6>5</td> <td data-astro-cid-j7pv25f6>71 (17%)</td> <td data-astro-cid-j7pv25f6><span class="grade-red" data-astro-cid-j7pv25f6>🔴 Needs Work</span></td> </tr> </tbody> </table> <p class="note" data-astro-cid-j7pv25f6>Scores updated automatically. Estimated scores based on published benchmarks. <a href="https://github.com/quaid-app/quaid-evals" data-astro-cid-j7pv25f6>View methodology →</a></p> </div> <!-- DAB v2 history chart (Quaid improvement over time) -->  <!-- All Runs --> <div class="section" data-astro-cid-j7pv25f6> <h2 data-astro-cid-j7pv25f6>DAB v1 Run History</h2> <table data-astro-cid-j7pv25f6> <thead data-astro-cid-j7pv25f6> <tr data-astro-cid-j7pv25f6><th data-astro-cid-j7pv25f6>Version</th><th data-astro-cid-j7pv25f6>Date</th><th data-astro-cid-j7pv25f6>DAB %</th><th data-astro-cid-j7pv25f6>P@5</th><th data-astro-cid-j7pv25f6>R@5</th></tr> </thead> <tbody data-astro-cid-j7pv25f6> <tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>v0.13.0</td> <td data-astro-cid-j7pv25f6>2026-04-30</td> <td data-astro-cid-j7pv25f6>99.1%</td> <td data-astro-cid-j7pv25f6>17.44%</td> <td data-astro-cid-j7pv25f6>78.17%</td> </tr><tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>v0.12.0</td> <td data-astro-cid-j7pv25f6>2026-04-29</td> <td data-astro-cid-j7pv25f6>99.1%</td> <td data-astro-cid-j7pv25f6>17.44%</td> <td data-astro-cid-j7pv25f6>78.17%</td> </tr><tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>v0.11.6</td> <td data-astro-cid-j7pv25f6>2026-04-29</td> <td data-astro-cid-j7pv25f6>99.1%</td> <td data-astro-cid-j7pv25f6>17.44%</td> <td data-astro-cid-j7pv25f6>78.17%</td> </tr><tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>vunknown</td> <td data-astro-cid-j7pv25f6>2026-04-29</td> <td data-astro-cid-j7pv25f6><span class="na" data-astro-cid-j7pv25f6>—</span></td> <td data-astro-cid-j7pv25f6><span class="na" data-astro-cid-j7pv25f6>—</span></td> <td data-astro-cid-j7pv25f6><span class="na" data-astro-cid-j7pv25f6>—</span></td> </tr><tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>v0.11.0</td> <td data-astro-cid-j7pv25f6>2026-04-28</td> <td data-astro-cid-j7pv25f6>99.1%</td> <td data-astro-cid-j7pv25f6>17.44%</td> <td data-astro-cid-j7pv25f6>78.17%</td> </tr><tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>v0.10.0</td> <td data-astro-cid-j7pv25f6>2026-04-28</td> <td data-astro-cid-j7pv25f6>99.1%</td> <td data-astro-cid-j7pv25f6>17.44%</td> <td data-astro-cid-j7pv25f6>78.17%</td> </tr><tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>v0.9.10</td> <td data-astro-cid-j7pv25f6>2026-04-27</td> <td data-astro-cid-j7pv25f6>99.1%</td> <td data-astro-cid-j7pv25f6>17.44%</td> <td data-astro-cid-j7pv25f6>78.17%</td> </tr><tr data-astro-cid-j7pv25f6> <td data-astro-cid-j7pv25f6>v0.9.8</td> <td data-astro-cid-j7pv25f6>2026-04-27</td> <td data-astro-cid-j7pv25f6>89.8%</td> <td data-astro-cid-j7pv25f6>38.48%</td> <td data-astro-cid-j7pv25f6>173.4%</td> </tr> </tbody> </table> </div> </main> <footer data-astro-cid-j7pv25f6> <a href="https://quaid.app" data-astro-cid-j7pv25f6>quaid.app</a> ·
-<a href="https://github.com/quaid-app/quaid-evals" data-astro-cid-j7pv25f6>quaid-app/quaid-evals</a> ·
-    Memory that persists. Intelligence that compounds.
-</footer> <!-- Charts --> <script>(function(){const chartVersions = ["0.9.8","0.9.10","0.10.0","0.11.0","unknown","0.11.6","0.12.0","0.13.0"];
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Results | Quaid Evals</title><meta name="description" content="benchmark.quaid.app results for Quaid's release gate and competitive benchmark."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script><link rel="stylesheet" href="/_astro/about.Cz-OdS2l.css"></head> <body> <header class="site-nav"> <div class="site-nav__inner"> <a class="site-wordmark" href="/">quaid evals</a> <nav aria-label="Primary"> <ul class="site-links"> <li> <a href="/" aria-current="page"> Results </a> </li><li> <a href="/dab-v1"> DAB v1 </a> </li><li> <a href="/dab-v2"> DAB v2 </a> </li><li> <a href="/about"> About </a> </li> </ul> </nav> </div> </header> <main>   <div class="page"> <section class="hero"> <div class="page-kicker">Results</div> <h1>benchmark.quaid.app</h1> <p>
+Release-gate results for DAB v1 and competitive tracking for DAB v2. 8 published runs so far.
+</p> </section> <section class="panel"> <div class="section-heading"> <h2>DAB v1</h2> <p>Regression gate status for the latest Quaid release.</p> </div> <div class="card-grid"> <div class="panel metric-card"> <div class="metric-label">DAB Score</div> <div class="metric-value is-bronze">213/215</div> <div class="metric-sub">99.1%</div> </div> <div class="panel metric-card"> <div class="metric-label">P@5</div> <div class="metric-value">17.44%</div> <div class="metric-sub">GBrain reference: 49.1%</div> </div> <div class="panel metric-card"> <div class="metric-label">R@5</div> <div class="metric-value">78.17%</div> <div class="metric-sub">GBrain reference: 97.9%</div> </div> <div class="panel metric-card"> <div class="metric-label">Latest Release</div> <div class="metric-value">0.13.0</div> <div class="metric-sub">2026-04-30</div> </div> </div> </section> <section class="chart-grid"> <div class="panel chart-card"> <div class="chart-title">DAB v1 score history</div> <canvas id="dabHistory" height="150"></canvas> </div> <div class="panel chart-card"> <div class="chart-title">MSMARCO P@5 and R@5</div> <canvas id="msmarcoHistory" height="150"></canvas> </div> </section> <section class="panel"> <div class="section-heading"> <h2>DAB v2</h2> <p>Measured competitive benchmark snapshots. Quaid uses the latest measured Quaid run.</p> </div> <div class="card-grid"> <div class="panel metric-card"> <div class="metric-label">Quaid</div> <div class="metric-value is-alert"> 97/400 </div> <div class="metric-sub"> 24% - v0.11.6 </div> </div> <div class="panel metric-card"> <div class="metric-label">Infrastructure</div> <div class="metric-value is-warning"> 27 </div> <div class="metric-sub">out of 40</div> </div> <div class="panel metric-card"> <div class="metric-label">Retrieval</div> <div class="metric-value is-warning"> 50 </div> <div class="metric-sub">out of 100</div> </div> <div class="panel metric-card"> <div class="metric-label">Intelligence</div> <div class="metric-value is-warning"> 20 </div> <div class="metric-sub">out of 80</div> </div> </div> </section> <section class="panel"> <div class="section-heading"> <h2>DAB v2 Competitive Table</h2> </div> <div class="table-wrap"> <table class="data-table"> <thead> <tr> <th>System</th> <th>Infra</th> <th>Retrieval</th> <th>Conversation</th> <th>Graph</th> <th>Intelligence</th> <th>Total</th> <th>Status</th> </tr> </thead> <tbody> <tr> <td>Quaid</td> <td>27</td> <td>50</td> <td>0</td> <td>0</td> <td>20</td> <td> 97/400 (24%) </td> <td><span class="pill is-warning">measured</span></td> </tr> <tr> <td>GBrain</td> <td>15</td> <td>7</td> <td>0</td> <td>45</td> <td>10</td> <td> 77/400 (19%) </td> <td><span class="pill is-alert">measured</span></td> </tr> <tr> <td>qmd</td> <td>21</td> <td>42</td> <td>0</td> <td>0</td> <td>5</td> <td>68/400 (17%)</td> <td><span class="pill is-alert">measured</span></td> </tr> <tr> <td>Mem0 v3</td> <td>~30</td> <td>~30</td> <td>~82</td> <td>0</td> <td>~10</td> <td>~152/420 (36%)</td> <td><span class="pill is-muted">estimated</span></td> </tr> </tbody> </table> </div> <p class="note">Measured values come from published runs in this repo. Mem0 remains an estimate.</p> </section>  <section class="panel"> <div class="section-heading"> <h2>DAB v1 Run History</h2> </div> <div class="table-wrap"> <table class="data-table"> <thead> <tr> <th>Version</th> <th>Date</th> <th>DAB %</th> <th>P@5</th> <th>R@5</th> </tr> </thead> <tbody> <tr> <td>v0.13.0</td> <td>2026-04-30</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>v0.12.0</td> <td>2026-04-29</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>v0.11.6</td> <td>2026-04-29</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>vunknown</td> <td>2026-04-29</td> <td>n/a</td> <td>n/a</td> <td>n/a</td> </tr><tr> <td>v0.11.0</td> <td>2026-04-28</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>v0.10.0</td> <td>2026-04-28</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>v0.9.10</td> <td>2026-04-27</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>v0.9.8</td> <td>2026-04-27</td> <td>89.8%</td> <td>38.48%</td> <td>173.4%</td> </tr> </tbody> </table> </div> </section> </div> <script>(function(){const chartVersions = ["0.9.8","0.9.10","0.10.0","0.11.0","unknown","0.11.6","0.12.0","0.13.0"];
 const dabScores = [89.8,99.1,99.1,99.1,null,99.1,99.1,99.1];
 const rAt5Scores = [173.4,78.17,78.17,78.17,null,78.17,78.17,78.17];
 const p5Scores = [38.48,17.44,17.44,17.44,null,17.44,17.44,17.44];
-const dab_v2_quaid = [{"system":"quaid","version":"0.11.6","date":"2026-04-29","benchmark":"dab-v2-full","total":97,"max":400,"pct":24,"sections":{"s1_infrastructure":{"score":27,"max":40},"s2_realworld_retrieval":{"score":50,"max":100},"s3_conversation_memory":{"score":0,"max":100},"s4_knowledge_graph":{"score":0,"max":80},"s5_agent_intelligence":{"score":20,"max":80}}}];
+const dabV2Quaid = [{"system":"quaid","version":"0.11.6","date":"2026-04-29","benchmark":"dab-v2-full","total":97,"max":400,"pct":24,"sections":{"s1_infrastructure":{"score":27,"max":40},"s2_realworld_retrieval":{"score":50,"max":100},"s3_conversation_memory":{"score":0,"max":100},"s4_knowledge_graph":{"score":0,"max":80},"s5_agent_intelligence":{"score":20,"max":80}}}];
 
-    const CHART_DEFAULTS = {
-      responsive: true,
-      plugins: { legend: { labels: { color: '#e8e2d9', font: { size: 11 } } } },
-      scales: {
-        x: { ticks: { color: '#6b6258', font: { size: 10 } }, grid: { color: '#2a2520' } },
-        y: { min: 0, max: 100, ticks: { color: '#6b6258' }, grid: { color: '#2a2520' } }
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof Chart === 'undefined') return;
+
+      const rootStyles = getComputedStyle(document.documentElement);
+      const bronze = rootStyles.getPropertyValue('--q-bronze').trim();
+      const bronzeSoft = rootStyles.getPropertyValue('--q-bronze-16').trim();
+      const bone = rootStyles.getPropertyValue('--q-bone').trim();
+      const muted = rootStyles.getPropertyValue('--q-muted').trim();
+      const border = rootStyles.getPropertyValue('--q-bronze-12').trim();
+      const success = rootStyles.getPropertyValue('--q-success').trim();
+      const successSoft = rootStyles.getPropertyValue('--q-success-16').trim();
+      const warning = rootStyles.getPropertyValue('--q-warning').trim();
+      const warningSoft = rootStyles.getPropertyValue('--q-warning-16').trim();
+      const fontUi = rootStyles.getPropertyValue('--font-ui').trim();
+
+      const chartDefaults = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: bone,
+              font: { family: fontUi, size: 11 },
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: muted, font: { family: fontUi, size: 10 } },
+            grid: { color: border },
+          },
+          y: {
+            ticks: { color: muted, font: { family: fontUi, size: 10 } },
+            grid: { color: border },
+          },
+        },
+      };
+
+      const dabCtx = document.getElementById('dabHistory');
+      if (dabCtx && dabScores.some((score) => score !== null)) {
+        new Chart(dabCtx, {
+          type: 'line',
+          data: {
+            labels: chartVersions,
+            datasets: [{
+              label: 'DAB %',
+              data: dabScores,
+              borderColor: bronze,
+              backgroundColor: bronzeSoft,
+              tension: 0.32,
+              spanGaps: true,
+              pointRadius: 3.5,
+              fill: true,
+            }],
+          },
+          options: {
+            ...chartDefaults,
+            scales: {
+              ...chartDefaults.scales,
+              y: {
+                min: 0,
+                max: 100,
+                ticks: { color: muted, font: { family: fontUi, size: 10 } },
+                grid: { color: border },
+              },
+            },
+          },
+        });
       }
-    };
 
-    // DAB Score History
-    const dabCtx = document.getElementById('dabHistory');
-    if (dabCtx && dabScores.some(s => s !== null)) {
-      new Chart(dabCtx, {
-        type: 'line',
-        data: {
-          labels: chartVersions,
-          datasets: [{
-            label: 'DAB %',
-            data: dabScores,
-            borderColor: '#A59A7A',
-            backgroundColor: 'rgba(165,154,122,0.1)',
-            tension: 0.3, spanGaps: true, pointRadius: 4
-          }]
-        },
-        options: { ...CHART_DEFAULTS, scales: { ...CHART_DEFAULTS.scales, y: { min: 0, max: 100, ticks: { color: '#6b6258' }, grid: { color: '#2a2520' } } } }
-      });
-    }
+      const msCtx = document.getElementById('msmarcoHistory');
+      if (msCtx && (p5Scores.some((score) => score !== null) || rAt5Scores.some((score) => score !== null))) {
+        new Chart(msCtx, {
+          type: 'line',
+          data: {
+            labels: chartVersions,
+            datasets: [
+              {
+                label: 'P@5 %',
+                data: p5Scores,
+                borderColor: bronze,
+                backgroundColor: bronzeSoft,
+                tension: 0.32,
+                spanGaps: true,
+                pointRadius: 3.5,
+              },
+              {
+                label: 'R@5 %',
+                data: rAt5Scores,
+                borderColor: success,
+                backgroundColor: successSoft,
+                tension: 0.32,
+                spanGaps: true,
+                pointRadius: 3.5,
+              },
+            ],
+          },
+          options: {
+            ...chartDefaults,
+            scales: {
+              ...chartDefaults.scales,
+              y: {
+                min: 0,
+                max: 100,
+                ticks: { color: muted, font: { family: fontUi, size: 10 } },
+                grid: { color: border },
+              },
+            },
+          },
+        });
+      }
 
-    // MSMARCO P@5/R@5 History
-    const msCtx = document.getElementById('msmarcoHistory');
-    if (msCtx && (p5Scores.some(s => s !== null) || rAt5Scores.some(s => s !== null))) {
-      new Chart(msCtx, {
-        type: 'line',
-        data: {
-          labels: chartVersions,
-          datasets: [
-            { label: 'P@5 %', data: p5Scores, borderColor: '#A59A7A', backgroundColor: 'rgba(165,154,122,0.1)', tension: 0.3, spanGaps: true, pointRadius: 4 },
-            { label: 'R@5 %', data: rAt5Scores, borderColor: '#6ec97a', backgroundColor: 'rgba(110,201,122,0.1)', tension: 0.3, spanGaps: true, pointRadius: 4 },
-          ]
-        },
-        options: { ...CHART_DEFAULTS }
-      });
-    }
+      const dab2Ctx = document.getElementById('dab2History');
+      if (dab2Ctx && dabV2Quaid.length > 1) {
+        const labels = dabV2Quaid.map((run) => `v${run.version}`);
+        const infraScores = dabV2Quaid.map((run) => run.sections?.s1_infrastructure?.score ?? null);
+        const retrievalScores = dabV2Quaid.map((run) => run.sections?.s2_realworld_retrieval?.score ?? null);
+        const totalScores = dabV2Quaid.map((run) => run.total ?? null);
 
-    // DAB v2 History (Quaid only)
-    const dab2Ctx = document.getElementById('dab2History');
-    if (dab2Ctx && dab_v2_quaid.length > 1) {
-      const labels = dab_v2_quaid.map(r => `v${r.version}`);
-      const s1 = dab_v2_quaid.map(r => r.sections?.s1_infrastructure?.score ?? null);
-      const s2 = dab_v2_quaid.map(r => r.sections?.s2_realworld_retrieval?.score ?? null);
-      const total = dab_v2_quaid.map(r => r.phase1_total ?? null);
-
-      new Chart(dab2Ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            { label: '§1 Infra /40', data: s1, borderColor: '#6ec97a', backgroundColor: 'rgba(110,201,122,0.1)', tension: 0.3, spanGaps: true, yAxisID: 'y1' },
-            { label: '§2 Retrieval /100', data: s2, borderColor: '#A59A7A', backgroundColor: 'rgba(165,154,122,0.1)', tension: 0.3, spanGaps: true, yAxisID: 'y2' },
-            { label: 'Phase 1 Total /140', data: total, borderColor: '#e0c070', backgroundColor: 'rgba(224,192,112,0.1)', tension: 0.3, spanGaps: true, borderWidth: 2, yAxisID: 'y2' },
-          ]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { labels: { color: '#e8e2d9', font: { size: 11 } } } },
-          scales: {
-            x: { ticks: { color: '#6b6258' }, grid: { color: '#2a2520' } },
-            y1: { type: 'linear', position: 'left', min: 0, max: 40, ticks: { color: '#6b6258' }, grid: { color: '#2a2520' }, title: { display: true, text: '§1 pts', color: '#6b6258' } },
-            y2: { type: 'linear', position: 'right', min: 0, max: 140, ticks: { color: '#6b6258' }, grid: { drawOnChartArea: false }, title: { display: true, text: '§2/Total pts', color: '#6b6258' } },
-          }
-        }
-      });
-    }
-  })();</script> </body> </html>
+        new Chart(dab2Ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Infrastructure',
+                data: infraScores,
+                borderColor: success,
+                backgroundColor: successSoft,
+                tension: 0.32,
+                spanGaps: true,
+                pointRadius: 3.5,
+                yAxisID: 'y1',
+              },
+              {
+                label: 'Retrieval',
+                data: retrievalScores,
+                borderColor: bronze,
+                backgroundColor: bronzeSoft,
+                tension: 0.32,
+                spanGaps: true,
+                pointRadius: 3.5,
+                yAxisID: 'y2',
+              },
+              {
+                label: 'Total',
+                data: totalScores,
+                borderColor: warning,
+                backgroundColor: warningSoft,
+                tension: 0.32,
+                spanGaps: true,
+                pointRadius: 3.5,
+                yAxisID: 'y3',
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: {
+                  color: bone,
+                  font: { family: fontUi, size: 11 },
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: muted, font: { family: fontUi, size: 10 } },
+                grid: { color: border },
+              },
+              y1: {
+                type: 'linear',
+                position: 'left',
+                min: 0,
+                max: 40,
+                ticks: { color: muted, font: { family: fontUi, size: 10 } },
+                grid: { color: border },
+              },
+              y2: {
+                type: 'linear',
+                position: 'right',
+                min: 0,
+                max: 100,
+                ticks: { color: muted, font: { family: fontUi, size: 10 } },
+                grid: { drawOnChartArea: false },
+              },
+              y3: {
+                type: 'linear',
+                position: 'right',
+                min: 0,
+                max: 400,
+                ticks: { display: false },
+                grid: { drawOnChartArea: false },
+              },
+            },
+          },
+        });
+      }
+    });
+  })();</script>  </main> <footer class="site-footer"> <div class="site-footer__inner"> <a class="inline-link" href="https://benchmark.quaid.app">benchmark.quaid.app</a> <span>·</span> <a class="inline-link" href="https://github.com/quaid-app/quaid-evals">quaid-app/quaid-evals</a> <span>·</span> <span>persistent memory for agents</span> </div> </footer> </body></html>
