@@ -1,0 +1,44 @@
+{
+  "quaid_version": "0.13.0",
+  "date": "2026-04-30",
+  "benchmark": "locomo",
+  "locomo": {
+    "overall": 0.0013,
+    "pass_rate": 0.0026,
+    "total_questions": 1542,
+    "by_type": {
+      "multi-hop": {
+        "avg": 0.0,
+        "count": 321
+      },
+      "temporal": {
+        "avg": 0.0156,
+        "count": 96
+      },
+      "single-hop": {
+        "avg": 0.0,
+        "count": 282
+      },
+      "open-domain": {
+        "avg": 0.0,
+        "count": 841
+      },
+      "adversarial": {
+        "avg": 0.25,
+        "count": 2
+      }
+    },
+    "reference": {
+      "mem0_v3": {
+        "overall": 0.916,
+        "source": "mem0ai/memory-benchmarks"
+      }
+    }
+  },
+  "config": {
+    "answerer_model": "gpt-4o",
+    "judge_model": "gpt-4o",
+    "provider": "openai",
+    "top_k": 50
+  }
+}
