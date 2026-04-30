@@ -128,16 +128,34 @@ def extract_locomo_scores(result):
 
 
 def extract_beam_scores(result):
-    payload = result.get("beam")
+    # New format: {"benchmark": "beam-100k", "split": "100K", "beam_100k": {"overall": 0.x, ...}}
+    # Old format: {"beam": {"score_1m": 64.1, ...}}
+    
+    def extract_split_score(key):
+        val = result.get(key)
+        if isinstance(val, dict):
+            overall = val.get("overall")
+            if overall is not None:
+                return normalize_percent(overall)
+        elif val is not None:
+            return normalize_percent(val)
+        return None
+
+    payload = result.get("beam", {})
     if not isinstance(payload, dict):
-        payload = result
+        payload = {}
 
     tiers = payload.get("tiers", {})
 
     def read_score(*keys):
         for key in keys:
+            # Check new top-level split keys first
+            v = extract_split_score(key)
+            if v is not None:
+                return v
+            # Check old nested format
             value = payload.get(key)
-            if value is not None:
+            if value is not None and not isinstance(value, dict):
                 return normalize_percent(value)
         return None
 
@@ -153,9 +171,10 @@ def extract_beam_scores(result):
         return None
 
     return {
-        "score_100k": read_score("score_100k", "beam_100k") or read_tier_score("100k", "tier_100k"),
-        "score_1m": read_score("score_1m", "beam_1m") or read_tier_score("1m", "tier_1m"),
-        "score_10m": read_score("score_10m", "beam_10m") or read_tier_score("10m", "tier_10m"),
+        "score_100k": read_score("beam_100k", "score_100k") or read_tier_score("100k", "tier_100k"),
+        "score_500k": read_score("beam_500k", "score_500k") or read_tier_score("500k", "tier_500k"),
+        "score_1m": read_score("beam_1m", "score_1m") or read_tier_score("1m", "tier_1m"),
+        "score_10m": read_score("beam_10m", "score_10m") or read_tier_score("10m", "tier_10m"),
     }
 
 

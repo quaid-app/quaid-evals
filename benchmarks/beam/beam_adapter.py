@@ -179,15 +179,29 @@ def load_beam(split: str, max_conversations: int | None = None) -> list:
 
 
 def parse_probing_questions(probing_questions) -> dict[str, list]:
-    """Parse probing_questions field into {category: [{question, answer}]}."""
+    """Parse probing_questions field into {category: [{question, answer}]}.
+    
+    BEAM probing_questions is a Python dict string (single quotes) with 10 categories:
+    abstention, contradiction_resolution, event_ordering, information_extraction,
+    instruction_following, knowledge_update, multi_session_reasoning,
+    preference_following, summarization, temporal_reasoning
+    
+    Each category has items with 'question' and 'ideal_response'/'ideal_answer'/'answer'.
+    """
+    import ast
+
     if isinstance(probing_questions, dict):
-        return probing_questions
-    if isinstance(probing_questions, str):
+        data = probing_questions
+    elif isinstance(probing_questions, str):
         try:
-            return json.loads(probing_questions)
+            # BEAM uses Python dict literal format (single quotes)
+            data = ast.literal_eval(probing_questions)
         except Exception:
-            pass
-    if isinstance(probing_questions, list):
+            try:
+                data = json.loads(probing_questions)
+            except Exception:
+                return {}
+    elif isinstance(probing_questions, list):
         result = {}
         for item in probing_questions:
             cat = item.get("category", item.get("type", "general"))
@@ -195,7 +209,23 @@ def parse_probing_questions(probing_questions) -> dict[str, list]:
                 result[cat] = []
             result[cat].append(item)
         return result
-    return {}
+    else:
+        return {}
+
+    # Normalize: each item may use ideal_response, ideal_answer, or answer
+    result = {}
+    for category, items in data.items():
+        normalized = []
+        for item in items:
+            q = item.get("question", "")
+            a = (item.get("ideal_response") or
+                 item.get("ideal_answer") or
+                 item.get("answer") or "")
+            if q:
+                normalized.append({"question": q, "answer": a, "original": item})
+        if normalized:
+            result[category] = normalized
+    return result
 
 
 # ─── Main evaluation loop ─────────────────────────────────────────────────────
