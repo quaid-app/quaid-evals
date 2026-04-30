@@ -1,210 +1,208 @@
-<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Results | Quaid Evals</title><meta name="description" content="benchmark.quaid.app results for Quaid's release gate and competitive benchmark."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script><link rel="stylesheet" href="/_astro/about.CnH2MLZg.css"></head> <body> <header class="site-nav"> <div class="site-nav__inner"> <a class="site-wordmark" href="/">quaid evals</a> <nav aria-label="Primary"> <ul class="site-links"> <li> <a href="/" aria-current="page"> Results </a> </li><li> <a href="/dab-v1"> DAB v1 </a> </li><li> <a href="/dab-v2"> DAB v2 </a> </li><li> <a href="/locomo"> LoCoMo </a> </li><li> <a href="/longmemeval"> LongMemEval </a> </li><li> <a href="/beam"> BEAM </a> </li><li> <a href="/about"> About </a> </li> </ul> </nav> </div> </header> <main>   <div class="page"> <section class="hero"> <div class="page-kicker">Results</div> <h1>benchmark.quaid.app</h1> <p>
-Release-gate results for DAB v1 and competitive tracking for DAB v2. 9 published runs so far.
-</p> </section> <section class="panel"> <div class="section-heading"> <h2>DAB v1</h2> <p>Regression gate status for the latest Quaid release.</p> </div> <div class="card-grid"> <div class="panel metric-card"> <div class="metric-label">DAB Score</div> <div class="metric-value is-bronze">213/215</div> <div class="metric-sub">99.1%</div> </div> <div class="panel metric-card"> <div class="metric-label">P@5</div> <div class="metric-value">17.44%</div> <div class="metric-sub">GBrain reference: 49.1%</div> </div> <div class="panel metric-card"> <div class="metric-label">R@5</div> <div class="metric-value">78.17%</div> <div class="metric-sub">GBrain reference: 97.9%</div> </div> <div class="panel metric-card"> <div class="metric-label">Latest Release</div> <div class="metric-value">0.13.0</div> <div class="metric-sub">2026-04-30</div> </div> </div> </section> <section class="chart-grid"> <div class="panel chart-card"> <div class="chart-title">DAB v1 score history</div> <div class="chart-canvas-wrap"><canvas id="dabHistory"></canvas></div> </div> <div class="panel chart-card"> <div class="chart-title">MSMARCO P@5 and R@5</div> <div class="chart-canvas-wrap"><canvas id="msmarcoHistory"></canvas></div> </div> </section> <section class="panel"> <div class="section-heading"> <h2>DAB v2</h2> <p>Measured competitive benchmark snapshots. Quaid uses the latest measured Quaid run.</p> </div> <div class="card-grid"> <div class="panel metric-card"> <div class="metric-label">Quaid</div> <div class="metric-value is-alert"> 97/400 </div> <div class="metric-sub"> 24% - v0.11.6 </div> </div> <div class="panel metric-card"> <div class="metric-label">Infrastructure</div> <div class="metric-value is-warning"> 27 </div> <div class="metric-sub">out of 40</div> </div> <div class="panel metric-card"> <div class="metric-label">Retrieval</div> <div class="metric-value is-warning"> 50 </div> <div class="metric-sub">out of 100</div> </div> <div class="panel metric-card"> <div class="metric-label">Intelligence</div> <div class="metric-value is-warning"> 20 </div> <div class="metric-sub">out of 80</div> </div> </div> </section> <section class="panel"> <div class="section-heading"> <h2>DAB v2 Competitive Table</h2> </div> <div class="table-wrap"> <table class="data-table"> <thead> <tr> <th>System</th> <th>Infra</th> <th>Retrieval</th> <th>Conversation</th> <th>Graph</th> <th>Intelligence</th> <th>Total</th> <th>Status</th> </tr> </thead> <tbody> <tr> <td>Quaid</td> <td>27</td> <td>50</td> <td>0</td> <td>0</td> <td>20</td> <td> 97/400 (24%) </td> <td><span class="pill is-warning">measured</span></td> </tr> <tr> <td>GBrain</td> <td>15</td> <td>7</td> <td>0</td> <td>45</td> <td>10</td> <td> 77/400 (19%) </td> <td><span class="pill is-alert">measured</span></td> </tr> <tr> <td>qmd</td> <td>21</td> <td>42</td> <td>0</td> <td>0</td> <td>5</td> <td>68/400 (17%)</td> <td><span class="pill is-alert">measured</span></td> </tr> <tr> <td>Mem0 v3</td> <td>~30</td> <td>~30</td> <td>~82</td> <td>0</td> <td>~10</td> <td>~152/420 (36%)</td> <td><span class="pill is-muted">estimated</span></td> </tr> </tbody> </table> </div> <p class="note">Measured values come from published runs in this repo. Mem0 remains an estimate.</p> </section> <section class="panel"> <div class="section-heading"> <h2>Industry Benchmarks</h2> </div> <div class="card-grid"> <div class="panel metric-card"> <div class="metric-label">LoCoMo</div> <div class="metric-value is-bronze">91.6%</div> <div class="metric-sub">Mem0 v3 reference overall</div> <div class="metric-sub">Quaid: 0.1%</div> <a class="inline-link" href="/locomo">View benchmark</a> </div> <div class="panel metric-card"> <div class="metric-label">LongMemEval</div> <div class="metric-value is-bronze">93.4%</div> <div class="metric-sub">Mem0 v3 93.4% reference</div> <div class="metric-sub">Quaid: pending</div> <a class="inline-link" href="/longmemeval">View benchmark</a> </div> <div class="panel metric-card"> <div class="metric-label">BEAM</div> <div class="metric-value is-bronze">48.6%</div> <div class="metric-sub">Mem0 v3 BEAM 10M reference</div> <div class="metric-sub">Quaid: 10M pending</div> <a class="inline-link" href="/beam">View benchmark</a> </div> </div> <p class="note">These are the same benchmarks used by Mem0, Hindsight, and other leading memory systems.</p> </section>  <section class="panel"> <div class="section-heading"> <h2>DAB v1 Run History</h2> </div> <div class="table-wrap"> <table class="data-table"> <thead> <tr> <th>Version</th> <th>Date</th> <th>DAB %</th> <th>P@5</th> <th>R@5</th> </tr> </thead> <tbody> <tr> <td>v0.13.0</td> <td>2026-04-30</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>v0.22.8</td> <td>2026-04-29</td> <td>n/a</td> <td>n/a</td> <td>n/a</td> </tr><tr> <td>v0.12.0</td> <td>2026-04-29</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>v0.11.6</td> <td>2026-04-29</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>vunknown</td> <td>2026-04-29</td> <td>n/a</td> <td>n/a</td> <td>n/a</td> </tr><tr> <td>v0.11.0</td> <td>2026-04-28</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>v0.10.0</td> <td>2026-04-28</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>v0.9.10</td> <td>2026-04-27</td> <td>99.1%</td> <td>17.44%</td> <td>78.17%</td> </tr><tr> <td>v0.9.8</td> <td>2026-04-27</td> <td>89.8%</td> <td>38.48%</td> <td>173.4%</td> </tr> </tbody> </table> </div> </section> </div> <script>(function(){const chartVersions = ["0.9.8","0.9.10","0.10.0","0.11.0","unknown","0.11.6","0.12.0","0.22.8","0.13.0"];
-const dabScores = [89.8,99.1,99.1,99.1,null,99.1,99.1,null,99.1];
-const rAt5Scores = [173.4,78.17,78.17,78.17,null,78.17,78.17,null,78.17];
-const p5Scores = [38.48,17.44,17.44,17.44,null,17.44,17.44,null,17.44];
-const dabV2Quaid = [{"system":"quaid","version":"0.11.6","date":"2026-04-29","benchmark":"dab-v2-full","total":97,"max":400,"pct":24,"sections":{"s1_infrastructure":{"score":27,"max":40},"s2_realworld_retrieval":{"score":50,"max":100},"s3_conversation_memory":{"score":0,"max":100},"s4_knowledge_graph":{"score":0,"max":80},"s5_agent_intelligence":{"score":20,"max":80}}}];
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Results | Quaid Evals</title><meta name="description" content="Competitive leaderboard for agent memory systems across DAB v1, LoCoMo, LongMemEval, and BEAM."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script><link rel="stylesheet" href="/_astro/about.BKp2GZHZ.css">
+<link rel="stylesheet" href="/_astro/index.C9IYN0Ay.css"></head> <body> <header class="site-nav"> <div class="site-nav__inner"> <a class="site-wordmark" href="/">quaid evals</a> <nav aria-label="Primary"> <ul class="site-links"> <li> <a href="/" aria-current="page"> Results </a> </li><li> <a href="/dab-v1"> DAB v1 </a> </li><li> <a href="/dab-v2"> DAB v2 </a> </li><li> <a href="/locomo"> LoCoMo </a> </li><li> <a href="/longmemeval"> LME </a> </li><li> <a href="/beam"> BEAM </a> </li><li> <a href="/history"> History </a> </li><li> <a href="/about"> About </a> </li> </ul> </nav> </div> </header> <main>   <div class="page leaderboard-page" data-astro-cid-j7pv25f6> <section class="leaderboard-hero" data-astro-cid-j7pv25f6> <div class="hero-copy" data-astro-cid-j7pv25f6> <div class="page-kicker" data-astro-cid-j7pv25f6>Live leaderboard</div> <div class="hero-mark" data-astro-cid-j7pv25f6> <h1 data-astro-cid-j7pv25f6>quaid evals</h1> <p class="hero-tagline" data-astro-cid-j7pv25f6>The benchmark for agent memory systems</p> </div> <p class="hero-summary" data-astro-cid-j7pv25f6>
+Competitive benchmark coverage across reliability, conversational memory, and scale. Quaid&rsquo;s
+          release gate lives here beside published and estimated peer results.
+</p> <div class="hero-metrics" data-astro-cid-j7pv25f6> <div class="panel hero-metric tone-bronze" data-astro-cid-j7pv25f6> <div class="metric-label" data-astro-cid-j7pv25f6>Latest release</div> <div class="hero-metric__value" data-astro-cid-j7pv25f6>v0.13.0</div> <div class="metric-sub" data-astro-cid-j7pv25f6>2026-04-30</div> </div><div class="panel hero-metric tone-bronze" data-astro-cid-j7pv25f6> <div class="metric-label" data-astro-cid-j7pv25f6>DAB v1</div> <div class="hero-metric__value" data-astro-cid-j7pv25f6>99.1%</div> <div class="metric-sub" data-astro-cid-j7pv25f6>Release gate score</div> </div><div class="panel hero-metric tone-alert" data-astro-cid-j7pv25f6> <div class="metric-label" data-astro-cid-j7pv25f6>LoCoMo</div> <div class="hero-metric__value" data-astro-cid-j7pv25f6>0.1%</div> <div class="metric-sub" data-astro-cid-j7pv25f6>Measured today</div> </div><div class="panel hero-metric tone-bone" data-astro-cid-j7pv25f6> <div class="metric-label" data-astro-cid-j7pv25f6>Published runs</div> <div class="hero-metric__value" data-astro-cid-j7pv25f6>9</div> <div class="metric-sub" data-astro-cid-j7pv25f6>Across Quaid evals</div> </div> </div> </div> <aside class="panel hero-board" data-astro-cid-j7pv25f6> <div class="metric-label" data-astro-cid-j7pv25f6>Board At A Glance</div> <h2 data-astro-cid-j7pv25f6>Where each system leads right now</h2> <div class="board-list" data-astro-cid-j7pv25f6> <div class="board-item tone-quaid" data-astro-cid-j7pv25f6> <div class="board-item__metric" data-astro-cid-j7pv25f6>Infrastructure</div> <div class="board-item__value" data-astro-cid-j7pv25f6>99.1% Quaid</div> <p data-astro-cid-j7pv25f6>DAB v1 release gate. Install, search, MCP, performance.</p> </div><div class="board-item tone-mem0" data-astro-cid-j7pv25f6> <div class="board-item__metric" data-astro-cid-j7pv25f6>Conversation</div> <div class="board-item__value" data-astro-cid-j7pv25f6>91.6% Mem0 v3</div> <p data-astro-cid-j7pv25f6>Published LoCoMo reference. Quaid is still doc-native here.</p> </div><div class="board-item tone-hindsight" data-astro-cid-j7pv25f6> <div class="board-item__metric" data-astro-cid-j7pv25f6>Scale</div> <div class="board-item__value" data-astro-cid-j7pv25f6>~75% Hindsight</div> <p data-astro-cid-j7pv25f6>Estimated BEAM 10M headline. Public 1M score still TBD.</p> </div> </div> </aside> </section> <section class="panel leaderboard-shell" data-astro-cid-j7pv25f6> <div class="section-heading" data-astro-cid-j7pv25f6> <h2 data-astro-cid-j7pv25f6>Competitive Leaderboard</h2> <p data-astro-cid-j7pv25f6>
+Grouped bar charts compare Quaid against the four main memory systems across the benchmarks that decide
+          whether a memory layer is real or just context stuffing.
+</p> </div> <div class="leaderboard-grid" data-astro-cid-j7pv25f6> <article class="chart-panel" data-astro-cid-j7pv25f6> <div class="chart-panel__head" data-astro-cid-j7pv25f6> <div data-astro-cid-j7pv25f6> <div class="chart-title" data-astro-cid-j7pv25f6>Infrastructure &amp; Reliability</div> <h3 data-astro-cid-j7pv25f6>DAB v1</h3> </div> <p data-astro-cid-j7pv25f6>Release-gate reliability out of 100%.</p> </div> <div class="chart-stage" data-astro-cid-j7pv25f6> <div class="chart-canvas-wrap" data-astro-cid-j7pv25f6><canvas id="infrastructureLeaderboard" data-astro-cid-j7pv25f6></canvas></div> </div> </article> <article class="chart-panel" data-astro-cid-j7pv25f6> <div class="chart-panel__head" data-astro-cid-j7pv25f6> <div data-astro-cid-j7pv25f6> <div class="chart-title" data-astro-cid-j7pv25f6>Conversational Memory</div> <h3 data-astro-cid-j7pv25f6>LoCoMo + LongMemEval</h3> </div> <p data-astro-cid-j7pv25f6>Published and measured dialogue-memory scores.</p> </div> <div class="chart-stage" data-astro-cid-j7pv25f6> <div class="chart-canvas-wrap" data-astro-cid-j7pv25f6><canvas id="conversationLeaderboard" data-astro-cid-j7pv25f6></canvas></div> </div> </article> <article class="chart-panel" data-astro-cid-j7pv25f6> <div class="chart-panel__head" data-astro-cid-j7pv25f6> <div data-astro-cid-j7pv25f6> <div class="chart-title" data-astro-cid-j7pv25f6>Scale</div> <h3 data-astro-cid-j7pv25f6>BEAM</h3> </div> <p data-astro-cid-j7pv25f6>Extreme-scale memory performance from 100K to 10M tokens.</p> </div> <div class="chart-stage" data-astro-cid-j7pv25f6> <div class="chart-canvas-wrap" data-astro-cid-j7pv25f6><canvas id="scaleLeaderboard" data-astro-cid-j7pv25f6></canvas></div> </div> </article> </div> <div class="board-foot" data-astro-cid-j7pv25f6> <div class="legend-strip" aria-label="Score state legend" data-astro-cid-j7pv25f6> <span class="pill is-success" data-astro-cid-j7pv25f6>measured</span> <span class="pill is-bronze" data-astro-cid-j7pv25f6>published</span> <span class="pill is-warning" data-astro-cid-j7pv25f6>estimated</span> <span class="pill is-muted" data-astro-cid-j7pv25f6>pending / n/a</span> </div> <p class="note" data-astro-cid-j7pv25f6>
+Estimated values show an asterisk in tooltips. Pending and n/a states render as ghost bars at 0. GBrain
+          has no public BEAM scores yet, so it is omitted from the scale chart.
+</p> <div class="method-grid" data-astro-cid-j7pv25f6> <a class="method-card" href="/dab-v1" data-astro-cid-j7pv25f6> <div class="metric-label" data-astro-cid-j7pv25f6>Methodology</div> <div class="method-card__label" data-astro-cid-j7pv25f6>DAB v1</div> <p data-astro-cid-j7pv25f6>Release-gate scoring and thresholds.</p> </a><a class="method-card" href="/locomo" data-astro-cid-j7pv25f6> <div class="metric-label" data-astro-cid-j7pv25f6>Methodology</div> <div class="method-card__label" data-astro-cid-j7pv25f6>LoCoMo</div> <p data-astro-cid-j7pv25f6>Conversational memory benchmark details.</p> </a><a class="method-card" href="/longmemeval" data-astro-cid-j7pv25f6> <div class="metric-label" data-astro-cid-j7pv25f6>Methodology</div> <div class="method-card__label" data-astro-cid-j7pv25f6>LME</div> <p data-astro-cid-j7pv25f6>LongMemEval setup and per-type breakdown.</p> </a><a class="method-card" href="/beam" data-astro-cid-j7pv25f6> <div class="metric-label" data-astro-cid-j7pv25f6>Methodology</div> <div class="method-card__label" data-astro-cid-j7pv25f6>BEAM</div> <p data-astro-cid-j7pv25f6>Extreme-scale memory benchmark methodology.</p> </a><a class="method-card" href="/history" data-astro-cid-j7pv25f6> <div class="metric-label" data-astro-cid-j7pv25f6>Methodology</div> <div class="method-card__label" data-astro-cid-j7pv25f6>History</div> <p data-astro-cid-j7pv25f6>Version charts and the last 10 published runs.</p> </a> </div> </div> </section> <section class="panel history-panel" data-astro-cid-j7pv25f6> <div class="history-panel__head" data-astro-cid-j7pv25f6> <div class="section-heading" data-astro-cid-j7pv25f6> <h2 data-astro-cid-j7pv25f6>Version History</h2> <p data-astro-cid-j7pv25f6>Latest Quaid release-gate runs. Full trend charts live on the history page.</p> </div> <a class="history-link" href="/history" data-astro-cid-j7pv25f6>Open full history</a> </div> <div class="release-grid" data-astro-cid-j7pv25f6> <div class="release-card" data-astro-cid-j7pv25f6> <div class="release-card__top" data-astro-cid-j7pv25f6> <span class="pill is-bronze" data-astro-cid-j7pv25f6>v0.13.0</span> <span class="release-card__date" data-astro-cid-j7pv25f6>2026-04-30</span> </div> <div class="release-card__score" data-astro-cid-j7pv25f6>99.1%</div> <div class="release-card__meta" data-astro-cid-j7pv25f6>
+P@5 17.4% / R@5 78.2% </div> </div><div class="release-card" data-astro-cid-j7pv25f6> <div class="release-card__top" data-astro-cid-j7pv25f6> <span class="pill is-bronze" data-astro-cid-j7pv25f6>v0.12.0</span> <span class="release-card__date" data-astro-cid-j7pv25f6>2026-04-29</span> </div> <div class="release-card__score" data-astro-cid-j7pv25f6>99.1%</div> <div class="release-card__meta" data-astro-cid-j7pv25f6>
+P@5 17.4% / R@5 78.2% </div> </div><div class="release-card" data-astro-cid-j7pv25f6> <div class="release-card__top" data-astro-cid-j7pv25f6> <span class="pill is-bronze" data-astro-cid-j7pv25f6>v0.11.6</span> <span class="release-card__date" data-astro-cid-j7pv25f6>2026-04-29</span> </div> <div class="release-card__score" data-astro-cid-j7pv25f6>99.1%</div> <div class="release-card__meta" data-astro-cid-j7pv25f6>
+P@5 17.4% / R@5 78.2% </div> </div><div class="release-card" data-astro-cid-j7pv25f6> <div class="release-card__top" data-astro-cid-j7pv25f6> <span class="pill is-bronze" data-astro-cid-j7pv25f6>v0.11.0</span> <span class="release-card__date" data-astro-cid-j7pv25f6>2026-04-28</span> </div> <div class="release-card__score" data-astro-cid-j7pv25f6>99.1%</div> <div class="release-card__meta" data-astro-cid-j7pv25f6>
+P@5 17.4% / R@5 78.2% </div> </div><div class="release-card" data-astro-cid-j7pv25f6> <div class="release-card__top" data-astro-cid-j7pv25f6> <span class="pill is-bronze" data-astro-cid-j7pv25f6>v0.10.0</span> <span class="release-card__date" data-astro-cid-j7pv25f6>2026-04-28</span> </div> <div class="release-card__score" data-astro-cid-j7pv25f6>99.1%</div> <div class="release-card__meta" data-astro-cid-j7pv25f6>
+P@5 17.4% / R@5 78.2% </div> </div> </div> <p class="note" data-astro-cid-j7pv25f6>
+Latest MSMARCO snapshot: P@5 17.4% / R@5 78.2%.
+</p> </section> </div> <script>(function(){const leaderboardCharts = {"infrastructure":{"labels":["DAB v1 Score"],"datasets":[{"label":"Quaid","colorVar":"--q-bronze","fillVar":"--q-bronze-22","ghostVar":"--q-bronze-08","points":[{"value":99.1,"display":"99.1%","badge":"99.1%","status":"measured","note":"v0.13.0 release gate"}]},{"label":"Mem0 v3","colorVar":"--q-mem0","fillVar":"--q-mem0-28","ghostVar":"--q-mem0-08","points":[{"value":70,"display":"70%","badge":"~70%","status":"estimated","estimated":true,"note":"Estimated. No MCP support in the DAB v1 gate."}]},{"label":"Hindsight","colorVar":"--q-hindsight","fillVar":"--q-hindsight-28","ghostVar":"--q-hindsight-08","points":[{"value":65,"display":"65%","badge":"~65%","status":"estimated","estimated":true,"note":"Estimated from public benchmark positioning."}]},{"label":"GBrain","colorVar":"--q-gbrain","fillVar":"--q-gbrain-28","ghostVar":"--q-gbrain-08","points":[{"value":62,"display":"62%","badge":"62%","status":"measured","note":"Measured and scaled from our published GBrain run."}]}]},"conversational":{"labels":["LoCoMo","LongMemEval"],"datasets":[{"label":"Quaid","colorVar":"--q-bronze","fillVar":"--q-bronze-22","ghostVar":"--q-bronze-08","points":[{"value":0.1,"display":"0.1%","badge":"0.1% - roadmap #105","status":"measured","note":"Roadmap #105 closes the doc-native conversation-memory gap."},{"value":0,"display":"pending","badge":"pending","status":"pending","note":"Waiting for a published Quaid LongMemEval run."}]},{"label":"Mem0 v3","colorVar":"--q-mem0","fillVar":"--q-mem0-28","ghostVar":"--q-mem0-08","points":[{"value":91.6,"display":"91.6%","status":"published","note":"Published LoCoMo reference score."},{"value":93.4,"display":"93.4%","status":"published","note":"Published LongMemEval reference score."}]},{"label":"Hindsight","colorVar":"--q-hindsight","fillVar":"--q-hindsight-28","ghostVar":"--q-hindsight-08","points":[{"value":0,"display":"n/a","badge":"n/a","status":"na","note":"No public LoCoMo run published."},{"value":0,"display":"n/a","badge":"n/a","status":"na","note":"No public LongMemEval run published."}]},{"label":"GBrain","colorVar":"--q-gbrain","fillVar":"--q-gbrain-28","ghostVar":"--q-gbrain-08","points":[{"value":0,"display":"n/a","badge":"n/a","status":"na","note":"No public LoCoMo run published."},{"value":0,"display":"n/a","badge":"n/a","status":"na","note":"No public LongMemEval run published."}]}]},"scale":{"labels":["BEAM 100K","BEAM 1M","BEAM 10M"],"datasets":[{"label":"Quaid","colorVar":"--q-bronze","fillVar":"--q-bronze-22","ghostVar":"--q-bronze-08","points":[{"value":0,"display":"tbd","badge":"tbd","status":"tbd","note":"No published Quaid BEAM 100K run yet."},{"value":0,"display":"pending","badge":"pending","status":"pending","note":"Waiting for a published Quaid BEAM 1M run."},{"value":0,"display":"pending","badge":"pending","status":"pending","note":"Waiting for a published Quaid BEAM 10M run."}]},{"label":"Mem0 v3","colorVar":"--q-mem0","fillVar":"--q-mem0-28","ghostVar":"--q-mem0-08","points":[{"value":0,"display":"tbd","badge":"tbd","status":"tbd","note":"No public Mem0 v3 BEAM 100K score published."},{"value":64.1,"display":"64.1%","status":"published","note":"Published Mem0 v3 BEAM 1M score."},{"value":48.6,"display":"48.6%","status":"published","note":"Published Mem0 v3 BEAM 10M score."}]},{"label":"Hindsight","colorVar":"--q-hindsight","fillVar":"--q-hindsight-28","ghostVar":"--q-hindsight-08","points":[{"value":0,"display":"tbd","badge":"tbd","status":"tbd","note":"No public Hindsight BEAM 100K score published."},{"value":0,"display":"tbd","badge":"tbd","status":"tbd","note":"No public Hindsight BEAM 1M score published."},{"value":75,"display":"75%","badge":"~75%","status":"estimated","estimated":true,"note":"Estimated from Hindsight SOTA BEAM 10M positioning."}]}]}};
 
     document.addEventListener('DOMContentLoaded', () => {
       if (typeof Chart === 'undefined') return;
 
       const rootStyles = getComputedStyle(document.documentElement);
-      const bronze = rootStyles.getPropertyValue('--q-bronze').trim();
-      const bronzeSoft = rootStyles.getPropertyValue('--q-bronze-16').trim();
-      const bone = rootStyles.getPropertyValue('--q-bone').trim();
-      const muted = rootStyles.getPropertyValue('--q-muted').trim();
-      const border = rootStyles.getPropertyValue('--q-bronze-12').trim();
-      const success = rootStyles.getPropertyValue('--q-success').trim();
-      const successSoft = rootStyles.getPropertyValue('--q-success-16').trim();
-      const warning = rootStyles.getPropertyValue('--q-warning').trim();
-      const warningSoft = rootStyles.getPropertyValue('--q-warning-16').trim();
-      const fontUi = rootStyles.getPropertyValue('--font-ui').trim();
+      const cssVar = (name) => rootStyles.getPropertyValue(name).trim();
+      const fontUi = cssVar('--font-ui');
+      const bone = cssVar('--q-bone');
+      const muted = cssVar('--q-muted');
+      const grid = cssVar('--q-bronze-12');
+
+      const normalizeBadge = (badge, chartWidth) => {
+        if (!badge) return [];
+        if (badge === '0.1% - roadmap #105' && chartWidth < 860) return ['0.1%', 'roadmap #105'];
+        return [badge];
+      };
+
+      const badgePlugin = {
+        id: 'benchmarkBadgeLabels',
+        afterDatasetsDraw(chart) {
+          const { ctx, chartArea, scales } = chart;
+          const yScale = scales.y;
+          const fontSize = chart.width < 720 ? 8 : 10;
+          const lineHeight = fontSize + 3;
+
+          ctx.save();
+          ctx.font = `600 ${fontSize}px ${fontUi}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+
+          chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+
+            meta.data.forEach((element, index) => {
+              const point = dataset.pointMeta?.[index];
+              if (!point?.badge) return;
+
+              const badgeLines = normalizeBadge(point.badge, chart.width);
+              const lineCount = badgeLines.length;
+              const labelColor = cssVar(point.status === 'na' || point.status === 'pending' || point.status === 'tbd'
+                ? '--q-muted'
+                : dataset.colorVar);
+              const baseline = yScale.getPixelForValue(0) - 8 - (datasetIndex % 2) * lineHeight;
+              const preferredY = point.value > 0 ? element.y - 8 : baseline;
+              const y = Math.max(chartArea.top + lineCount * lineHeight, preferredY);
+
+              ctx.fillStyle = labelColor;
+
+              badgeLines.forEach((line, lineIndex) => {
+                const offset = (lineCount - lineIndex - 1) * lineHeight;
+                ctx.fillText(line, element.x, y - offset);
+              });
+            });
+          });
+
+          ctx.restore();
+        },
+      };
+
+      const makeDatasets = (series) => series.datasets.map((dataset) => ({
+        label: dataset.label,
+        colorVar: dataset.colorVar,
+        pointMeta: dataset.points,
+        data: dataset.points.map((point) => point.value),
+        borderColor: dataset.points.map((point) =>
+          cssVar(point.status === 'na' || point.status === 'pending' || point.status === 'tbd'
+            ? dataset.ghostVar
+            : dataset.colorVar)
+        ),
+        backgroundColor: dataset.points.map((point) =>
+          cssVar(point.status === 'na' || point.status === 'pending' || point.status === 'tbd'
+            ? dataset.ghostVar
+            : dataset.fillVar)
+        ),
+        borderWidth: dataset.points.map((point) => (point.estimated ? 2 : 1.4)),
+        borderSkipped: false,
+        borderRadius: 6,
+        maxBarThickness: 26,
+        minBarLength: 6,
+      }));
+
+      const makeTooltipCallbacks = () => ({
+        label(context) {
+          const point = context.dataset.pointMeta?.[context.dataIndex];
+          if (!point) return `${context.dataset.label}: ${context.parsed.y}`;
+          if (point.status === 'na' || point.status === 'pending' || point.status === 'tbd') {
+            return `${context.dataset.label}: ${point.display}`;
+          }
+
+          const suffix = point.estimated ? '*' : '';
+          return `${context.dataset.label}: ${point.display}${suffix}`;
+        },
+        afterBody(items) {
+          const point = items[0]?.dataset?.pointMeta?.[items[0].dataIndex];
+          if (!point) return [];
+
+          const lines = [];
+          if (point.note) lines.push(point.note);
+          if (point.estimated) lines.push('* Estimated value');
+          if (point.status === 'published') lines.push('Published reference');
+          if (point.status === 'measured') lines.push('Measured result');
+          if (point.status === 'pending' || point.status === 'tbd') lines.push('Awaiting published run');
+          if (point.status === 'na') lines.push('No public benchmark run');
+          return lines;
+        },
+      });
 
       const chartDefaults = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: {
-              color: bone,
-              font: { family: fontUi, size: 11 },
+        type: 'bar',
+        plugins: [badgePlugin],
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 18, right: 8, left: 4, bottom: 0 },
+          },
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: bone,
+                usePointStyle: true,
+                pointStyle: 'rectRounded',
+                boxWidth: 10,
+                font: { family: fontUi, size: 11 },
+              },
+            },
+            tooltip: {
+              callbacks: makeTooltipCallbacks(),
+              displayColors: true,
+              titleColor: bone,
+              bodyColor: bone,
+              footerColor: muted,
+              backgroundColor: cssVar('--q-charcoal'),
+              borderColor: grid,
+              borderWidth: 1,
+              padding: 12,
             },
           },
-        },
-        scales: {
-          x: {
-            ticks: { color: muted, font: { family: fontUi, size: 10 } },
-            grid: { color: border },
-          },
-          y: {
-            ticks: { color: muted, font: { family: fontUi, size: 10 } },
-            grid: { color: border },
+          scales: {
+            x: {
+              ticks: {
+                color: muted,
+                font: { family: fontUi, size: 10 },
+              },
+              grid: {
+                color: grid,
+              },
+            },
+            y: {
+              min: 0,
+              max: 100,
+              grace: '10%',
+              ticks: {
+                color: muted,
+                font: { family: fontUi, size: 10 },
+                callback: (value) => `${value}%`,
+              },
+              grid: {
+                color: grid,
+              },
+            },
           },
         },
       };
 
-      const dabCtx = document.getElementById('dabHistory');
-      if (dabCtx && dabScores.some((score) => score !== null)) {
-        new Chart(dabCtx, {
-          type: 'line',
+      const chartConfigs = [
+        ['infrastructureLeaderboard', leaderboardCharts.infrastructure],
+        ['conversationLeaderboard', leaderboardCharts.conversational],
+        ['scaleLeaderboard', leaderboardCharts.scale],
+      ];
+
+      chartConfigs.forEach(([canvasId, series]) => {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        new Chart(canvas, {
+          ...chartDefaults,
           data: {
-            labels: chartVersions,
-            datasets: [{
-              label: 'DAB %',
-              data: dabScores,
-              borderColor: bronze,
-              backgroundColor: bronzeSoft,
-              tension: 0.32,
-              spanGaps: true,
-              pointRadius: 3.5,
-              fill: true,
-            }],
-          },
-          options: {
-            ...chartDefaults,
-            scales: {
-              ...chartDefaults.scales,
-              y: {
-                min: 0,
-                max: 100,
-                ticks: { color: muted, font: { family: fontUi, size: 10 } },
-                grid: { color: border },
-              },
-            },
+            labels: series.labels,
+            datasets: makeDatasets(series),
           },
         });
-      }
-
-      const msCtx = document.getElementById('msmarcoHistory');
-      if (msCtx && (p5Scores.some((score) => score !== null) || rAt5Scores.some((score) => score !== null))) {
-        new Chart(msCtx, {
-          type: 'line',
-          data: {
-            labels: chartVersions,
-            datasets: [
-              {
-                label: 'P@5 %',
-                data: p5Scores,
-                borderColor: bronze,
-                backgroundColor: bronzeSoft,
-                tension: 0.32,
-                spanGaps: true,
-                pointRadius: 3.5,
-              },
-              {
-                label: 'R@5 %',
-                data: rAt5Scores,
-                borderColor: success,
-                backgroundColor: successSoft,
-                tension: 0.32,
-                spanGaps: true,
-                pointRadius: 3.5,
-              },
-            ],
-          },
-          options: {
-            ...chartDefaults,
-            scales: {
-              ...chartDefaults.scales,
-              y: {
-                min: 0,
-                max: 100,
-                ticks: { color: muted, font: { family: fontUi, size: 10 } },
-                grid: { color: border },
-              },
-            },
-          },
-        });
-      }
-
-      const dab2Ctx = document.getElementById('dab2History');
-      if (dab2Ctx && dabV2Quaid.length > 1) {
-        const labels = dabV2Quaid.map((run) => `v${run.version}`);
-        const infraScores = dabV2Quaid.map((run) => run.sections?.s1_infrastructure?.score ?? null);
-        const retrievalScores = dabV2Quaid.map((run) => run.sections?.s2_realworld_retrieval?.score ?? null);
-        const totalScores = dabV2Quaid.map((run) => run.total ?? null);
-
-        new Chart(dab2Ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Infrastructure',
-                data: infraScores,
-                borderColor: success,
-                backgroundColor: successSoft,
-                tension: 0.32,
-                spanGaps: true,
-                pointRadius: 3.5,
-                yAxisID: 'y1',
-              },
-              {
-                label: 'Retrieval',
-                data: retrievalScores,
-                borderColor: bronze,
-                backgroundColor: bronzeSoft,
-                tension: 0.32,
-                spanGaps: true,
-                pointRadius: 3.5,
-                yAxisID: 'y2',
-              },
-              {
-                label: 'Total',
-                data: totalScores,
-                borderColor: warning,
-                backgroundColor: warningSoft,
-                tension: 0.32,
-                spanGaps: true,
-                pointRadius: 3.5,
-                yAxisID: 'y3',
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                labels: {
-                  color: bone,
-                  font: { family: fontUi, size: 11 },
-                },
-              },
-            },
-            scales: {
-              x: {
-                ticks: { color: muted, font: { family: fontUi, size: 10 } },
-                grid: { color: border },
-              },
-              y1: {
-                type: 'linear',
-                position: 'left',
-                min: 0,
-                max: 40,
-                ticks: { color: muted, font: { family: fontUi, size: 10 } },
-                grid: { color: border },
-              },
-              y2: {
-                type: 'linear',
-                position: 'right',
-                min: 0,
-                max: 100,
-                ticks: { color: muted, font: { family: fontUi, size: 10 } },
-                grid: { drawOnChartArea: false },
-              },
-              y3: {
-                type: 'linear',
-                position: 'right',
-                min: 0,
-                max: 400,
-                ticks: { display: false },
-                grid: { drawOnChartArea: false },
-              },
-            },
-          },
-        });
-      }
+      });
     });
-  })();</script>  </main> <footer class="site-footer"> <div class="site-footer__inner"> <a class="inline-link" href="https://benchmark.quaid.app">benchmark.quaid.app</a> <span>·</span> <a class="inline-link" href="https://github.com/quaid-app/quaid-evals">quaid-app/quaid-evals</a> <span>·</span> <span>persistent memory for agents</span> </div> </footer> </body></html>
+  })();</script>   </main> <footer class="site-footer"> <div class="site-footer__inner"> <a class="inline-link" href="https://benchmark.quaid.app">benchmark.quaid.app</a> <span>·</span> <a class="inline-link" href="https://github.com/quaid-app/quaid-evals">quaid-app/quaid-evals</a> <span>·</span> <span>persistent memory for agents</span> </div> </footer> </body></html>
