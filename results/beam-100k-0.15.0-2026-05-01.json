@@ -1,0 +1,58 @@
+{
+  "quaid_version": "0.15.0",
+  "date": "2026-05-01",
+  "benchmark": "beam-100k",
+  "split": "100K",
+  "beam_100k": {
+    "overall": 0.0,
+    "total_questions": 280,
+    "by_category": {
+      "abstention": {
+        "avg": 0.0,
+        "count": 40
+      },
+      "contradiction_resolution": {
+        "avg": 0.0,
+        "count": 40
+      },
+      "event_ordering": {
+        "avg": 0.0,
+        "count": 40
+      },
+      "information_extraction": {
+        "avg": 0.0,
+        "count": 40
+      },
+      "knowledge_update": {
+        "avg": 0.0,
+        "count": 40
+      },
+      "multi_session_reasoning": {
+        "avg": 0.0,
+        "count": 40
+      },
+      "temporal_reasoning": {
+        "avg": 0.0,
+        "count": 40
+      }
+    },
+    "avg_retrieved_tokens": 6,
+    "reference": {
+      "mem0_v3": {
+        "1m": 0.641,
+        "10m": 0.486,
+        "source": "mem0ai/memory-benchmarks release notes"
+      },
+      "hindsight": {
+        "10m": "SOTA",
+        "source": "Vectorize/nicoloboschi"
+      }
+    }
+  },
+  "config": {
+    "answerer_model": "gpt-4o",
+    "judge_model": "gpt-4o",
+    "provider": "openai",
+    "top_k": 20
+  }
+}
