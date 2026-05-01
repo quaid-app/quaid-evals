@@ -15,8 +15,8 @@
     "mcp": {"score": 20, "max": 20}
   },
   "performance": {
-    "fts_latency_ms": 10,
-    "semantic_latency_ms": 325,
-    "collection_add_ms": 5055
+    "fts_latency_ms": 12,
+    "semantic_latency_ms": 355,
+    "collection_add_ms": 5062
   }
 }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-01T07:19:02.070351Z",
+  "generated_at": "2026-05-01T08:44:00.459549Z",
   "latest": {
     "version": "0.15.0",
     "date": "2026-05-01",
@@ -55,9 +55,9 @@
         }
       },
       "performance": {
-        "fts_latency_ms": 10,
-        "semantic_latency_ms": 325,
-        "collection_add_ms": 5055
+        "fts_latency_ms": 12,
+        "semantic_latency_ms": 355,
+        "collection_add_ms": 5062
       }
     },
     "gbrain_evals": {
@@ -32326,9 +32326,9 @@
           }
         },
         "performance": {
-          "fts_latency_ms": 10,
-          "semantic_latency_ms": 325,
-          "collection_add_ms": 5055
+          "fts_latency_ms": 12,
+          "semantic_latency_ms": 355,
+          "collection_add_ms": 5062
         }
       },
       "gbrain_evals": {
