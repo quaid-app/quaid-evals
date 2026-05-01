@@ -68,13 +68,15 @@ class QuaidBackend:
         page_path.write_text(f"---\n{meta_str}\n---\n\n{speaker}: {content}\n")
         self._page_count += 1
 
-    def flush_to_quaid(self) -> bool:
+    def flush_to_quaid(self, skip_embed: bool = False) -> bool:
         result = subprocess.run(
             ["quaid", "collection", "add", "lme", self._tmp_dir, "--db", self.db_path],
             env=self._env, capture_output=True, text=True, timeout=300
         )
         if result.returncode != 0:
             return False
+        if skip_embed:
+            return True  # FTS only - much faster, skip vector embedding
         embed = subprocess.run(
             ["quaid", "embed", "--db", self.db_path],
             env=self._env, capture_output=True, text=True, timeout=600
@@ -203,8 +205,12 @@ def run_longmemeval(
     provider: str,
     top_k: int = 20,
     checkpoint_path: str = None,
+    skip_embed: bool = False,
 ) -> dict:
     """Run LongMemEval: per-question ingest + retrieve + evaluate.
+    
+    skip_embed=True uses FTS-only search (much faster, ~10x speedup per question).
+    Useful for baseline runs before semantic retrieval matters.
     
     Supports checkpoint/resume: saves progress every 10 questions so
     a timed-out run can be resumed without restarting from scratch.
@@ -269,7 +275,7 @@ def run_longmemeval(
                     })
 
         # Index
-        flushed = backend.flush_to_quaid()
+        flushed = backend.flush_to_quaid(skip_embed=skip_embed)
 
         # Retrieve + Answer + Judge
         if flushed:
@@ -347,6 +353,8 @@ def main():
     parser.add_argument("--top-k", type=int, default=20)
     parser.add_argument("--max-questions", type=int, default=None,
                         help="Limit questions for faster runs (e.g. 50)")
+    parser.add_argument("--skip-embed", action="store_true",
+                        help="Skip vector embedding (FTS only, ~10x faster, use for baseline runs)")
     args = parser.parse_args()
 
     print(f"LongMemEval adapter - Quaid {args.quaid_version}")
@@ -366,6 +374,7 @@ def main():
         provider=args.provider,
         top_k=args.top_k,
         checkpoint_path=f"{args.db}-checkpoint.json",
+        skip_embed=args.skip_embed,
     )
 
     output = {

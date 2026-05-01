@@ -28,6 +28,7 @@ python3 "$(dirname "$0")/quaid_adapter.py" \
   --judge-model "${JUDGE_MODEL:-gpt-4o}" \
   --provider "${LLM_PROVIDER:-openai}" \
   --top-k "${TOP_K:-20}" \
-  ${MAX_QUESTIONS:+--max-questions "$MAX_QUESTIONS"}
+  ${MAX_QUESTIONS:+--max-questions "$MAX_QUESTIONS"} \
+  ${SKIP_EMBED:+--skip-embed}
 
 echo "Results written to: $OUTPUT"
