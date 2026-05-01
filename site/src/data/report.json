@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-01T03:26:37.865737Z",
+  "generated_at": "2026-05-01T07:19:02.070351Z",
   "latest": {
     "version": "0.15.0",
     "date": "2026-05-01",
@@ -32174,10 +32174,61 @@
       "version": "0.14.0",
       "date": "2026-05-01",
       "benchmarks": {
+        "dab": {
+          "total": 213,
+          "max": 215,
+          "pct": 99.1
+        },
         "longmemeval": {
           "overall": 0.0,
           "pass_rate": 0.0,
           "status": "measured"
+        }
+      },
+      "dab": {
+        "quaid_version": "0.14.0",
+        "date": "2026-05-01",
+        "benchmark": "dab",
+        "total_score": 213,
+        "max_score": 215,
+        "sections": {
+          "install": {
+            "score": 10,
+            "max": 10
+          },
+          "import": {
+            "score": 30,
+            "max": 30
+          },
+          "fts": {
+            "score": 40,
+            "max": 40
+          },
+          "semantic": {
+            "score": 48,
+            "max": 50
+          },
+          "performance": {
+            "score": 30,
+            "max": 30
+          },
+          "integrity": {
+            "score": 20,
+            "max": 20
+          },
+          "collections": {
+            "score": 15,
+            "max": 15
+          },
+          "mcp": {
+            "score": 20,
+            "max": 20
+          }
+        },
+        "performance": {
+          "fts_latency_ms": 12,
+          "semantic_latency_ms": 304,
+          "collection_add_ms": 5077
         }
       },
       "longmemeval": {
