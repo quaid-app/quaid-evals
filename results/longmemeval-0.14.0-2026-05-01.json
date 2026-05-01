@@ -1,0 +1,51 @@
+{
+  "quaid_version": "0.14.0",
+  "date": "2026-05-01",
+  "benchmark": "longmemeval",
+  "longmemeval": {
+    "overall": 0.0,
+    "pass_rate": 0.0,
+    "total_questions": 400,
+    "by_type": {
+      "single-session-user": {
+        "avg": 0.0,
+        "count": 70
+      },
+      "multi-session": {
+        "avg": 0.0,
+        "count": 83
+      },
+      "single-session-preference": {
+        "avg": 0.0,
+        "count": 30
+      },
+      "temporal-reasoning": {
+        "avg": 0.0,
+        "count": 83
+      },
+      "knowledge-update": {
+        "avg": 0.0,
+        "count": 78
+      },
+      "single-session-assistant": {
+        "avg": 0.0,
+        "count": 56
+      }
+    },
+    "reference": {
+      "mem0_v3": {
+        "overall": 0.934,
+        "temporal_reasoning": 0.93,
+        "agent_recall": 1.0,
+        "source": "mem0ai/memory-benchmarks release notes"
+      }
+    }
+  },
+  "config": {
+    "answerer_model": "gpt-4o",
+    "judge_model": "gpt-4o",
+    "provider": "openai",
+    "top_k": 20,
+    "total_questions": 400
+  }
+}
