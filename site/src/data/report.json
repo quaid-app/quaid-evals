@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-05T23:50:04.397073Z",
+  "generated_at": "2026-05-06T09:01:10.729623Z",
   "latest": {
-    "version": "0.19.0",
-    "date": "2026-05-05",
+    "version": "0.20.0",
+    "date": "2026-05-06",
     "benchmarks": {
       "dab": {
         "total": 203,
@@ -11,8 +11,8 @@
       }
     },
     "dab": {
-      "quaid_version": "0.19.0",
-      "date": "2026-05-05",
+      "quaid_version": "0.20.0",
+      "date": "2026-05-06",
       "benchmark": "dab",
       "total_score": 203,
       "max_score": 215,
@@ -51,9 +51,9 @@
         }
       },
       "performance": {
-        "fts_latency_ms": 14,
-        "semantic_latency_ms": 305,
-        "collection_add_ms": 10083
+        "fts_latency_ms": 10,
+        "semantic_latency_ms": 329,
+        "collection_add_ms": 10069
       }
     }
   },
@@ -43091,6 +43091,63 @@
           "collection_add_ms": 10083
         }
       }
+    },
+    {
+      "version": "0.20.0",
+      "date": "2026-05-06",
+      "benchmarks": {
+        "dab": {
+          "total": 203,
+          "max": 215,
+          "pct": 94.4
+        }
+      },
+      "dab": {
+        "quaid_version": "0.20.0",
+        "date": "2026-05-06",
+        "benchmark": "dab",
+        "total_score": 203,
+        "max_score": 215,
+        "sections": {
+          "install": {
+            "score": 10,
+            "max": 10
+          },
+          "import": {
+            "score": 30,
+            "max": 30
+          },
+          "fts": {
+            "score": 40,
+            "max": 40
+          },
+          "semantic": {
+            "score": 48,
+            "max": 50
+          },
+          "performance": {
+            "score": 20,
+            "max": 30
+          },
+          "integrity": {
+            "score": 20,
+            "max": 20
+          },
+          "collections": {
+            "score": 15,
+            "max": 15
+          },
+          "mcp": {
+            "score": 20,
+            "max": 20
+          }
+        },
+        "performance": {
+          "fts_latency_ms": 10,
+          "semantic_latency_ms": 329,
+          "collection_add_ms": 10069
+        }
+      }
     }
   ],
   "locomo": {
@@ -43456,5 +43513,5 @@
       "notes": "Headline positioning from published benchmark materials. Public per-type LoCoMo breakdown is not included here."
     }
   },
-  "total_runs": 16
+  "total_runs": 17
 }
