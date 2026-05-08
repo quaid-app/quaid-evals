@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-06T09:01:10.729623Z",
+  "generated_at": "2026-05-08T06:19:43.157853Z",
   "latest": {
     "version": "0.20.0",
     "date": "2026-05-06",
@@ -58,6 +58,11 @@
     }
   },
   "history": [
+    {
+      "version": "unknown",
+      "date": "",
+      "benchmarks": {}
+    },
     {
       "version": "0.9.8",
       "date": "2026-04-27",
@@ -21476,11 +21481,6 @@
           }
         ]
       }
-    },
-    {
-      "version": "0.22.8",
-      "date": "2026-04-29",
-      "benchmarks": {}
     },
     {
       "version": "0.13.0",
@@ -43291,34 +43291,32 @@
   },
   "dab_v2": {
     "latest": {
-      "system": "gbrain",
-      "version": "0.22.8",
+      "system": "quaid",
+      "version": "0.11.6",
       "date": "2026-04-29",
       "benchmark": "dab-v2-full",
-      "total": 77,
+      "total": 97,
       "max": 400,
-      "pct": 19,
+      "pct": 24,
       "sections": {
         "s1_infrastructure": {
-          "score": 15,
+          "score": 27,
           "max": 40
         },
         "s2_realworld_retrieval": {
-          "score": 7,
+          "score": 50,
           "max": 100
         },
         "s3_conversation_memory": {
           "score": 0,
-          "max": 100,
-          "note": "GBrain has no conversation memory"
+          "max": 100
         },
         "s4_knowledge_graph": {
-          "score": 45,
-          "max": 80,
-          "note": "Partial estimate from published benchmark data"
+          "score": 0,
+          "max": 80
         },
         "s5_agent_intelligence": {
-          "score": 10,
+          "score": 20,
           "max": 80
         }
       }
@@ -43326,34 +43324,50 @@
     "all_runs": [
       {
         "system": "gbrain",
-        "version": "0.22.8",
-        "date": "2026-04-29",
+        "version": null,
+        "date": null,
         "benchmark": "dab-v2-full",
-        "total": 77,
+        "status": "estimated",
+        "source": "https://www.ai-heroes.co/en-gb/blog/gbrain-vs-qmd-benchmark-may-2026",
+        "source_label": "AI Heroes benchmark, May 2026",
+        "repository": "https://github.com/garrytan/gbrain",
+        "estimation_basis": "AI Heroes reported an 8.3x win over qmd on 150 real questions. DAB section placement is qualitative until a reproducible DAB run is published.",
+        "airgapped": false,
+        "deployment_note": "Reported GBrain setup uses cloud-based enrichment.",
+        "note": "Qualitative DAB estimate only. AI Heroes' May 2026 external benchmark reports an 8.3x GBrain win over qmd on 150 real questions; no numeric DAB score is published.",
+        "total": null,
         "max": 400,
-        "pct": 19,
+        "pct": null,
         "sections": {
           "s1_infrastructure": {
-            "score": 15,
-            "max": 40
+            "score": null,
+            "max": 40,
+            "status": "estimated",
+            "note": "Qualitative estimate from public GBrain architecture and AI Heroes benchmark signal."
           },
           "s2_realworld_retrieval": {
-            "score": 7,
-            "max": 100
+            "score": null,
+            "max": 100,
+            "status": "estimated",
+            "note": "AI Heroes reported an 8.3x win over qmd on 150 real questions; no DAB retrieval score published."
           },
           "s3_conversation_memory": {
-            "score": 0,
+            "score": null,
             "max": 100,
-            "note": "GBrain has no conversation memory"
+            "status": "not-run",
+            "note": "No public LoCoMo, LongMemEval, or DAB conversation-memory run published."
           },
           "s4_knowledge_graph": {
-            "score": 45,
+            "score": null,
             "max": 80,
-            "note": "Partial estimate from published benchmark data"
+            "status": "estimated",
+            "note": "Qualitative estimate only. Reported setup uses cloud enrichment and graph-style entity maintenance."
           },
           "s5_agent_intelligence": {
-            "score": 10,
-            "max": 80
+            "score": null,
+            "max": 80,
+            "status": "pending",
+            "note": "No public DAB agent-intelligence score published."
           }
         }
       },
@@ -43426,14 +43440,45 @@
   },
   "reference": {
     "gbrain": {
-      "label": "GBrain (Garry Tan)",
-      "source": "https://x.com/garrytan/status/2048503081911128119",
-      "date": "2026-04-27",
-      "gbrain_evals": {
-        "p_at_5": 49.1,
-        "r_at_5": 97.9
+      "label": "GBrain (garrytan/gbrain)",
+      "repository": "https://github.com/garrytan/gbrain",
+      "source": "https://www.ai-heroes.co/en-gb/blog/gbrain-vs-qmd-benchmark-may-2026",
+      "date": "2026-05",
+      "source_label": "AI Heroes benchmark, May 2026",
+      "external_benchmark": {
+        "conducted_by": "AI Heroes",
+        "baseline": "qmd",
+        "questions": 150,
+        "corpus": "real questions",
+        "relative_win": "8.3x",
+        "headline": "GBrain beat qmd by 8.3x on AI Heroes' 150-question corpus.",
+        "shared_by": "Garry Tan",
+        "reported_views": "12.4K"
       },
-      "notes": "145 queries, Opus-generated corpus, 17,888 pages. Graph layer = +31pts precision."
+      "dab": {
+        "status": "estimated",
+        "score": null,
+        "display": "estimated",
+        "basis": "AI Heroes reported an 8.3x win over qmd on 150 real questions. DAB placement is qualitative until a reproducible DAB run is published.",
+        "notes": "No numeric Quaid DAB run against GBrain has been published."
+      },
+      "locomo": {
+        "status": "not-run"
+      },
+      "longmemeval": {
+        "status": "not-run"
+      },
+      "beam": {
+        "status": "not-run",
+        "score_100k": null,
+        "score_1m": null,
+        "score_10m": null
+      },
+      "deployment": {
+        "airgapped": false,
+        "notes": "GBrain uses cloud-based enrichment in the reported setup, so it is not airgapped."
+      },
+      "notes": "External AI Heroes benchmark only. DAB is qualitative and estimated; LoCoMo, LongMemEval, and BEAM remain not-run until reproducible GBrain runs are published."
     },
     "mem0_v3": {
       "label": "Mem0 v3",

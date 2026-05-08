@@ -1,16 +1,49 @@
 {
   "system": "gbrain",
-  "version": "0.22.8",
-  "date": "2026-04-29",
+  "version": null,
+  "date": null,
   "benchmark": "dab-v2-full",
-  "total": 77,
+  "status": "estimated",
+  "source": "https://www.ai-heroes.co/en-gb/blog/gbrain-vs-qmd-benchmark-may-2026",
+  "source_label": "AI Heroes benchmark, May 2026",
+  "repository": "https://github.com/garrytan/gbrain",
+  "estimation_basis": "AI Heroes reported an 8.3x win over qmd on 150 real questions. DAB section placement is qualitative until a reproducible DAB run is published.",
+  "airgapped": false,
+  "deployment_note": "Reported GBrain setup uses cloud-based enrichment.",
+  "note": "Qualitative DAB estimate only. AI Heroes' May 2026 external benchmark reports an 8.3x GBrain win over qmd on 150 real questions; no numeric DAB score is published.",
+  "total": null,
   "max": 400,
-  "pct": 19,
+  "pct": null,
   "sections": {
-    "s1_infrastructure": {"score": 15, "max": 40},
-    "s2_realworld_retrieval": {"score": 7, "max": 100},
-    "s3_conversation_memory": {"score": 0, "max": 100, "note": "GBrain has no conversation memory"},
-    "s4_knowledge_graph": {"score": 45, "max": 80, "note": "Partial estimate from published benchmark data"},
-    "s5_agent_intelligence": {"score": 10, "max": 80}
+    "s1_infrastructure": {
+      "score": null,
+      "max": 40,
+      "status": "estimated",
+      "note": "Qualitative estimate from public GBrain architecture and AI Heroes benchmark signal."
+    },
+    "s2_realworld_retrieval": {
+      "score": null,
+      "max": 100,
+      "status": "estimated",
+      "note": "AI Heroes reported an 8.3x win over qmd on 150 real questions; no DAB retrieval score published."
+    },
+    "s3_conversation_memory": {
+      "score": null,
+      "max": 100,
+      "status": "not-run",
+      "note": "No public LoCoMo, LongMemEval, or DAB conversation-memory run published."
+    },
+    "s4_knowledge_graph": {
+      "score": null,
+      "max": 80,
+      "status": "estimated",
+      "note": "Qualitative estimate only. Reported setup uses cloud enrichment and graph-style entity maintenance."
+    },
+    "s5_agent_intelligence": {
+      "score": null,
+      "max": 80,
+      "status": "pending",
+      "note": "No public DAB agent-intelligence score published."
+    }
   }
 }

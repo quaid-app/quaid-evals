@@ -14,11 +14,36 @@ SITE_DATA_DIR.mkdir(parents=True, exist_ok=True)
 # Reference scores from published benchmarks (hardcoded, update as new data lands)
 REFERENCE_SCORES = {
     "gbrain": {
-        "label": "GBrain (Garry Tan)",
-        "source": "https://x.com/garrytan/status/2048503081911128119",
-        "date": "2026-04-27",
-        "gbrain_evals": {"p_at_5": 49.1, "r_at_5": 97.9},
-        "notes": "145 queries, Opus-generated corpus, 17,888 pages. Graph layer = +31pts precision."
+        "label": "GBrain (garrytan/gbrain)",
+        "repository": "https://github.com/garrytan/gbrain",
+        "source": "https://www.ai-heroes.co/en-gb/blog/gbrain-vs-qmd-benchmark-may-2026",
+        "date": "2026-05",
+        "source_label": "AI Heroes benchmark, May 2026",
+        "external_benchmark": {
+            "conducted_by": "AI Heroes",
+            "baseline": "qmd",
+            "questions": 150,
+            "corpus": "real questions",
+            "relative_win": "8.3x",
+            "headline": "GBrain beat qmd by 8.3x on AI Heroes' 150-question corpus.",
+            "shared_by": "Garry Tan",
+            "reported_views": "12.4K",
+        },
+        "dab": {
+            "status": "estimated",
+            "score": None,
+            "display": "estimated",
+            "basis": "AI Heroes reported an 8.3x win over qmd on 150 real questions. DAB placement is qualitative until a reproducible DAB run is published.",
+            "notes": "No numeric Quaid DAB run against GBrain has been published.",
+        },
+        "locomo": {"status": "not-run"},
+        "longmemeval": {"status": "not-run"},
+        "beam": {"status": "not-run", "score_100k": None, "score_1m": None, "score_10m": None},
+        "deployment": {
+            "airgapped": False,
+            "notes": "GBrain uses cloud-based enrichment in the reported setup, so it is not airgapped."
+        },
+        "notes": "External AI Heroes benchmark only. DAB is qualitative and estimated; LoCoMo, LongMemEval, and BEAM remain not-run until reproducible GBrain runs are published.",
     },
     "mem0_v3": {
         "label": "Mem0 v3",
@@ -222,7 +247,7 @@ def load_benchmark_summary(pattern, extract_scores, version_field="quaid_version
             }
         )
 
-    runs.sort(key=lambda run: (run.get("date", ""), semver_parts(run.get("version", "0"))))
+    runs.sort(key=lambda run: (run.get("date") or "", semver_parts(run.get("version", "0"))))
 
     latest = dict(runs[-1]) if runs else {
         "version": None,
@@ -239,7 +264,7 @@ def build_history(results):
     runs = {}
     for r in results:
         version = r.get("quaid_version") or r.get("version") or "unknown"
-        key = (version, r.get("date", ""))
+        key = (version, r.get("date") or "")
         if key not in runs:
             runs[key] = {"version": key[0], "date": key[1], "benchmarks": {}}
         benchmark = r.get("benchmark", "")
@@ -282,7 +307,7 @@ def build_history(results):
                 "status": "measured",
             }
 
-    return sorted(runs.values(), key=lambda run: (run.get("date", ""), semver_parts(run.get("version", "0"))))
+    return sorted(runs.values(), key=lambda run: (run.get("date") or "", semver_parts(run.get("version", "0"))))
 
 
 def main():
@@ -292,9 +317,13 @@ def main():
 
     # DAB v2 results
     dab_v2_runs = load_dab_v2_results()
-    dab_v2_latest = sorted(dab_v2_runs, key=lambda x: (
-        x.get("date", ""), semver_parts(x.get("version", "0"))
-    ))[-1] if dab_v2_runs else None
+    scored_dab_v2_runs = [
+        run for run in dab_v2_runs
+        if run.get("status") != "not-benchmarked" and run.get("pct") is not None
+    ]
+    dab_v2_latest = sorted(scored_dab_v2_runs, key=lambda x: (
+        x.get("date") or "", semver_parts(x.get("version", "0"))
+    ))[-1] if scored_dab_v2_runs else None
     locomo = load_benchmark_summary("locomo-*.json", extract_locomo_scores)
     longmemeval = load_benchmark_summary("longmemeval-*.json", extract_longmemeval_scores)
     beam = load_benchmark_summary("beam-*.json", extract_beam_scores)

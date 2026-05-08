@@ -4,6 +4,7 @@ import reportData from '../data/report.json';
 
 const locomo = reportData.locomo;
 const mem0 = reportData.reference?.mem0_v3?.locomo ?? {};
+const gbrain = reportData.reference?.gbrain ?? {};
 
 const formatPercent = (value) => {
   if (value == null) return 'pending';
@@ -76,6 +77,13 @@ const statusTone = currentStatus === 'measured' ? 'is-success' : 'is-warning';
               <td>SOTA</td>
             </tr>
             <tr>
+              <td>GBrain</td>
+              <td>{gbrain.locomo?.status ?? 'pending'}</td>
+              <td>{gbrain.locomo?.status ?? 'pending'}</td>
+              <td>{gbrain.locomo?.status ?? 'pending'}</td>
+              <td>{gbrain.locomo?.status ?? 'pending'}</td>
+            </tr>
+            <tr>
               <td>Quaid</td>
               <td>{currentStatus === 'measured' ? formatPercent(currentScores.single_hop) : 'pending'}</td>
               <td>{currentStatus === 'measured' ? formatPercent(currentScores.multi_hop) : 'pending'}</td>
@@ -85,7 +93,7 @@ const statusTone = currentStatus === 'measured' ? 'is-success' : 'is-warning';
           </tbody>
         </table>
       </div>
-      <p class="note">Reference values come from published materials. Hindsight per-type LoCoMo breakdown is not shown here.</p>
+      <p class="note">Reference values come from published materials. Hindsight per-type LoCoMo breakdown is not shown here. GBrain has no public LoCoMo run.</p>
     </section>
 
     <section class="panel">

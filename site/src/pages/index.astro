@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import reportData from '../data/report.json';
 
-const { latest, history, total_runs, locomo, longmemeval, beam } = reportData;
+const { latest, history, total_runs, locomo, longmemeval, beam, reference } = reportData;
 
 const formatPercent = (value, digits = 1) => {
   if (value == null) return 'pending';
@@ -18,6 +18,11 @@ const latestMsmarco = latest?.benchmarks?.gbrain_evals ?? {};
 const locomoOverall = locomo?.status === 'measured' ? locomo?.scores?.overall ?? null : null;
 const longmemevalOverall = longmemeval?.status === 'measured' ? longmemeval?.scores?.overall ?? null : null;
 const beamScores = beam?.status === 'measured' ? beam?.scores ?? {} : {};
+const gbrainReference = reference?.gbrain ?? {};
+const gbrainSource = gbrainReference.source ?? 'https://aiheroes.ai';
+const gbrainSourceLabel = gbrainReference.source_label ?? 'AI Heroes benchmark post';
+const gbrainExternalNote = gbrainReference.dab?.basis
+  ?? 'AI Heroes reported an 8.3x GBrain win over qmd on 150 real questions.';
 
 const recentReleaseRuns = history
   .filter((run) => run.benchmarks?.dab?.pct != null)
@@ -159,11 +164,12 @@ const leaderboardCharts = {
         ghostVar: '--q-gbrain-08',
         points: [
           {
-            value: 62,
-            display: '62%',
-            badge: '62%',
-            status: 'measured',
-            note: 'Measured and scaled from our published GBrain run.',
+            value: 0,
+            display: 'estimated',
+            badge: 'est.',
+            status: 'not-benchmarked',
+            estimated: true,
+            note: gbrainExternalNote,
           },
         ],
       },
@@ -248,17 +254,17 @@ const leaderboardCharts = {
         points: [
           {
             value: 0,
-            display: 'n/a',
-            badge: 'n/a',
-            status: 'na',
-            note: 'No public LoCoMo run published.',
+            display: 'pending',
+            badge: 'pending',
+            status: 'pending',
+            note: 'Pending GBrain LoCoMo run.',
           },
           {
             value: 0,
-            display: 'n/a',
-            badge: 'n/a',
-            status: 'na',
-            note: 'No public LongMemEval run published.',
+            display: 'pending',
+            badge: 'pending',
+            status: 'pending',
+            note: 'Pending GBrain LongMemEval run.',
           },
         ],
       },
@@ -357,6 +363,35 @@ const leaderboardCharts = {
           },
         ],
       },
+      {
+        label: 'GBrain',
+        colorVar: '--q-gbrain',
+        fillVar: '--q-gbrain-28',
+        ghostVar: '--q-gbrain-08',
+        points: [
+          {
+            value: 0,
+            display: 'pending',
+            badge: 'pending',
+            status: 'pending',
+            note: 'Pending GBrain BEAM 100K run.',
+          },
+          {
+            value: 0,
+            display: 'pending',
+            badge: 'pending',
+            status: 'pending',
+            note: 'Pending GBrain BEAM 1M run.',
+          },
+          {
+            value: 0,
+            display: 'pending',
+            badge: 'pending',
+            status: 'pending',
+            note: 'Pending GBrain BEAM 10M run.',
+          },
+        ],
+      },
     ],
   },
 };
@@ -414,7 +449,7 @@ const leaderboardCharts = {
       <div class="section-heading">
         <h2>Competitive Leaderboard</h2>
         <p>
-          Grouped bar charts compare Quaid against the four main memory systems across the benchmarks that decide
+          Grouped bar charts compare Quaid against peer memory systems across the benchmarks that decide
           whether a memory layer is real or just context stuffing.
         </p>
       </div>
@@ -468,8 +503,11 @@ const leaderboardCharts = {
           <span class="pill is-muted">pending / n/a</span>
         </div>
         <p class="note">
-          Estimated values show an asterisk in tooltips. Pending and n/a states render as ghost bars at 0. GBrain
-          has no public BEAM scores yet, so it is omitted from the scale chart.
+          Estimated values show an asterisk in tooltips. Pending, not-benchmarked, and n/a states render as ghost
+          bars at 0. GBrain is included from the
+          <a class="inline-link" href={gbrainSource}>{gbrainSourceLabel}</a>, which reports an 8.3x win over qmd
+          on 150 real questions. The reported setup uses cloud-based enrichment and is not airgapped; numeric DAB,
+          LoCoMo, LongMemEval, and BEAM scores remain pending until reproducible runs are published.
         </p>
 
         <div class="method-grid">
@@ -531,6 +569,9 @@ const leaderboardCharts = {
         return [badge];
       };
 
+      const missingStatuses = new Set(['na', 'not-benchmarked', 'pending', 'tbd']);
+      const isMissingStatus = (status) => missingStatuses.has(status);
+
       const badgePlugin = {
         id: 'benchmarkBadgeLabels',
         afterDatasetsDraw(chart) {
@@ -553,9 +594,7 @@ const leaderboardCharts = {
 
               const badgeLines = normalizeBadge(point.badge, chart.width);
               const lineCount = badgeLines.length;
-              const labelColor = cssVar(point.status === 'na' || point.status === 'pending' || point.status === 'tbd'
-                ? '--q-muted'
-                : dataset.colorVar);
+              const labelColor = cssVar(isMissingStatus(point.status) ? '--q-muted' : dataset.colorVar);
               const baseline = yScale.getPixelForValue(0) - 8 - (datasetIndex % 2) * lineHeight;
               const preferredY = point.value > 0 ? element.y - 8 : baseline;
               const y = Math.max(chartArea.top + lineCount * lineHeight, preferredY);
@@ -579,14 +618,10 @@ const leaderboardCharts = {
         pointMeta: dataset.points,
         data: dataset.points.map((point) => point.value),
         borderColor: dataset.points.map((point) =>
-          cssVar(point.status === 'na' || point.status === 'pending' || point.status === 'tbd'
-            ? dataset.ghostVar
-            : dataset.colorVar)
+          cssVar(isMissingStatus(point.status) ? dataset.ghostVar : dataset.colorVar)
         ),
         backgroundColor: dataset.points.map((point) =>
-          cssVar(point.status === 'na' || point.status === 'pending' || point.status === 'tbd'
-            ? dataset.ghostVar
-            : dataset.fillVar)
+          cssVar(isMissingStatus(point.status) ? dataset.ghostVar : dataset.fillVar)
         ),
         borderWidth: dataset.points.map((point) => (point.estimated ? 2 : 1.4)),
         borderSkipped: false,
@@ -599,7 +634,7 @@ const leaderboardCharts = {
         label(context) {
           const point = context.dataset.pointMeta?.[context.dataIndex];
           if (!point) return `${context.dataset.label}: ${context.parsed.y}`;
-          if (point.status === 'na' || point.status === 'pending' || point.status === 'tbd') {
+          if (isMissingStatus(point.status)) {
             return `${context.dataset.label}: ${point.display}`;
           }
 
@@ -615,6 +650,7 @@ const leaderboardCharts = {
           if (point.estimated) lines.push('* Estimated value');
           if (point.status === 'published') lines.push('Published reference');
           if (point.status === 'measured') lines.push('Measured result');
+          if (point.status === 'not-benchmarked') lines.push('Not benchmarked by Quaid yet');
           if (point.status === 'pending' || point.status === 'tbd') lines.push('Awaiting published run');
           if (point.status === 'na') lines.push('No public benchmark run');
           return lines;

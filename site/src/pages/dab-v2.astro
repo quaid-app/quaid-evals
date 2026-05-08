@@ -77,10 +77,12 @@ const sections = [
 
 const competitors = [
   ['Quaid', '35', '80', '0', '0', '15', '130/420 (31%)', 'measured'],
-  ['GBrain', '15', '7', '0', '45', '10', '77/420 (18%)', 'measured'],
+  ['GBrain', 'estimated', 'estimated', 'not-run', 'estimated', 'pending', 'estimated, no numeric score', 'estimated'],
   ['Mem0 v3', '~30', '~30', '~82', '0', '~10', '~152/420 (36%)', 'estimated'],
   ['qmd', '21', '45', '0', '0', '5', '71/420 (17%)', 'measured'],
 ];
+
+const gbrainSource = 'https://www.ai-heroes.co/en-gb/blog/gbrain-vs-qmd-benchmark-may-2026';
 ---
 
 <BaseLayout
@@ -174,7 +176,12 @@ const competitors = [
           </tbody>
         </table>
       </div>
-      <p class="note">Competitor scores estimated from published benchmarks. Quaid measured.</p>
+      <p class="note">
+        Competitor scores estimated from published benchmarks. Quaid measured. GBrain is included from the
+        <a class="inline-link" href={gbrainSource}>AI Heroes benchmark post</a>, which reports an 8.3x win over qmd
+        on 150 real questions. Its reported setup uses cloud-based enrichment and is not airgapped; no numeric DAB
+        score is published.
+      </p>
     </section>
 
     <section class="panel">
