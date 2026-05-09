@@ -6,15 +6,10 @@ LoCoMo tests multi-session conversational memory across 4 question types:
   single-hop, multi-hop, open-domain, temporal
 
 Adapter strategy:
-  - INGEST: Convert each conversation turn into a markdown page, indexed into Quaid
-  - SEARCH: Use memory_query to retrieve relevant turns for each question
+  - INGEST: Append each conversation turn through Quaid's memory_add_turn tool
+  - EXTRACT: Enqueue per-session extraction so the conversation memory pipeline runs
+  - SEARCH: Use quaid query to retrieve relevant memories for each question
   - EVALUATE: Feed retrieved context + question to LLM for answer, then judge vs ground truth
-
-Important caveat:
-  Quaid is doc-native (markdown pages), NOT conversational (structured facts).
-  LoCoMo is designed for systems that extract and store discrete facts from conversation.
-  This adapter stores whole conversation turns as pages - a baseline, not optimal.
-  Low scores here = direct roadmap signal for conversation memory feature.
 
 Usage:
   python3 benchmarks/locomo/quaid_adapter.py \
@@ -27,89 +22,217 @@ Usage:
 import argparse
 import json
 import os
+import sqlite3
 import subprocess
 import sys
-import textwrap
+import tempfile
 from pathlib import Path
-from datetime import date
-from typing import Optional
+from datetime import date, datetime, timedelta, timezone
 
 
 # ─── Quaid backend ────────────────────────────────────────────────────────────
 
 class QuaidBackend:
-    """Quaid memory backend - stores conversation turns as markdown pages."""
+    """Quaid memory backend using the conversation memory pipeline."""
+
+    _extraction_cache_checked = False
 
     def __init__(self, db_path: str):
         self.db_path = db_path
+        self._env = {**os.environ, "QUAID_DB": db_path}
+        self._workspace_dir = Path(tempfile.mkdtemp(prefix="locomo-quaid-"))
+        self._vault_dir = self._workspace_dir / "vault"
         self._page_count = 0
+        self._sessions: set[str] = set()
+        self._speaker_roles: dict[tuple[str, str], str] = {}
+        self.init()
+
+    def _run_quaid(self, args: list[str], timeout: int = 120) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            ["quaid", *args],
+            env=self._env,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+
+    def init(self) -> None:
+        """Initialize a DB, configure a writable memory root, and enable extraction."""
+        self._vault_dir.mkdir(parents=True, exist_ok=True)
+        self._run_quaid(["init", self.db_path], timeout=60)
+        self._configure_write_target()
+
+        result = self._run_quaid(["extraction", "enable"], timeout=900)
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout).strip()
+            print(f"Warning: quaid extraction enable failed: {detail}", file=sys.stderr)
+        else:
+            QuaidBackend._extraction_cache_checked = True
+
+    def _configure_write_target(self) -> None:
+        """Point Quaid's default write-target collection at this benchmark vault."""
+        with sqlite3.connect(self.db_path, timeout=30) as conn:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO collections
+                    (id, name, root_path, state, writable, is_write_target, needs_full_sync)
+                VALUES (1, 'default', '', 'detached', 1, 1, 0)
+                """
+            )
+            conn.execute("UPDATE collections SET is_write_target = 0 WHERE name <> 'default'")
+            conn.execute(
+                """
+                UPDATE collections
+                   SET root_path = ?1,
+                       state = 'active',
+                       writable = 1,
+                       is_write_target = 1,
+                       needs_full_sync = 0
+                 WHERE name = 'default'
+                """,
+                (str(self._vault_dir),),
+            )
 
     def add(self, text: str, metadata: dict = None) -> bool:
-        """Store a conversation turn as a markdown page."""
+        """Store a conversation turn via memory_add_turn."""
         metadata = metadata or {}
         speaker = metadata.get("speaker", "unknown")
-        session_id = metadata.get("session_id", "unknown")
-        turn_id = metadata.get("turn_id", self._page_count)
-        timestamp = metadata.get("timestamp", "")
+        session_id = self._session_id(metadata)
+        payload = {
+            "session_id": session_id,
+            "role": self._role_for(session_id, speaker),
+            "content": text,
+            "metadata": {
+                "benchmark": "locomo",
+                "speaker": speaker,
+                **{k: v for k, v in metadata.items() if v is not None},
+            },
+        }
+        timestamp = self._timestamp_for(metadata)
+        if timestamp:
+            payload["timestamp"] = timestamp
 
-        # Format as a readable markdown page
-        content = textwrap.dedent(f"""\
-            ---
-            speaker: "{speaker}"
-            session: "{session_id}"
-            turn: {turn_id}
-            timestamp: "{timestamp}"
-            type: conversation_turn
-            ---
+        try:
+            result = self._run_quaid(
+                ["call", "memory_add_turn", json.dumps(payload)],
+                timeout=30,
+            )
+        except Exception as e:
+            print(f"Error adding turn to Quaid: {e}", file=sys.stderr)
+            return False
 
-            **{speaker}** (session {session_id}, turn {turn_id}):
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout).strip()
+            print(f"Error adding turn to Quaid: {detail}", file=sys.stderr)
+            return False
 
-            {text}
-        """)
-
-        page_path = f"/tmp/locomo-pages/turn-{self._page_count:06d}.md"
-        os.makedirs("/tmp/locomo-pages", exist_ok=True)
-        Path(page_path).write_text(content)
+        self._sessions.add(session_id)
         self._page_count += 1
         return True
 
     def flush_to_quaid(self) -> bool:
-        """Index all conversation pages into Quaid."""
-        try:
-            result = subprocess.run(
-                ["quaid", "collection", "add", "locomo", "/tmp/locomo-pages",
-                 "--db", self.db_path],
-                capture_output=True, text=True, timeout=120
-            )
-            return result.returncode == 0
-        except Exception as e:
-            print(f"Error indexing into Quaid: {e}", file=sys.stderr)
-            return False
+        """Enqueue extraction for each ingested conversation session."""
+        ok = True
+        for session_id in sorted(self._sessions):
+            try:
+                result = self._run_quaid(["extract", session_id], timeout=120)
+            except Exception as e:
+                print(f"Error triggering extraction for {session_id}: {e}", file=sys.stderr)
+                ok = False
+                continue
+            if result.returncode != 0:
+                detail = (result.stderr or result.stdout).strip()
+                print(f"Error triggering extraction for {session_id}: {detail}", file=sys.stderr)
+                ok = False
+        return ok
 
     def search(self, query: str, top_k: int = 50) -> list[dict]:
-        """Retrieve relevant conversation turns for a question."""
+        """Retrieve relevant memories for a question."""
         try:
-            result = subprocess.run(
-                ["quaid", "memory_query", query, "--db", self.db_path,
-                 "--limit", str(top_k), "--json"],
-                capture_output=True, text=True, timeout=30
+            result = self._run_quaid(
+                ["query", query, "--json", "--limit", str(top_k)],
+                timeout=30,
             )
             if result.returncode == 0 and result.stdout.strip():
-                return json.loads(result.stdout)
+                parsed = json.loads(result.stdout)
+                if isinstance(parsed, list):
+                    return parsed
+                if isinstance(parsed, dict):
+                    return parsed.get("results", parsed.get("items", []))
         except Exception as e:
             print(f"Warning: search failed for '{query[:50]}': {e}", file=sys.stderr)
         return []
 
     def get_context(self, results: list[dict]) -> str:
-        """Format retrieved pages into a context string for the LLM."""
+        """Format retrieved memories into a context string for the LLM."""
         if not results:
             return "No relevant memories found."
         parts = []
         for r in results:
-            content = r.get("content", r.get("text", ""))
+            content = (
+                r.get("content")
+                or r.get("text")
+                or r.get("compiled_truth")
+                or r.get("summary")
+                or r.get("snippet")
+                or r.get("title")
+                or ""
+            )
             if content:
                 parts.append(content.strip())
         return "\n\n---\n\n".join(parts[:20])  # cap at 20 turns for context window
+
+    def _session_id(self, metadata: dict) -> str:
+        conv_id = metadata.get("conv_id")
+        session_id = metadata.get("session_id", "unknown")
+        if conv_id:
+            return f"locomo-{conv_id}-session-{session_id}"
+        return f"locomo-{session_id}"
+
+    def _role_for(self, session_id: str, speaker: str) -> str:
+        raw = str(speaker or "").strip()
+        lower = raw.lower()
+        if lower in {"user", "assistant", "system", "tool"}:
+            return lower
+        if lower in {"speaker_a", "human"} or "user" in lower:
+            return "user"
+        if lower in {"speaker_b", "agent"} or "assistant" in lower:
+            return "assistant"
+
+        key = (session_id, raw)
+        if key not in self._speaker_roles:
+            existing = {role for (sid, _), role in self._speaker_roles.items() if sid == session_id}
+            self._speaker_roles[key] = "assistant" if "user" in existing else "user"
+        return self._speaker_roles[key]
+
+    def _timestamp_for(self, metadata: dict) -> str | None:
+        date_value = metadata.get("date") or metadata.get("timestamp")
+        if isinstance(date_value, str) and date_value.strip():
+            normalized = self._normalize_timestamp(date_value)
+            if normalized:
+                return normalized
+        turn_id = metadata.get("turn_id", self._page_count)
+        try:
+            offset = int(turn_id)
+        except (TypeError, ValueError):
+            offset = self._page_count
+        base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        return (base + timedelta(minutes=offset)).isoformat().replace("+00:00", "Z")
+
+    def _normalize_timestamp(self, value: str) -> str | None:
+        candidate = value.strip()
+        if not candidate:
+            return None
+        if len(candidate) == 10:
+            candidate = f"{candidate}T00:00:00Z"
+        normalized = candidate.replace("Z", "+00:00")
+        try:
+            parsed = datetime.fromisoformat(normalized)
+        except ValueError:
+            return None
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 # ─── LLM answerer and judge ───────────────────────────────────────────────────
@@ -354,10 +477,10 @@ def run_locomo(
                         "turn_id": turn_idx,
                     })
 
-    print(f"  Wrote {backend._page_count} conversation turns")
-    print("  Indexing into Quaid...")
+    print(f"  Added {backend._page_count} conversation turns")
+    print("  Triggering Quaid extraction...")
     if not backend.flush_to_quaid():
-        print("  WARNING: Quaid indexing failed - results will be empty")
+        print("  WARNING: Quaid extraction trigger failed - results may be empty")
 
     # Stage 2 & 3: Search + Evaluate
     questions = qa_pairs[:max_questions] if max_questions else qa_pairs
@@ -443,9 +566,7 @@ def main():
     print(f"Provider: {args.provider} | Answerer: {args.answerer_model} | Judge: {args.judge_model}")
     print(f"DB: {args.db}")
     print()
-    print("NOTE: Quaid is doc-native, not conversational.")
-    print("This baseline shows retrieval quality before conversation memory is built.")
-    print("Low scores on multi-hop/temporal = direct roadmap input for conversation memory feature.")
+    print("NOTE: Uses Quaid conversation memory: memory_add_turn -> extract -> query.")
     print()
 
     backend = QuaidBackend(args.db)

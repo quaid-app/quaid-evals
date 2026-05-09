@@ -5,7 +5,8 @@ LongMemEval (ICLR 2025) tests long-term memory across 500 questions, 6 types:
   multi-session, temporal-reasoning, knowledge-update,
   single-session-user, single-session-assistant, single-session-preference
 
-Each question has its own haystack_sessions that are ingested fresh per question.
+Each question has its own haystack_sessions that are ingested fresh per question
+through Quaid's conversation memory pipeline.
 This is more rigorous than LoCoMo (shared corpus) because it tests per-conversation
 fact extraction and retrieval independently.
 
@@ -28,70 +29,143 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sqlite3
 import subprocess
 import sys
 import tempfile
 import urllib.request
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 # ─── Quaid backend ────────────────────────────────────────────────────────────
 
 class QuaidBackend:
-    """Thin wrapper around the quaid CLI for page-based memory."""
+    """Thin wrapper around the quaid CLI for conversation memory."""
+
+    _extraction_cache_checked = False
 
     def __init__(self, db_path: str):
         self.db_path = db_path
-        self._tmp_dir = tempfile.mkdtemp(prefix="lme-pages-")
+        self._workspace_dir = Path(tempfile.mkdtemp(prefix="lme-quaid-"))
+        self._vault_dir = self._workspace_dir / "vault"
         self._page_count = 0
+        self._sessions: set[str] = set()
         self._env = {**os.environ, "QUAID_DB": db_path}
 
     def init(self):
-        subprocess.run(
-            ["quaid", "init", self.db_path],
-            env=self._env, capture_output=True
+        self._vault_dir.mkdir(parents=True, exist_ok=True)
+        self._run_quaid(["init", self.db_path], timeout=60)
+        self._configure_write_target()
+        if not QuaidBackend._extraction_cache_checked:
+            result = self._run_quaid(["extraction", "enable"], timeout=900)
+            if result.returncode != 0:
+                detail = (result.stderr or result.stdout).strip()
+                print(f"Warning: quaid extraction enable failed: {detail}", file=sys.stderr)
+            else:
+                QuaidBackend._extraction_cache_checked = True
+        else:
+            self._enable_extraction_config()
+
+    def _run_quaid(self, args: list[str], timeout: int = 120) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            ["quaid", *args],
+            env=self._env,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
         )
+
+    def _configure_write_target(self) -> None:
+        with sqlite3.connect(self.db_path, timeout=30) as conn:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO collections
+                    (id, name, root_path, state, writable, is_write_target, needs_full_sync)
+                VALUES (1, 'default', '', 'detached', 1, 1, 0)
+                """
+            )
+            conn.execute("UPDATE collections SET is_write_target = 0 WHERE name <> 'default'")
+            conn.execute(
+                """
+                UPDATE collections
+                   SET root_path = ?1,
+                       state = 'active',
+                       writable = 1,
+                       is_write_target = 1,
+                       needs_full_sync = 0
+                 WHERE name = 'default'
+                """,
+                (str(self._vault_dir),),
+            )
+
+    def _enable_extraction_config(self) -> None:
+        with sqlite3.connect(self.db_path, timeout=30) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO config(key, value) VALUES ('extraction.enabled', 'true')"
+            )
+            conn.execute(
+                "INSERT OR REPLACE INTO config(key, value) VALUES ('extraction.model_alias', 'phi-3.5-mini')"
+            )
 
     def reset(self):
         """Clear DB for a fresh per-question ingest."""
-        import shutil
         if Path(self.db_path).exists():
             Path(self.db_path).unlink()
-        self._tmp_dir = tempfile.mkdtemp(prefix="lme-pages-")
+        self._workspace_dir = Path(tempfile.mkdtemp(prefix="lme-quaid-"))
+        self._vault_dir = self._workspace_dir / "vault"
         self._page_count = 0
+        self._sessions = set()
         self.init()
 
     def add(self, content: str, metadata: dict):
-        page_path = Path(self._tmp_dir) / f"turn-{self._page_count:06d}.md"
-        speaker = metadata.get("speaker", metadata.get("role", "unknown"))
-        meta_str = "\n".join(f"{k}: {v}" for k, v in metadata.items() if v)
-        page_path.write_text(f"---\n{meta_str}\n---\n\n{speaker}: {content}\n")
-        self._page_count += 1
-
-    def flush_to_quaid(self, skip_embed: bool = False) -> bool:
-        result = subprocess.run(
-            ["quaid", "collection", "add", "lme", self._tmp_dir, "--db", self.db_path],
-            env=self._env, capture_output=True, text=True, timeout=300
+        session_id = self._session_id(metadata)
+        payload = {
+            "session_id": session_id,
+            "role": self._role_for(metadata.get("role", metadata.get("speaker", "user"))),
+            "content": content,
+            "metadata": {
+                "benchmark": "longmemeval",
+                **{k: v for k, v in metadata.items() if v is not None},
+            },
+            "timestamp": self._timestamp_for(metadata),
+        }
+        result = self._run_quaid(
+            ["call", "memory_add_turn", json.dumps(payload)],
+            timeout=30,
         )
         if result.returncode != 0:
+            detail = (result.stderr or result.stdout).strip()
+            print(f"Warning: memory_add_turn failed: {detail}", file=sys.stderr)
             return False
-        if skip_embed:
-            return True  # FTS only - much faster, skip vector embedding
-        embed = subprocess.run(
-            ["quaid", "embed", "--db", self.db_path],
-            env=self._env, capture_output=True, text=True, timeout=600
-        )
-        return embed.returncode == 0
+        self._sessions.add(session_id)
+        self._page_count += 1
+        return True
+
+    def flush_to_quaid(self, skip_embed: bool = False) -> bool:
+        del skip_embed  # Conversation extraction owns indexing for this adapter.
+        ok = True
+        for session_id in sorted(self._sessions):
+            result = self._run_quaid(["extract", session_id], timeout=120)
+            if result.returncode != 0:
+                detail = (result.stderr or result.stdout).strip()
+                print(f"Warning: quaid extract failed for {session_id}: {detail}", file=sys.stderr)
+                ok = False
+        return ok
 
     def search(self, query: str, top_k: int = 20) -> list:
-        result = subprocess.run(
-            ["quaid", "query", query, "--db", self.db_path, "--limit", str(top_k), "--json"],
-            env=self._env, capture_output=True, text=True, timeout=30
+        result = self._run_quaid(
+            ["query", query, "--json", "--limit", str(top_k)],
+            timeout=30,
         )
         if result.returncode != 0:
             return []
         try:
-            return json.loads(result.stdout)
+            parsed = json.loads(result.stdout)
+            if isinstance(parsed, list):
+                return parsed
+            if isinstance(parsed, dict):
+                return parsed.get("results", parsed.get("items", []))
+            return []
         except Exception:
             return []
 
@@ -100,10 +174,60 @@ class QuaidBackend:
             return "No relevant memories found."
         parts = []
         for r in results:
-            content = r.get("content", r.get("text", ""))
+            content = (
+                r.get("content")
+                or r.get("text")
+                or r.get("compiled_truth")
+                or r.get("summary")
+                or r.get("snippet")
+                or r.get("title")
+                or ""
+            )
             if content:
                 parts.append(content.strip())
         return "\n\n".join(parts[:10])
+
+    def _session_id(self, metadata: dict) -> str:
+        session_id = metadata.get("session_id", "unknown")
+        return f"lme-session-{session_id}"
+
+    def _role_for(self, role: str) -> str:
+        normalized = str(role or "").strip().lower()
+        if normalized in {"user", "assistant", "system", "tool"}:
+            return normalized
+        if "assistant" in normalized or "agent" in normalized:
+            return "assistant"
+        return "user"
+
+    def _timestamp_for(self, metadata: dict) -> str:
+        value = metadata.get("timestamp")
+        if isinstance(value, str) and value.strip():
+            normalized = self._normalize_timestamp(value)
+            if normalized:
+                return normalized
+        try:
+            session_offset = int(metadata.get("session_id", 0))
+        except (TypeError, ValueError):
+            session_offset = 0
+        try:
+            turn_offset = int(metadata.get("turn_id", self._page_count))
+        except (TypeError, ValueError):
+            turn_offset = self._page_count
+        base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        return (base + timedelta(days=session_offset, minutes=turn_offset)).isoformat().replace("+00:00", "Z")
+
+    def _normalize_timestamp(self, value: str) -> str | None:
+        candidate = value.strip()
+        if len(candidate) == 10:
+            candidate = f"{candidate}T00:00:00Z"
+        normalized = candidate.replace("Z", "+00:00")
+        try:
+            parsed = datetime.fromisoformat(normalized)
+        except ValueError:
+            return None
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 # ─── LLM helpers ──────────────────────────────────────────────────────────────
@@ -209,8 +333,8 @@ def run_longmemeval(
 ) -> dict:
     """Run LongMemEval: per-question ingest + retrieve + evaluate.
     
-    skip_embed=True uses FTS-only search (much faster, ~10x speedup per question).
-    Useful for baseline runs before semantic retrieval matters.
+    skip_embed is retained for CLI compatibility; conversation extraction now owns
+    indexing, so it no longer skips a separate page-embedding step.
     
     Supports checkpoint/resume: saves progress every 10 questions so
     a timed-out run can be resumed without restarting from scratch.
@@ -274,7 +398,7 @@ def run_longmemeval(
                         "turn_id": turn_idx,
                     })
 
-        # Index
+        # Trigger extraction
         flushed = backend.flush_to_quaid(skip_embed=skip_embed)
 
         # Retrieve + Answer + Judge
@@ -360,7 +484,7 @@ def main():
     print(f"LongMemEval adapter - Quaid {args.quaid_version}")
     print(f"Provider: {args.provider} | Answerer: {args.answerer_model} | Judge: {args.judge_model}")
     print(f"NOTE: Per-question ingest - each question has its own memory store")
-    print(f"NOTE: Low scores expected until issue #105 (conversation memory) is built")
+    print(f"NOTE: Uses Quaid conversation memory: memory_add_turn -> extract -> query")
     print()
 
     questions = load_longmemeval(args.max_questions)
