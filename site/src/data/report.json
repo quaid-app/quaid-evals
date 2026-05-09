@@ -1,59 +1,90 @@
 {
-  "generated_at": "2026-05-08T06:19:43.157853Z",
+  "generated_at": "2026-05-09T13:25:58.240169Z",
   "latest": {
     "version": "0.20.0",
-    "date": "2026-05-06",
+    "date": "2026-05-09",
     "benchmarks": {
-      "dab": {
-        "total": 203,
-        "max": 215,
-        "pct": 94.4
+      "locomo": {
+        "overall": 0.2,
+        "pass_rate": 0.3,
+        "status": "measured"
+      },
+      "longmemeval": {
+        "overall": 11.4,
+        "pass_rate": 15.0,
+        "status": "measured"
       }
     },
-    "dab": {
-      "quaid_version": "0.20.0",
-      "date": "2026-05-06",
-      "benchmark": "dab",
-      "total_score": 203,
-      "max_score": 215,
-      "sections": {
-        "install": {
-          "score": 10,
-          "max": 10
+    "locomo": {
+      "overall": 0.0016,
+      "pass_rate": 0.0032,
+      "total_questions": 1542,
+      "by_type": {
+        "multi-hop": {
+          "avg": 0.0016,
+          "count": 321
         },
-        "import": {
-          "score": 30,
-          "max": 30
+        "temporal": {
+          "avg": 0.0104,
+          "count": 96
         },
-        "fts": {
-          "score": 40,
-          "max": 40
+        "single-hop": {
+          "avg": 0.0,
+          "count": 282
         },
-        "semantic": {
-          "score": 48,
-          "max": 50
+        "open-domain": {
+          "avg": 0.0,
+          "count": 841
         },
-        "performance": {
-          "score": 20,
-          "max": 30
-        },
-        "integrity": {
-          "score": 20,
-          "max": 20
-        },
-        "collections": {
-          "score": 15,
-          "max": 15
-        },
-        "mcp": {
-          "score": 20,
-          "max": 20
+        "adversarial": {
+          "avg": 0.5,
+          "count": 2
         }
       },
-      "performance": {
-        "fts_latency_ms": 10,
-        "semantic_latency_ms": 329,
-        "collection_add_ms": 10069
+      "reference": {
+        "mem0_v3": {
+          "overall": 0.916,
+          "source": "mem0ai/memory-benchmarks"
+        }
+      }
+    },
+    "longmemeval": {
+      "overall": 0.114,
+      "pass_rate": 0.15,
+      "total_questions": 500,
+      "by_type": {
+        "single-session-user": {
+          "avg": 0.0929,
+          "count": 70
+        },
+        "multi-session": {
+          "avg": 0.0865,
+          "count": 133
+        },
+        "single-session-preference": {
+          "avg": 0.5167,
+          "count": 30
+        },
+        "temporal-reasoning": {
+          "avg": 0.0414,
+          "count": 133
+        },
+        "knowledge-update": {
+          "avg": 0.0769,
+          "count": 78
+        },
+        "single-session-assistant": {
+          "avg": 0.2143,
+          "count": 56
+        }
+      },
+      "reference": {
+        "mem0_v3": {
+          "overall": 0.934,
+          "temporal_reasoning": 0.93,
+          "agent_recall": 1.0,
+          "source": "mem0ai/memory-benchmarks release notes"
+        }
       }
     }
   },
@@ -43148,18 +43179,106 @@
           "collection_add_ms": 10069
         }
       }
+    },
+    {
+      "version": "0.20.0",
+      "date": "2026-05-09",
+      "benchmarks": {
+        "locomo": {
+          "overall": 0.2,
+          "pass_rate": 0.3,
+          "status": "measured"
+        },
+        "longmemeval": {
+          "overall": 11.4,
+          "pass_rate": 15.0,
+          "status": "measured"
+        }
+      },
+      "locomo": {
+        "overall": 0.0016,
+        "pass_rate": 0.0032,
+        "total_questions": 1542,
+        "by_type": {
+          "multi-hop": {
+            "avg": 0.0016,
+            "count": 321
+          },
+          "temporal": {
+            "avg": 0.0104,
+            "count": 96
+          },
+          "single-hop": {
+            "avg": 0.0,
+            "count": 282
+          },
+          "open-domain": {
+            "avg": 0.0,
+            "count": 841
+          },
+          "adversarial": {
+            "avg": 0.5,
+            "count": 2
+          }
+        },
+        "reference": {
+          "mem0_v3": {
+            "overall": 0.916,
+            "source": "mem0ai/memory-benchmarks"
+          }
+        }
+      },
+      "longmemeval": {
+        "overall": 0.114,
+        "pass_rate": 0.15,
+        "total_questions": 500,
+        "by_type": {
+          "single-session-user": {
+            "avg": 0.0929,
+            "count": 70
+          },
+          "multi-session": {
+            "avg": 0.0865,
+            "count": 133
+          },
+          "single-session-preference": {
+            "avg": 0.5167,
+            "count": 30
+          },
+          "temporal-reasoning": {
+            "avg": 0.0414,
+            "count": 133
+          },
+          "knowledge-update": {
+            "avg": 0.0769,
+            "count": 78
+          },
+          "single-session-assistant": {
+            "avg": 0.2143,
+            "count": 56
+          }
+        },
+        "reference": {
+          "mem0_v3": {
+            "overall": 0.934,
+            "temporal_reasoning": 0.93,
+            "agent_recall": 1.0,
+            "source": "mem0ai/memory-benchmarks release notes"
+          }
+        }
+      }
     }
   ],
   "locomo": {
-    "version": "0.13.0",
-    "date": "2026-04-30",
+    "version": "0.20.0",
+    "date": "2026-05-09",
     "scores": {
-      "overall": 0.1,
+      "overall": 0.2,
       "pass_rate": 0.3,
       "total_questions": 1542,
       "single_hop": 0.0,
-      "multi_hop": 0.0,
-      "temporal": 1.6,
+      "multi_hop": 0.2,
+      "temporal": 1.0,
       "open_domain": 0.0
     },
     "status": "measured",
@@ -43177,39 +43296,53 @@
           "open_domain": 0.0
         },
         "status": "measured"
+      },
+      {
+        "version": "0.20.0",
+        "date": "2026-05-09",
+        "scores": {
+          "overall": 0.2,
+          "pass_rate": 0.3,
+          "total_questions": 1542,
+          "single_hop": 0.0,
+          "multi_hop": 0.2,
+          "temporal": 1.0,
+          "open_domain": 0.0
+        },
+        "status": "measured"
       }
     ]
   },
   "longmemeval": {
-    "version": "0.14.0",
-    "date": "2026-05-01",
+    "version": "0.20.0",
+    "date": "2026-05-09",
     "scores": {
-      "overall": 0.0,
-      "pass_rate": 0.0,
-      "total_questions": 400,
+      "overall": 11.4,
+      "pass_rate": 15.0,
+      "total_questions": 500,
       "by_type": {
         "multi-session": {
-          "score": 0.0,
-          "count": 83
+          "score": 8.6,
+          "count": 133
         },
         "temporal-reasoning": {
-          "score": 0.0,
-          "count": 83
+          "score": 4.1,
+          "count": 133
         },
         "knowledge-update": {
-          "score": 0.0,
+          "score": 7.7,
           "count": 78
         },
         "single-session-user": {
-          "score": 0.0,
+          "score": 9.3,
           "count": 70
         },
         "single-session-assistant": {
-          "score": 0.0,
+          "score": 21.4,
           "count": 56
         },
         "single-session-preference": {
-          "score": 0.0,
+          "score": 51.7,
           "count": 30
         }
       }
@@ -43246,6 +43379,42 @@
             },
             "single-session-preference": {
               "score": 0.0,
+              "count": 30
+            }
+          }
+        },
+        "status": "measured"
+      },
+      {
+        "version": "0.20.0",
+        "date": "2026-05-09",
+        "scores": {
+          "overall": 11.4,
+          "pass_rate": 15.0,
+          "total_questions": 500,
+          "by_type": {
+            "multi-session": {
+              "score": 8.6,
+              "count": 133
+            },
+            "temporal-reasoning": {
+              "score": 4.1,
+              "count": 133
+            },
+            "knowledge-update": {
+              "score": 7.7,
+              "count": 78
+            },
+            "single-session-user": {
+              "score": 9.3,
+              "count": 70
+            },
+            "single-session-assistant": {
+              "score": 21.4,
+              "count": 56
+            },
+            "single-session-preference": {
+              "score": 51.7,
               "count": 30
             }
           }
@@ -43558,5 +43727,5 @@
       "notes": "Headline positioning from published benchmark materials. Public per-type LoCoMo breakdown is not included here."
     }
   },
-  "total_runs": 17
+  "total_runs": 18
 }
