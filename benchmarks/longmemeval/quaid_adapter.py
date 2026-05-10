@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sqlite3
 import subprocess
 import sys
@@ -321,13 +322,84 @@ def load_longmemeval(max_questions: int | None = None) -> list:
 
 # ─── Main evaluation loop ─────────────────────────────────────────────────────
 
+LME_SESSION_RE = re.compile(r"\blme-session-([A-Za-z0-9_:-]+)\b")
+
+
+def normalize_lme_session_id(session_id) -> str:
+    value = str(session_id).strip()
+    if value.startswith("lme-session-"):
+        return value
+    return f"lme-session-{value}"
+
+
+def haystack_session_id(session, fallback_idx: int):
+    if isinstance(session, dict):
+        return session.get("session_id", session.get("id", fallback_idx))
+    return fallback_idx
+
+
+def haystack_turns(session) -> list:
+    if isinstance(session, list):
+        return session
+    if isinstance(session, dict):
+        return session.get("conversation", session.get("turns", []))
+    return []
+
+
+def result_session_ids(result) -> set[str]:
+    """Extract LongMemEval session IDs from Quaid result metadata or paths."""
+    found: set[str] = set()
+
+    def visit(value) -> None:
+        if value is None:
+            return
+        if isinstance(value, dict):
+            for key, nested in value.items():
+                if key in {"session_id", "source_session_id"}:
+                    found.add(normalize_lme_session_id(nested))
+                visit(nested)
+            return
+        if isinstance(value, list):
+            for item in value:
+                visit(item)
+            return
+        if isinstance(value, str):
+            for match in LME_SESSION_RE.findall(value):
+                found.add(normalize_lme_session_id(match))
+
+    visit(result)
+    return found
+
+
+def session_id_values(value) -> list:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple, set)):
+        return list(value)
+    return [value]
+
+
+def recall_score(retrieved: list, answer_session_ids, k: int) -> tuple[float, list[str], list[str]]:
+    expected = {
+        normalize_lme_session_id(session_id)
+        for session_id in session_id_values(answer_session_ids)
+    }
+    retrieved_ids: list[str] = []
+    for result in retrieved[:k]:
+        for session_id in sorted(result_session_ids(result)):
+            if session_id not in retrieved_ids:
+                retrieved_ids.append(session_id)
+    score = 1.0 if expected and any(session_id in expected for session_id in retrieved_ids) else 0.0
+    return score, sorted(expected), retrieved_ids
+
 def run_longmemeval(
     questions: list,
     quaid_db_base: str,
     answerer_model: str,
     judge_model: str,
     provider: str,
-    top_k: int = 20,
+    metric: str = "qa",
+    top_k: int | None = None,
     checkpoint_path: str = None,
     skip_embed: bool = False,
 ) -> dict:
@@ -340,14 +412,18 @@ def run_longmemeval(
     a timed-out run can be resumed without restarting from scratch.
     """
     import time
+    top_k = top_k if top_k is not None else (5 if metric == "recall" else 20)
 
     # Load checkpoint if exists
     completed = {}
     if checkpoint_path and Path(checkpoint_path).exists():
         try:
             checkpoint = json.loads(Path(checkpoint_path).read_text())
-            completed = {item["question_id"]: item for item in checkpoint.get("results", [])}
-            print(f"Resuming from checkpoint: {len(completed)} questions already done")
+            if checkpoint.get("metric") in {None, metric}:
+                completed = {item["question_id"]: item for item in checkpoint.get("results", [])}
+                print(f"Resuming from checkpoint: {len(completed)} questions already done")
+            else:
+                print(f"Ignoring checkpoint for metric={checkpoint.get('metric')}; running metric={metric}")
         except Exception as e:
             print(f"Warning: could not load checkpoint: {e}")
 
@@ -363,7 +439,8 @@ def run_longmemeval(
             results_by_type[q_type] = []
         results_by_type[q_type].append(score)
 
-    print(f"Evaluating {len(questions)} questions (per-question ingest)...")
+    metric_label = f"recall_at_{top_k}" if metric == "recall" else "qa"
+    print(f"Evaluating {len(questions)} questions (metric={metric_label}, per-question ingest)...")
 
     for i, qa in enumerate(questions):
         q_id = qa.get("question_id", str(i))
@@ -376,6 +453,7 @@ def run_longmemeval(
         ground_truth = qa["answer"]
         q_type = qa.get("question_type", "unknown")
         sessions = qa.get("haystack_sessions", [])
+        answer_session_ids = qa.get("answer_session_ids", [])
 
         # Fresh DB per question
         db_path = f"{quaid_db_base}-q{i:04d}.db"
@@ -384,39 +462,53 @@ def run_longmemeval(
 
         # Ingest all haystack sessions for this question
         for sess_idx, session in enumerate(sessions):
-            if isinstance(session, list):
-                turns = session
-            else:
-                turns = session.get("conversation", session.get("turns", []))
+            session_id = haystack_session_id(session, sess_idx)
+            turns = haystack_turns(session)
             for turn_idx, turn in enumerate(turns):
                 role = turn.get("role", "unknown")
                 content = turn.get("content", "")
                 if content and len(content.strip()) > 10:
                     backend.add(content, {
                         "role": role,
-                        "session_id": sess_idx,
+                        "session_id": session_id,
                         "turn_id": turn_idx,
                     })
 
         # Trigger extraction
         flushed = backend.flush_to_quaid(skip_embed=skip_embed)
 
-        # Retrieve + Answer + Judge
+        retrieved = []
         if flushed:
             retrieved = backend.search(question, top_k=top_k)
-            context = backend.get_context(retrieved)
-            predicted = generate_answer(context, question, answerer_model, provider)
-        else:
-            predicted = "I don't know"
 
-        score = judge_answer(question, predicted, ground_truth, judge_model, provider)
+        if metric == "recall":
+            score, expected_session_ids, retrieved_session_ids = recall_score(
+                retrieved,
+                answer_session_ids,
+                top_k,
+            )
+            completed[q_id] = {
+                "question_id": q_id,
+                "score": score,
+                "type": q_type,
+                "answer_session_ids": expected_session_ids,
+                "retrieved_session_ids": retrieved_session_ids,
+                "retrieved_count": len(retrieved),
+            }
+        else:
+            # Retrieve + Answer + Judge
+            if flushed:
+                context = backend.get_context(retrieved)
+                predicted = generate_answer(context, question, answerer_model, provider)
+            else:
+                predicted = "I don't know"
+            score = judge_answer(question, predicted, ground_truth, judge_model, provider)
+            completed[q_id] = {"question_id": q_id, "score": score, "type": q_type}
+
         all_scores.append(score)
         if q_type not in results_by_type:
             results_by_type[q_type] = []
         results_by_type[q_type].append(score)
-
-        # Record in completed
-        completed[q_id] = {"question_id": q_id, "score": score, "type": q_type}
 
         # Cleanup DB
         try:
@@ -432,6 +524,7 @@ def run_longmemeval(
             if checkpoint_path:
                 try:
                     Path(checkpoint_path).write_text(json.dumps({
+                        "metric": metric,
                         "completed": completed_count,
                         "total": len(questions),
                         "results": list(completed.values())
@@ -446,11 +539,13 @@ def run_longmemeval(
     }
 
     print(f"\nResults:")
+    print(f"  Metric: {metric_label}")
     print(f"  Overall: {overall:.3f} ({overall*100:.1f}%)")
     for t, v in sorted(by_type.items()):
         print(f"  {t}: {v['avg']:.3f} ({v['count']} questions)")
 
-    return {
+    scores = {
+        "metric": metric_label,
         "overall": round(overall, 4),
         "pass_rate": round(sum(1 for s in all_scores if s >= 0.5) / len(all_scores), 4) if all_scores else 0,
         "total_questions": len(all_scores),
@@ -464,6 +559,10 @@ def run_longmemeval(
             }
         }
     }
+    if metric == "recall":
+        scores["top_k"] = top_k
+        scores[f"r_at_{top_k}"] = scores["overall"]
+    return scores
 
 
 def main():
@@ -474,15 +573,24 @@ def main():
     parser.add_argument("--answerer-model", default="gpt-4o")
     parser.add_argument("--judge-model", default="gpt-4o")
     parser.add_argument("--provider", default="openai", choices=["openai", "anthropic"])
-    parser.add_argument("--top-k", type=int, default=20)
+    parser.add_argument("--metric", default="qa", choices=["qa", "recall"],
+                        help="Evaluation metric: qa uses LLM answer generation and judging; recall computes R@k from answer_session_ids")
+    parser.add_argument("--top-k", type=int, default=None,
+                        help="Number of Quaid query results to retrieve (default: 20 for qa, 5 for recall)")
     parser.add_argument("--max-questions", type=int, default=None,
                         help="Limit questions for faster runs (e.g. 50)")
     parser.add_argument("--skip-embed", action="store_true",
                         help="Skip vector embedding (FTS only, ~10x faster, use for baseline runs)")
     args = parser.parse_args()
+    top_k = args.top_k if args.top_k is not None else (5 if args.metric == "recall" else 20)
 
     print(f"LongMemEval adapter - Quaid {args.quaid_version}")
-    print(f"Provider: {args.provider} | Answerer: {args.answerer_model} | Judge: {args.judge_model}")
+    metric_label = f"recall_at_{top_k}" if args.metric == "recall" else "qa"
+    print(f"Metric: {metric_label}")
+    if args.metric == "qa":
+        print(f"Provider: {args.provider} | Answerer: {args.answerer_model} | Judge: {args.judge_model}")
+    else:
+        print("Provider: not used in recall mode")
     print(f"NOTE: Per-question ingest - each question has its own memory store")
     print(f"NOTE: Uses Quaid conversation memory: memory_add_turn -> extract -> query")
     print()
@@ -496,8 +604,9 @@ def main():
         answerer_model=args.answerer_model,
         judge_model=args.judge_model,
         provider=args.provider,
-        top_k=args.top_k,
-        checkpoint_path=f"{args.db}-checkpoint.json",
+        metric=args.metric,
+        top_k=top_k,
+        checkpoint_path=f"{args.db}-{args.metric}-checkpoint.json",
         skip_embed=args.skip_embed,
     )
 
@@ -505,19 +614,21 @@ def main():
         "quaid_version": args.quaid_version,
         "date": str(date.today()),
         "benchmark": "longmemeval",
+        "metric": scores["metric"],
         "longmemeval": scores,
         "config": {
+            "metric": args.metric,
             "answerer_model": args.answerer_model,
             "judge_model": args.judge_model,
             "provider": args.provider,
-            "top_k": args.top_k,
+            "top_k": top_k,
             "total_questions": len(questions),
         }
     }
 
     Path(args.output).write_text(json.dumps(output, indent=2))
     print(f"\nResults written to: {args.output}")
-    print(f"Overall: {scores['overall']:.3f} (Mem0 v3 reference: 0.934)")
+    print(f"Overall: {scores['overall']:.3f}")
 
 
 if __name__ == "__main__":

@@ -38,6 +38,12 @@ OPENAI_API_KEY=sk-... bash benchmarks/longmemeval/run.sh
 # Faster test (50 questions, ~15 mins)
 MAX_QUESTIONS=50 OPENAI_API_KEY=sk-... bash benchmarks/longmemeval/run.sh
 
+# Retrieval recall R@5, same metric family as GBrain
+METRIC=recall bash benchmarks/longmemeval/run.sh
+
+# Recall with a different cutoff
+METRIC=recall TOP_K=10 bash benchmarks/longmemeval/run.sh
+
 # Anthropic provider
 LLM_PROVIDER=anthropic ANSWERER_MODEL=claude-3-5-haiku-20241022 JUDGE_MODEL=claude-3-5-haiku-20241022 bash benchmarks/longmemeval/run.sh
 ```
