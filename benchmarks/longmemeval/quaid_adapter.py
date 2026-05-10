@@ -153,19 +153,38 @@ class QuaidBackend:
                 ok = False
         return ok
 
-    def search(self, query: str, top_k: int = 20) -> list:
-        result = self._run_quaid(
-            ["query", query, "--json", "--limit", str(top_k)],
-            timeout=30,
-        )
+    def search(self, query: str, top_k: int = 20, recall: bool = False) -> list:
+        if recall:
+            payload = {"query": query, "limit": top_k}
+            result = self._run_quaid(
+                ["call", "memory_query", json.dumps(payload), "--json"],
+                timeout=30,
+            )
+        else:
+            result = self._run_quaid(
+                ["query", query, "--json", "--limit", str(top_k)],
+                timeout=30,
+            )
         if result.returncode != 0:
             return []
         try:
             parsed = json.loads(result.stdout)
             if isinstance(parsed, list):
-                return parsed
+                return parsed[:top_k]
             if isinstance(parsed, dict):
-                return parsed.get("results", parsed.get("items", []))
+                results = (
+                    parsed.get("results")
+                    or parsed.get("items")
+                    or parsed.get("memories")
+                    or parsed.get("matches")
+                    or []
+                )
+                if isinstance(results, list):
+                    return results[:top_k]
+                if results:
+                    return [results]
+                if recall:
+                    return [parsed]
             return []
         except Exception:
             return []
@@ -323,6 +342,9 @@ def load_longmemeval(max_questions: int | None = None) -> list:
 # ─── Main evaluation loop ─────────────────────────────────────────────────────
 
 LME_SESSION_RE = re.compile(r"\blme-session-([A-Za-z0-9_:-]+)\b")
+CONVERSATION_PATH_SESSION_RE = re.compile(
+    r"(?:^|/)conversations/[^/\s]+/(lme-session-[A-Za-z0-9_:-]+)\.md\b"
+)
 
 
 def normalize_lme_session_id(session_id) -> str:
@@ -347,7 +369,7 @@ def haystack_turns(session) -> list:
 
 
 def result_session_ids(result) -> set[str]:
-    """Extract LongMemEval session IDs from Quaid result metadata or paths."""
+    """Extract LongMemEval session IDs from Quaid result metadata or memory paths."""
     found: set[str] = set()
 
     def visit(value) -> None:
@@ -364,6 +386,8 @@ def result_session_ids(result) -> set[str]:
                 visit(item)
             return
         if isinstance(value, str):
+            for match in CONVERSATION_PATH_SESSION_RE.findall(value):
+                found.add(normalize_lme_session_id(match))
             for match in LME_SESSION_RE.findall(value):
                 found.add(normalize_lme_session_id(match))
 
@@ -479,7 +503,7 @@ def run_longmemeval(
 
         retrieved = []
         if flushed:
-            retrieved = backend.search(question, top_k=top_k)
+            retrieved = backend.search(question, top_k=top_k, recall=(metric == "recall"))
 
         if metric == "recall":
             score, expected_session_ids, retrieved_session_ids = recall_score(
@@ -592,7 +616,10 @@ def main():
     else:
         print("Provider: not used in recall mode")
     print(f"NOTE: Per-question ingest - each question has its own memory store")
-    print(f"NOTE: Uses Quaid conversation memory: memory_add_turn -> extract -> query")
+    if args.metric == "recall":
+        print("NOTE: Uses Quaid conversation memory: memory_add_turn -> extract -> memory_query")
+    else:
+        print("NOTE: Uses Quaid conversation memory: memory_add_turn -> extract -> query")
     print()
 
     questions = load_longmemeval(args.max_questions)
