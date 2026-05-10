@@ -15,6 +15,10 @@ on:
         description: 'LongMemEval max questions (leave blank for full 500)'
         required: false
         default: ''
+      lme_metric:
+        description: 'LongMemEval metric: qa (default, end-to-end accuracy) or recall (R@5 retrieval recall, no LLM needed)'
+        required: false
+        default: 'qa'
       beam_split:
         description: 'BEAM split to run (100K, 500K, 1M, 10M)'
         required: false
@@ -72,7 +76,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           MAX_QUESTIONS: ${{ inputs.lme_max_questions }}
-          SKIP_EMBED: "1"  # Skip vector embed until #105 ships - 10x faster, same 0% result
+          METRIC: ${{ inputs.lme_metric }}
         run: bash benchmarks/longmemeval/run.sh
 
       - name: Run BEAM benchmark
