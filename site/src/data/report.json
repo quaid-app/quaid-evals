@@ -1,59 +1,53 @@
 {
-  "generated_at": "2026-05-12T19:00:10.951261Z",
+  "generated_at": "2026-05-13T10:54:55.164422Z",
   "latest": {
     "version": "0.21.0",
-    "date": "2026-05-12",
+    "date": "2026-05-13",
     "benchmarks": {
-      "dab": {
-        "total": 203,
-        "max": 215,
-        "pct": 94.4
+      "longmemeval": {
+        "overall": 0.0,
+        "pass_rate": 0.0,
+        "status": "measured"
       }
     },
-    "dab": {
-      "quaid_version": "0.21.0",
-      "date": "2026-05-12",
-      "benchmark": "dab",
-      "total_score": 203,
-      "max_score": 215,
-      "sections": {
-        "install": {
-          "score": 10,
-          "max": 10
+    "longmemeval": {
+      "metric": "qa",
+      "overall": 0.0,
+      "pass_rate": 0.0,
+      "total_questions": 48,
+      "by_type": {
+        "single-session-user": {
+          "avg": 0.0,
+          "count": 8
         },
-        "import": {
-          "score": 30,
-          "max": 30
+        "multi-session": {
+          "avg": 0.0,
+          "count": 8
         },
-        "fts": {
-          "score": 40,
-          "max": 40
+        "single-session-preference": {
+          "avg": 0.0,
+          "count": 8
         },
-        "semantic": {
-          "score": 48,
-          "max": 50
+        "temporal-reasoning": {
+          "avg": 0.0,
+          "count": 8
         },
-        "performance": {
-          "score": 20,
-          "max": 30
+        "knowledge-update": {
+          "avg": 0.0,
+          "count": 8
         },
-        "integrity": {
-          "score": 20,
-          "max": 20
-        },
-        "collections": {
-          "score": 15,
-          "max": 15
-        },
-        "mcp": {
-          "score": 20,
-          "max": 20
+        "single-session-assistant": {
+          "avg": 0.0,
+          "count": 8
         }
       },
-      "performance": {
-        "fts_latency_ms": 14,
-        "semantic_latency_ms": 303,
-        "collection_add_ms": 10117
+      "reference": {
+        "mem0_v3": {
+          "overall": 0.934,
+          "temporal_reasoning": 0.93,
+          "agent_recall": 1.0,
+          "source": "mem0ai/memory-benchmarks release notes"
+        }
       }
     }
   },
@@ -43346,6 +43340,57 @@
           "collection_add_ms": 10117
         }
       }
+    },
+    {
+      "version": "0.21.0",
+      "date": "2026-05-13",
+      "benchmarks": {
+        "longmemeval": {
+          "overall": 0.0,
+          "pass_rate": 0.0,
+          "status": "measured"
+        }
+      },
+      "longmemeval": {
+        "metric": "qa",
+        "overall": 0.0,
+        "pass_rate": 0.0,
+        "total_questions": 48,
+        "by_type": {
+          "single-session-user": {
+            "avg": 0.0,
+            "count": 8
+          },
+          "multi-session": {
+            "avg": 0.0,
+            "count": 8
+          },
+          "single-session-preference": {
+            "avg": 0.0,
+            "count": 8
+          },
+          "temporal-reasoning": {
+            "avg": 0.0,
+            "count": 8
+          },
+          "knowledge-update": {
+            "avg": 0.0,
+            "count": 8
+          },
+          "single-session-assistant": {
+            "avg": 0.0,
+            "count": 8
+          }
+        },
+        "reference": {
+          "mem0_v3": {
+            "overall": 0.934,
+            "temporal_reasoning": 0.93,
+            "agent_recall": 1.0,
+            "source": "mem0ai/memory-benchmarks release notes"
+          }
+        }
+      }
     }
   ],
   "locomo": {
@@ -43393,36 +43438,36 @@
     ]
   },
   "longmemeval": {
-    "version": "0.20.0",
-    "date": "2026-05-10",
+    "version": "0.21.0",
+    "date": "2026-05-13",
     "scores": {
       "overall": 0.0,
       "pass_rate": 0.0,
-      "total_questions": 500,
+      "total_questions": 48,
       "by_type": {
         "multi-session": {
           "score": 0.0,
-          "count": 133
+          "count": 8
         },
         "temporal-reasoning": {
           "score": 0.0,
-          "count": 133
+          "count": 8
         },
         "knowledge-update": {
           "score": 0.0,
-          "count": 78
+          "count": 8
         },
         "single-session-user": {
           "score": 0.0,
-          "count": 70
+          "count": 8
         },
         "single-session-assistant": {
           "score": 0.0,
-          "count": 56
+          "count": 8
         },
         "single-session-preference": {
           "score": 0.0,
-          "count": 30
+          "count": 8
         }
       }
     },
@@ -43531,6 +43576,42 @@
             "single-session-preference": {
               "score": 0.0,
               "count": 30
+            }
+          }
+        },
+        "status": "measured"
+      },
+      {
+        "version": "0.21.0",
+        "date": "2026-05-13",
+        "scores": {
+          "overall": 0.0,
+          "pass_rate": 0.0,
+          "total_questions": 48,
+          "by_type": {
+            "multi-session": {
+              "score": 0.0,
+              "count": 8
+            },
+            "temporal-reasoning": {
+              "score": 0.0,
+              "count": 8
+            },
+            "knowledge-update": {
+              "score": 0.0,
+              "count": 8
+            },
+            "single-session-user": {
+              "score": 0.0,
+              "count": 8
+            },
+            "single-session-assistant": {
+              "score": 0.0,
+              "count": 8
+            },
+            "single-session-preference": {
+              "score": 0.0,
+              "count": 8
             }
           }
         },
@@ -43842,5 +43923,5 @@
       "notes": "Headline positioning from published benchmark materials. Public per-type LoCoMo breakdown is not included here."
     }
   },
-  "total_runs": 20
+  "total_runs": 21
 }
