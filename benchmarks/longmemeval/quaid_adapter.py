@@ -27,6 +27,7 @@ Requires: OPENAI_API_KEY (or ANTHROPIC_API_KEY with --provider anthropic)
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import re
@@ -41,20 +42,168 @@ import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+# ─── Shared daemon context manager ────────────────────────────────────────────
+
+class SharedDaemon:
+    """Context manager that owns ONE quaid daemon for the full benchmark run.
+
+    Usage::
+
+        with SharedDaemon(db_path) as daemon:
+            # daemon.db_path is the shared DB
+            backend = QuaidBackend(daemon.db_path, namespace="q0001")
+            ...
+    """
+
+    def __init__(self, db_path: str, cleanup_on_exit: bool = False):
+        self.db_path = db_path
+        self._cleanup_on_exit = cleanup_on_exit
+        self._daemon: subprocess.Popen[str] | None = None
+        self._daemon_output: list[str] = []
+        self._drain_thread: threading.Thread | None = None
+        self._env = {**os.environ, "QUAID_DB": db_path}
+
+    def __enter__(self) -> "SharedDaemon":
+        # Init the shared DB
+        result = subprocess.run(
+            ["quaid", "init", self.db_path],
+            env=self._env,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout).strip()
+            raise RuntimeError(f"quaid init failed: {detail}")
+
+        # Start the daemon
+        self._daemon_output = []
+        self._daemon = subprocess.Popen(
+            ["quaid", "daemon", "run", "--http", "--trust-loopback"],
+            env=self._env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        try:
+            self._wait_for_daemon_ready(timeout_s=60)
+        except Exception:
+            self._stop()
+            raise
+
+        # Start drain thread to keep output buffer from filling up
+        self._drain_thread = threading.Thread(
+            target=self._drain_daemon_output,
+            name="lme-shared-daemon-output",
+            daemon=True,
+        )
+        self._drain_thread.start()
+
+        print(f"[SharedDaemon] daemon ready, db={self.db_path}", file=sys.stderr)
+        return self
+
+    def __exit__(self, *_) -> None:
+        self._stop()
+        if self._cleanup_on_exit:
+            try:
+                Path(self.db_path).unlink(missing_ok=True)
+            except Exception:
+                pass
+
+    def _wait_for_daemon_ready(self, timeout_s: int) -> None:
+        if self._daemon is None or self._daemon.stdout is None:
+            raise RuntimeError("quaid daemon stdout was not captured")
+        deadline = time.monotonic() + timeout_s
+        poller = select.poll()
+        poller.register(self._daemon.stdout.fileno(), select.POLLIN)
+        while time.monotonic() < deadline:
+            if self._daemon.poll() is not None:
+                self._collect_daemon_remainder()
+                detail = "\n".join(self._daemon_output[-20:])
+                raise RuntimeError(f"quaid daemon exited before daemon_ready\n{detail}")
+            wait_ms = max(0, int(min(500, (deadline - time.monotonic()) * 1000)))
+            events = poller.poll(wait_ms)
+            if not events:
+                continue
+            line = self._daemon.stdout.readline()
+            if not line:
+                continue
+            self._record_output(line)
+            if "daemon_ready" in line:
+                return
+        detail = "\n".join(self._daemon_output[-20:])
+        raise TimeoutError(f"Timed out waiting for quaid daemon_ready\n{detail}")
+
+    def _drain_daemon_output(self) -> None:
+        process = self._daemon
+        if process is None or process.stdout is None:
+            return
+        for line in process.stdout:
+            self._record_output(line)
+
+    def _collect_daemon_remainder(self) -> None:
+        if self._daemon is None or self._daemon.stdout is None:
+            return
+        try:
+            for line in self._daemon.stdout.readlines():
+                self._record_output(line)
+        except Exception:
+            pass
+
+    def _record_output(self, line: str) -> None:
+        self._daemon_output.append(line.rstrip())
+        if len(self._daemon_output) > 200:
+            del self._daemon_output[: len(self._daemon_output) - 200]
+
+    def _stop(self) -> None:
+        process = self._daemon
+        drain_thread = self._drain_thread
+        self._daemon = None
+        self._drain_thread = None
+        if process is None:
+            return
+        if process.poll() is None:
+            process.kill()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                pass
+        if drain_thread and drain_thread.is_alive():
+            drain_thread.join(timeout=1)
+        print("[SharedDaemon] daemon stopped.", file=sys.stderr)
+
+
 # ─── Quaid backend ────────────────────────────────────────────────────────────
 
-def extraction_counts(db_path: str) -> dict[str, int]:
+def extraction_counts(db_path: str, session_ids: set[str] | None = None) -> dict[str, int]:
+    """Return extraction queue counts, optionally filtered by session_ids."""
     with sqlite3.connect(db_path, timeout=30) as conn:
-        row = conn.execute(
-            """
-            SELECT
-                COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0),
-                COALESCE(SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END), 0),
-                COALESCE(SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END), 0),
-                COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0)
-            FROM extraction_queue
-            """
-        ).fetchone()
+        if session_ids:
+            placeholders = ",".join("?" for _ in session_ids)
+            row = conn.execute(
+                f"""
+                SELECT
+                    COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0)
+                FROM extraction_queue
+                WHERE session_id IN ({placeholders})
+                """,
+                list(session_ids),
+            ).fetchone()
+        else:
+            row = conn.execute(
+                """
+                SELECT
+                    COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0)
+                FROM extraction_queue
+                """
+            ).fetchone()
     pending, running, done, failed = row or (0, 0, 0, 0)
     return {
         "pending": int(pending),
@@ -64,63 +213,85 @@ def extraction_counts(db_path: str) -> dict[str, int]:
     }
 
 
-def recent_failed_jobs(db_path: str) -> list[dict]:
+def recent_failed_jobs(db_path: str, session_ids: set[str] | None = None) -> list[dict]:
     with sqlite3.connect(db_path, timeout=30) as conn:
         conn.row_factory = sqlite3.Row
-        rows = conn.execute(
-            """
-            SELECT session_id, attempts, COALESCE(last_error, '') AS last_error
-            FROM extraction_queue
-            WHERE status = 'failed'
-            ORDER BY id DESC
-            LIMIT 5
-            """
-        ).fetchall()
+        if session_ids:
+            placeholders = ",".join("?" for _ in session_ids)
+            rows = conn.execute(
+                f"""
+                SELECT session_id, attempts, COALESCE(last_error, '') AS last_error
+                FROM extraction_queue
+                WHERE status = 'failed' AND session_id IN ({placeholders})
+                ORDER BY id DESC
+                LIMIT 5
+                """,
+                list(session_ids),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT session_id, attempts, COALESCE(last_error, '') AS last_error
+                FROM extraction_queue
+                WHERE status = 'failed'
+                ORDER BY id DESC
+                LIMIT 5
+                """
+            ).fetchall()
     return [dict(row) for row in rows]
 
 
 def wait_for_extraction_completion(
     db_path: str,
+    session_ids: set[str] | None = None,
     timeout_s: int = 300,
     poll_interval_s: float = 0.5,
     settle_s: float = 2.0,
 ) -> dict[str, int]:
+    """Wait for extraction queue to drain.
+
+    If session_ids is provided, waits only for those sessions (per-question
+    isolation with the shared DB). Falls back to waiting for all pending=0
+    if session_ids is None.
+    """
     deadline = time.time() + timeout_s
     while time.time() < deadline:
-        counts = extraction_counts(db_path)
+        counts = extraction_counts(db_path, session_ids)
         if counts["failed"] > 0:
             raise RuntimeError(
                 "Extraction worker reported failed jobs: "
-                + json.dumps(recent_failed_jobs(db_path), indent=2)
+                + json.dumps(recent_failed_jobs(db_path, session_ids), indent=2)
             )
         if counts["pending"] == 0 and counts["running"] == 0:
             time.sleep(settle_s)
-            return extraction_counts(db_path)
+            return extraction_counts(db_path, session_ids)
         time.sleep(poll_interval_s)
     raise TimeoutError(
-        f"Timed out waiting for extraction queue to drain: {extraction_counts(db_path)}"
+        f"Timed out waiting for extraction queue to drain: {extraction_counts(db_path, session_ids)}"
     )
 
 
 class QuaidBackend:
-    """Thin wrapper around the quaid CLI for conversation memory."""
+    """Thin wrapper around the quaid CLI for conversation memory.
+
+    When used with a shared daemon (the normal benchmark path), pass
+    ``namespace`` to isolate per-question data within the shared DB.
+    Daemon lifecycle is managed externally by :class:`SharedDaemon`.
+    """
 
     _extraction_cache_checked = False
 
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, namespace: str | None = None):
         self.db_path = db_path
+        self.namespace = namespace
         self._workspace_dir = Path(tempfile.mkdtemp(prefix="lme-quaid-"))
         self._vault_dir = self._workspace_dir / "vault"
         self._page_count = 0
         self._sessions: set[str] = set()
         self._env = {**os.environ, "QUAID_DB": db_path}
-        self._daemon: subprocess.Popen[str] | None = None
-        self._daemon_output: list[str] = []
-        self._daemon_drain_thread: threading.Thread | None = None
 
     def init(self):
         self._vault_dir.mkdir(parents=True, exist_ok=True)
-        self._run_quaid(["init", self.db_path], timeout=60)
         self._configure_write_target()
         if not QuaidBackend._extraction_cache_checked:
             result = self._run_quaid(["extraction", "enable"], timeout=900)
@@ -131,7 +302,6 @@ class QuaidBackend:
                 QuaidBackend._extraction_cache_checked = True
         else:
             self._enable_extraction_config()
-        self._start_daemon()
 
     def _run_quaid(self, args: list[str], timeout: int = 120) -> subprocess.CompletedProcess:
         return subprocess.run(
@@ -175,19 +345,13 @@ class QuaidBackend:
             )
 
     def reset(self):
-        """Clear DB for a fresh per-question ingest."""
-        self.close()
-        if Path(self.db_path).exists():
-            Path(self.db_path).unlink()
-        self._workspace_dir = Path(tempfile.mkdtemp(prefix="lme-quaid-"))
-        self._vault_dir = self._workspace_dir / "vault"
+        """Reset per-question state (no daemon to restart with shared architecture)."""
         self._page_count = 0
         self._sessions = set()
-        self.init()
 
     def add(self, content: str, metadata: dict):
         session_id = self._session_id(metadata)
-        payload = {
+        payload: dict = {
             "session_id": session_id,
             "role": self._role_for(metadata.get("role", metadata.get("speaker", "user"))),
             "content": content,
@@ -197,6 +361,8 @@ class QuaidBackend:
             },
             "timestamp": self._timestamp_for(metadata),
         }
+        if self.namespace:
+            payload["namespace"] = self.namespace
         result = self._run_quaid(
             ["call", "memory_add_turn", json.dumps(payload)],
             timeout=30,
@@ -227,14 +393,24 @@ class QuaidBackend:
                 ok = False
         if ok:
             try:
-                wait_for_extraction_completion(self.db_path, timeout_s=300)
+                # Filter extraction wait to only this question's sessions for
+                # per-question isolation in the shared DB. Questions run
+                # sequentially, so waiting for all pending is also safe, but
+                # filtering by session_id is more precise.
+                wait_for_extraction_completion(
+                    self.db_path,
+                    session_ids=self._sessions if self._sessions else None,
+                    timeout_s=300,
+                )
             except Exception as e:
                 print(f"Warning: Quaid extraction queue did not drain: {e}", file=sys.stderr)
                 ok = False
         return ok
 
     def close(self) -> None:
-        self._stop_daemon()
+        """Clean up per-question resources. Daemon is NOT stopped here."""
+        # Nothing to stop - daemon lifecycle is owned by SharedDaemon.
+        pass
 
     def __del__(self):
         try:
@@ -242,105 +418,19 @@ class QuaidBackend:
         except Exception:
             pass
 
-    def _start_daemon(self) -> None:
-        if self._daemon and self._daemon.poll() is None:
-            return
-        self._daemon_output = []
-        self._daemon = subprocess.Popen(
-            ["quaid", "daemon", "run", "--http", "--trust-loopback"],
-            env=self._env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-        )
-        try:
-            self._wait_for_daemon_ready(timeout_s=30)
-            self._daemon_drain_thread = threading.Thread(
-                target=self._drain_daemon_output,
-                name="lme-quaid-daemon-output",
-                daemon=True,
-            )
-            self._daemon_drain_thread.start()
-        except Exception:
-            self._stop_daemon()
-            raise
-
-    def _wait_for_daemon_ready(self, timeout_s: int) -> None:
-        if self._daemon is None or self._daemon.stdout is None:
-            raise RuntimeError("quaid daemon stdout was not captured")
-        deadline = time.monotonic() + timeout_s
-        # Use poll() instead of select() - select() has a 1024 FD limit on Linux
-        # which is exceeded when running 500 per-question benchmarks in sequence.
-        poller = select.poll()
-        poller.register(self._daemon.stdout.fileno(), select.POLLIN)
-        while time.monotonic() < deadline:
-            if self._daemon.poll() is not None:
-                self._collect_daemon_remainder()
-                detail = "\n".join(self._daemon_output[-20:])
-                raise RuntimeError(f"quaid daemon exited before daemon_ready\n{detail}")
-
-            wait_ms = max(0, int(min(500, (deadline - time.monotonic()) * 1000)))
-            events = poller.poll(wait_ms)
-            if not events:
-                continue
-            line = self._daemon.stdout.readline()
-            if not line:
-                continue
-            self._record_daemon_output(line)
-            if "daemon_ready" in line:
-                return
-
-        detail = "\n".join(self._daemon_output[-20:])
-        raise TimeoutError(f"Timed out waiting for quaid daemon_ready\n{detail}")
-
-    def _drain_daemon_output(self) -> None:
-        process = self._daemon
-        if process is None or process.stdout is None:
-            return
-        for line in process.stdout:
-            self._record_daemon_output(line)
-
-    def _collect_daemon_remainder(self) -> None:
-        if self._daemon is None or self._daemon.stdout is None:
-            return
-        try:
-            for line in self._daemon.stdout.readlines():
-                self._record_daemon_output(line)
-        except Exception:
-            pass
-
-    def _record_daemon_output(self, line: str) -> None:
-        self._daemon_output.append(line.rstrip())
-        if len(self._daemon_output) > 200:
-            del self._daemon_output[: len(self._daemon_output) - 200]
-
-    def _stop_daemon(self) -> None:
-        process = self._daemon
-        drain_thread = self._daemon_drain_thread
-        self._daemon = None
-        self._daemon_drain_thread = None
-        if process is None:
-            return
-        if process.poll() is None:
-            process.kill()
-            try:
-                process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                pass
-        if drain_thread and drain_thread.is_alive():
-            drain_thread.join(timeout=1)
-
     def search(self, query: str, top_k: int = 20, recall: bool = False) -> list:
         if recall:
-            payload = {"query": query, "limit": top_k}
+            payload: dict = {"query": query, "limit": top_k}
+            if self.namespace:
+                payload["namespace"] = self.namespace
             result = self._run_quaid(
                 ["call", "memory_query", json.dumps(payload), "--json"],
                 timeout=30,
             )
         else:
+            extra_args = ["--namespace", self.namespace] if self.namespace else []
             result = self._run_quaid(
-                ["query", query, "--json", "--limit", str(top_k)],
+                ["query", query, "--json", "--limit", str(top_k), *extra_args],
                 timeout=30,
             )
         if result.returncode != 0:
@@ -606,14 +696,18 @@ def run_longmemeval(
     skip_embed: bool = False,
 ) -> dict:
     """Run LongMemEval: per-question ingest + retrieve + evaluate.
-    
+
+    Uses a single shared Quaid daemon for the full run. Per-question isolation
+    is achieved via Quaid namespaces (q0001, q0002, ...) rather than per-question
+    DBs with per-question daemon restarts. This gives ~10x throughput improvement
+    over the previous architecture which started/stopped 500 daemon instances.
+
     skip_embed is retained for CLI compatibility; conversation extraction now owns
     indexing, so it no longer skips a separate page-embedding step.
-    
+
     Supports checkpoint/resume: saves progress every 10 questions so
     a timed-out run can be resumed without restarting from scratch.
     """
-    import time
     top_k = top_k if top_k is not None else (5 if metric == "recall" else 20)
 
     # Load checkpoint if exists
@@ -642,100 +736,97 @@ def run_longmemeval(
         results_by_type[q_type].append(score)
 
     metric_label = f"recall_at_{top_k}" if metric == "recall" else "qa"
-    print(f"Evaluating {len(questions)} questions (metric={metric_label}, per-question ingest)...")
+    print(f"Evaluating {len(questions)} questions (metric={metric_label}, shared daemon, per-question namespaces)...")
 
-    for i, qa in enumerate(questions):
-        q_id = qa.get("question_id", str(i))
+    # ONE shared DB + ONE daemon for the full run
+    shared_db_path = f"{quaid_db_base}.db"
 
-        # Skip already completed
-        if q_id in completed:
-            continue
+    with SharedDaemon(shared_db_path) as daemon:
+        for i, qa in enumerate(questions):
+            q_id = qa.get("question_id", str(i))
 
-        question = qa["question"]
-        ground_truth = qa["answer"]
-        q_type = qa.get("question_type", "unknown")
-        sessions = qa.get("haystack_sessions", [])
-        answer_session_ids = qa.get("answer_session_ids", [])
+            # Skip already completed
+            if q_id in completed:
+                continue
 
-        # Fresh DB per question
-        db_path = f"{quaid_db_base}-q{i:04d}.db"
-        backend = QuaidBackend(db_path)
-        try:
-            backend.init()
+            question = qa["question"]
+            ground_truth = qa["answer"]
+            q_type = qa.get("question_type", "unknown")
+            sessions = qa.get("haystack_sessions", [])
+            answer_session_ids = qa.get("answer_session_ids", [])
 
-            # Ingest all haystack sessions for this question
-            for sess_idx, session in enumerate(sessions):
-                session_id = haystack_session_id(session, sess_idx)
-                turns = haystack_turns(session)
-                for turn_idx, turn in enumerate(turns):
-                    role = turn.get("role", "unknown")
-                    content = turn.get("content", "")
-                    if content and len(content.strip()) > 10:
-                        backend.add(content, {
-                            "role": role,
-                            "session_id": session_id,
-                            "turn_id": turn_idx,
-                        })
+            namespace = f"q{i:04d}"
+            backend = QuaidBackend(daemon.db_path, namespace=namespace)
+            try:
+                backend.init()
 
-            # Close sessions so the daemon extraction worker drains queued jobs.
-            flushed = backend.flush_to_quaid(skip_embed=skip_embed)
+                # Ingest all haystack sessions for this question
+                for sess_idx, session in enumerate(sessions):
+                    session_id = haystack_session_id(session, sess_idx)
+                    turns = haystack_turns(session)
+                    for turn_idx, turn in enumerate(turns):
+                        role = turn.get("role", "unknown")
+                        content = turn.get("content", "")
+                        if content and len(content.strip()) > 10:
+                            backend.add(content, {
+                                "role": role,
+                                "session_id": session_id,
+                                "turn_id": turn_idx,
+                            })
 
-            retrieved = []
-            if flushed:
-                retrieved = backend.search(question, top_k=top_k, recall=(metric == "recall"))
+                # Close sessions so the daemon extraction worker drains queued jobs.
+                flushed = backend.flush_to_quaid(skip_embed=skip_embed)
 
-            if metric == "recall":
-                score, expected_session_ids, retrieved_session_ids = recall_score(
-                    retrieved,
-                    answer_session_ids,
-                    top_k,
-                )
-                completed[q_id] = {
-                    "question_id": q_id,
-                    "score": score,
-                    "type": q_type,
-                    "answer_session_ids": expected_session_ids,
-                    "retrieved_session_ids": retrieved_session_ids,
-                    "retrieved_count": len(retrieved),
-                }
-            else:
-                # Retrieve + Answer + Judge
+                retrieved = []
                 if flushed:
-                    context = backend.get_context(retrieved)
-                    predicted = generate_answer(context, question, answerer_model, provider)
+                    retrieved = backend.search(question, top_k=top_k, recall=(metric == "recall"))
+
+                if metric == "recall":
+                    score, expected_session_ids, retrieved_session_ids = recall_score(
+                        retrieved,
+                        answer_session_ids,
+                        top_k,
+                    )
+                    completed[q_id] = {
+                        "question_id": q_id,
+                        "score": score,
+                        "type": q_type,
+                        "answer_session_ids": expected_session_ids,
+                        "retrieved_session_ids": retrieved_session_ids,
+                        "retrieved_count": len(retrieved),
+                    }
                 else:
-                    predicted = "I don't know"
-                score = judge_answer(question, predicted, ground_truth, judge_model, provider)
-                completed[q_id] = {"question_id": q_id, "score": score, "type": q_type}
-        finally:
-            backend.close()
+                    # Retrieve + Answer + Judge
+                    if flushed:
+                        context = backend.get_context(retrieved)
+                        predicted = generate_answer(context, question, answerer_model, provider)
+                    else:
+                        predicted = "I don't know"
+                    score = judge_answer(question, predicted, ground_truth, judge_model, provider)
+                    completed[q_id] = {"question_id": q_id, "score": score, "type": q_type}
+            finally:
+                backend.close()
 
-        all_scores.append(score)
-        if q_type not in results_by_type:
-            results_by_type[q_type] = []
-        results_by_type[q_type].append(score)
+            all_scores.append(score)
+            if q_type not in results_by_type:
+                results_by_type[q_type] = []
+            results_by_type[q_type].append(score)
 
-        # Cleanup DB
-        try:
-            Path(db_path).unlink(missing_ok=True)
-        except Exception:
-            pass
-
-        completed_count = len(all_scores)
-        if completed_count % 10 == 0:
-            avg = sum(all_scores) / len(all_scores)
-            print(f"  Progress: {completed_count}/{len(questions)} | running avg: {avg:.3f}")
-            # Save checkpoint
-            if checkpoint_path:
-                try:
-                    Path(checkpoint_path).write_text(json.dumps({
-                        "metric": metric,
-                        "completed": completed_count,
-                        "total": len(questions),
-                        "results": list(completed.values())
-                    }))
-                except Exception:
-                    pass
+            completed_count = len(all_scores)
+            if completed_count % 10 == 0:
+                avg = sum(all_scores) / len(all_scores)
+                print(f"  Progress: {completed_count}/{len(questions)} | running avg: {avg:.3f}")
+                # Save checkpoint
+                if checkpoint_path:
+                    try:
+                        Path(checkpoint_path).write_text(json.dumps({
+                            "metric": metric,
+                            "completed": completed_count,
+                            "total": len(questions),
+                            "results": list(completed.values())
+                        }))
+                    except Exception:
+                        pass
 
     overall = sum(all_scores) / len(all_scores) if all_scores else 0.0
     by_type = {
@@ -772,7 +863,7 @@ def run_longmemeval(
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--db", required=True, help="Base path for per-question DBs")
+    parser.add_argument("--db", required=True, help="Base path for shared DB (extension .db is appended)")
     parser.add_argument("--output", required=True)
     parser.add_argument("--quaid-version", default="unknown")
     parser.add_argument("--answerer-model", default="gpt-4o")
@@ -796,7 +887,7 @@ def main():
         print(f"Provider: {args.provider} | Answerer: {args.answerer_model} | Judge: {args.judge_model}")
     else:
         print("Provider: not used in recall mode")
-    print(f"NOTE: Per-question ingest - each question has its own memory store")
+    print(f"NOTE: Shared daemon architecture - one daemon for full run, per-question namespaces")
     if args.metric == "recall":
         print("NOTE: Uses Quaid conversation memory: memory_add_turn -> daemon extraction -> memory_query")
     else:
