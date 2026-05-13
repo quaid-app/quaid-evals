@@ -36,10 +36,14 @@ else
   echo "Provider: not used in recall mode"
 fi
 
-# Pull the extraction model so the daemon extraction worker can run.
-# Without this, the worker silently idles because the model binary is missing.
-echo "Enabling extraction (downloads Phi-3.5 Mini model if not cached)..."
-quaid extraction enable || { echo "ERROR: quaid extraction enable failed - extraction will not work"; exit 1; }
+# Download and cache the extraction model (Phi-3.5 Mini) before running the benchmark.
+# quaid extraction enable requires a DB - create a temp one just for model priming.
+# Without this the daemon extraction worker silently idles (model binary missing).
+echo "Priming extraction model cache (downloads Phi-3.5 Mini if not cached)..."
+PRIME_DB="/tmp/quaid-model-prime.db"
+quaid --db "$PRIME_DB" init "$PRIME_DB" 2>/dev/null || true
+quaid --db "$PRIME_DB" extraction enable || { echo "ERROR: quaid extraction enable failed - extraction will not work"; exit 1; }
+rm -f "$PRIME_DB"
 echo "Model ready."
 
 python3 "$(dirname "$0")/quaid_adapter.py" \
