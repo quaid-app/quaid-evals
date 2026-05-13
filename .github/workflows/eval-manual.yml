@@ -12,9 +12,9 @@ on:
         required: false
         default: 'dab,gbrain-evals,locomo'
       lme_max_questions:
-        description: 'LongMemEval max questions (leave blank for full 500)'
+        description: 'LongMemEval max questions (default: 50 for regular runs; leave blank for full 500)'
         required: false
-        default: ''
+        default: '50'
       lme_metric:
         description: 'LongMemEval metric: qa (default, end-to-end accuracy) or recall (R@5 retrieval recall, no LLM needed)'
         required: false
