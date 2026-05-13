@@ -36,6 +36,12 @@ else
   echo "Provider: not used in recall mode"
 fi
 
+# Pull the extraction model so the daemon extraction worker can run.
+# Without this, the worker silently idles because the model binary is missing.
+echo "Pulling extraction model (required for daemon worker)..."
+quaid model pull small || { echo "ERROR: quaid model pull failed - extraction will not work"; exit 1; }
+echo "Model ready."
+
 python3 "$(dirname "$0")/quaid_adapter.py" \
   --db "$DB_BASE" \
   --output "$OUTPUT" \

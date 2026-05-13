@@ -270,15 +270,19 @@ class QuaidBackend:
         if self._daemon is None or self._daemon.stdout is None:
             raise RuntimeError("quaid daemon stdout was not captured")
         deadline = time.monotonic() + timeout_s
+        # Use poll() instead of select() - select() has a 1024 FD limit on Linux
+        # which is exceeded when running 500 per-question benchmarks in sequence.
+        poller = select.poll()
+        poller.register(self._daemon.stdout.fileno(), select.POLLIN)
         while time.monotonic() < deadline:
             if self._daemon.poll() is not None:
                 self._collect_daemon_remainder()
                 detail = "\n".join(self._daemon_output[-20:])
                 raise RuntimeError(f"quaid daemon exited before daemon_ready\n{detail}")
 
-            wait_s = max(0.0, min(0.5, deadline - time.monotonic()))
-            ready, _, _ = select.select([self._daemon.stdout], [], [], wait_s)
-            if not ready:
+            wait_ms = max(0, int(min(500, (deadline - time.monotonic()) * 1000)))
+            events = poller.poll(wait_ms)
+            if not events:
                 continue
             line = self._daemon.stdout.readline()
             if not line:
