@@ -762,19 +762,30 @@ def run_longmemeval(
             try:
                 backend.init()
 
-                # Ingest all haystack sessions for this question
+                # Ingest all haystack sessions for this question.
+                # Sessions with many turns are chunked into sub-sessions of
+                # MAX_TURNS_PER_SESSION turns to avoid the Quaid conversation
+                # file parser limit (fails past ~40-50 lines).
+                MAX_TURNS_PER_SESSION = 30
                 for sess_idx, session in enumerate(sessions):
                     session_id = haystack_session_id(session, sess_idx)
                     turns = haystack_turns(session)
-                    for turn_idx, turn in enumerate(turns):
-                        role = turn.get("role", "unknown")
-                        content = turn.get("content", "")
-                        if content and len(content.strip()) > 10:
-                            backend.add(content, {
-                                "role": role,
-                                "session_id": session_id,
-                                "turn_id": turn_idx,
-                            })
+                    for chunk_start in range(0, max(1, len(turns)), MAX_TURNS_PER_SESSION):
+                        chunk = turns[chunk_start:chunk_start + MAX_TURNS_PER_SESSION]
+                        chunk_num = chunk_start // MAX_TURNS_PER_SESSION
+                        chunk_session_id = (
+                            session_id if chunk_num == 0
+                            else f"{session_id}-chunk{chunk_num}"
+                        )
+                        for turn_idx, turn in enumerate(chunk):
+                            role = turn.get("role", "unknown")
+                            content = turn.get("content", "")
+                            if content and len(content.strip()) > 10:
+                                backend.add(content, {
+                                    "role": role,
+                                    "session_id": chunk_session_id,
+                                    "turn_id": chunk_start + turn_idx,
+                                })
 
                 # Close sessions so the daemon extraction worker drains queued jobs.
                 flushed = backend.flush_to_quaid(skip_embed=skip_embed)
