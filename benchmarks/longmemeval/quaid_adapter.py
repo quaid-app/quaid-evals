@@ -380,6 +380,8 @@ class QuaidBackend:
         ok = True
         for session_id in sorted(self._sessions):
             payload = {"session_id": session_id}
+            if self.namespace:
+                payload["namespace"] = self.namespace
             result = self._run_quaid(
                 ["call", "memory_close_session", json.dumps(payload)],
                 timeout=30,
