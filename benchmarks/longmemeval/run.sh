@@ -38,8 +38,8 @@ fi
 
 # Pull the extraction model so the daemon extraction worker can run.
 # Without this, the worker silently idles because the model binary is missing.
-echo "Pulling extraction model (required for daemon worker)..."
-quaid model pull small || { echo "ERROR: quaid model pull failed - extraction will not work"; exit 1; }
+echo "Enabling extraction (downloads Phi-3.5 Mini model if not cached)..."
+quaid extraction enable || { echo "ERROR: quaid extraction enable failed - extraction will not work"; exit 1; }
 echo "Model ready."
 
 python3 "$(dirname "$0")/quaid_adapter.py" \
