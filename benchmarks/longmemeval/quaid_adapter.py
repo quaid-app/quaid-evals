@@ -437,6 +437,12 @@ class QuaidBackend:
                     session_ids=self._sessions if self._sessions else None,
                     timeout_s=300,
                 )
+                # Debug: check page count and test query
+                import sqlite3 as _sqlite3
+                with _sqlite3.connect(self.db_path, timeout=10) as _conn:
+                    page_count = _conn.execute("SELECT COUNT(*) FROM pages").fetchone()[0]
+                    conv_count = _conn.execute("SELECT COUNT(*) FROM pages WHERE wing LIKE '%conversation%' OR page_type LIKE '%conversation%' OR slug LIKE '%conversation%'").fetchone()[0]
+                    print(f"[Debug] After extraction: total_pages={page_count}, conversation_pages={conv_count}", file=sys.stderr)
             except Exception as e:
                 print(f"Warning: Quaid extraction queue did not drain: {e}", file=sys.stderr)
                 ok = False
