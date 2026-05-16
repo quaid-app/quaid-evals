@@ -7,17 +7,9 @@
     "metric": "qa",
     "overall": 0.0,
     "pass_rate": 0.0,
-    "total_questions": 3,
+    "total_questions": 1,
     "by_type": {
       "single-session-user": {
-        "avg": 0.0,
-        "count": 1
-      },
-      "multi-session": {
-        "avg": 0.0,
-        "count": 1
-      },
-      "single-session-preference": {
         "avg": 0.0,
         "count": 1
       }
@@ -37,6 +29,6 @@
     "judge_model": "gpt-4o",
     "provider": "openai",
     "top_k": 20,
-    "total_questions": 3
+    "total_questions": 1
   }
 }
