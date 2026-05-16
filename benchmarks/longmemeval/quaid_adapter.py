@@ -469,11 +469,11 @@ class QuaidBackend:
                 timeout=30,
             )
         else:
-            # For QA mode: search without namespace restriction so extracted
-            # conversation facts (which land in the default namespace) are
-            # returned alongside any per-question namespace pages.
+            # For QA mode: use memory_search which is designed for conversation
+            # memory and knows how to search across extracted conversation pages.
+            payload = {"query": query, "limit": top_k}
             result = self._run_quaid(
-                ["query", query, "--json", "--limit", str(top_k)],
+                ["call", "memory_search", json.dumps(payload)],
                 timeout=30,
             )
         if result.returncode != 0:
