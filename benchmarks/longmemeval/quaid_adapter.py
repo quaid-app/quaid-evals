@@ -841,6 +841,7 @@ def run_longmemeval(
                 retrieved = []
                 if flushed:
                     retrieved = backend.search(question, top_k=top_k, recall=(metric == "recall"))
+                    print(f"[Debug] retrieved {len(retrieved)} results for question", file=__import__("sys").stderr)
 
                 if metric == "recall":
                     score, expected_session_ids, retrieved_session_ids = recall_score(
