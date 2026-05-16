@@ -430,9 +430,11 @@ class QuaidBackend:
                 timeout=30,
             )
         else:
-            extra_args = ["--namespace", self.namespace] if self.namespace else []
+            # For QA mode: search without namespace restriction so extracted
+            # conversation facts (which land in the default namespace) are
+            # returned alongside any per-question namespace pages.
             result = self._run_quaid(
-                ["query", query, "--json", "--limit", str(top_k), *extra_args],
+                ["query", query, "--json", "--limit", str(top_k)],
                 timeout=30,
             )
         if result.returncode != 0:
