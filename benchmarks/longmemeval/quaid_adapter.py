@@ -469,13 +469,16 @@ class QuaidBackend:
                 timeout=30,
             )
         else:
-            # For QA mode: try quaid list to see what pages exist, then search
-            list_result = self._run_quaid(["list", "--json", "--limit", "5"], timeout=30)
-            print(f"[Debug] list result: {list_result.stdout[:200]}", file=__import__("sys").stderr)
+            # For QA mode: use memory_search with namespace - Quaid should abstract
+            # storage details and return relevant conversation facts.
+            payload = {"query": query, "limit": top_k}
+            if self.namespace:
+                payload["namespace"] = self.namespace
             result = self._run_quaid(
-                ["search", query, "--json", "--limit", str(top_k)],
+                ["call", "memory_search", json.dumps(payload)],
                 timeout=30,
             )
+            print(f"[Debug] memory_search ns={self.namespace} result_len={len(result.stdout)}", file=__import__("sys").stderr)
         if result.returncode != 0:
             return []
         try:
