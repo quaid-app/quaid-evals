@@ -437,11 +437,12 @@ class QuaidBackend:
                     session_ids=self._sessions if self._sessions else None,
                     timeout_s=300,
                 )
-                # Debug: check page count
-                import sqlite3 as _sqlite3
-                with _sqlite3.connect(self.db_path, timeout=10) as _conn:
-                    page_count = _conn.execute("SELECT COUNT(*) FROM pages").fetchone()[0]
-                    print(f"[Debug] total_pages={page_count}", file=__import__("sys").stderr)
+                # Embed newly extracted pages so semantic search can find them
+                embed_result = self._run_quaid(["embed", "--stale"], timeout=120)
+                if embed_result.returncode != 0:
+                    print(f"Warning: embed --stale failed: {(embed_result.stderr or embed_result.stdout).strip()}", file=sys.stderr)
+                else:
+                    print(f"[Debug] embed --stale completed", file=sys.stderr)
             except Exception as e:
                 print(f"Warning: Quaid extraction queue did not drain: {e}", file=sys.stderr)
                 ok = False
