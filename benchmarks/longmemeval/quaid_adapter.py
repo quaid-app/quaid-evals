@@ -35,7 +35,6 @@ import select
 import sqlite3
 import subprocess
 import sys
-import tempfile
 import threading
 import time
 import urllib.request
@@ -51,12 +50,22 @@ class SharedDaemon:
 
         with SharedDaemon(db_path) as daemon:
             # daemon.db_path is the shared DB
-            backend = QuaidBackend(daemon.db_path, namespace="q0001")
+            backend = QuaidBackend(
+                daemon.db_path,
+                namespace="q0001",
+                vault_dir=daemon.vault_dir,
+            )
             ...
     """
 
-    def __init__(self, db_path: str, cleanup_on_exit: bool = False):
+    def __init__(
+        self,
+        db_path: str,
+        cleanup_on_exit: bool = False,
+        vault_dir: Path = Path("/tmp/lme-quaid-shared-vault"),
+    ):
         self.db_path = db_path
+        self.vault_dir = vault_dir
         self._cleanup_on_exit = cleanup_on_exit
         self._daemon: subprocess.Popen[str] | None = None
         self._daemon_output: list[str] = []
@@ -64,7 +73,9 @@ class SharedDaemon:
         self._env = {**os.environ, "QUAID_DB": db_path}
 
     def __enter__(self) -> "SharedDaemon":
-        # Init the shared DB
+        # Init the shared DB and point the write target at one stable vault for
+        # the full benchmark run before the daemon starts processing jobs.
+        self.vault_dir.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(
             ["quaid", "init", self.db_path],
             env=self._env,
@@ -75,6 +86,8 @@ class SharedDaemon:
         if result.returncode != 0:
             detail = (result.stderr or result.stdout).strip()
             raise RuntimeError(f"quaid init failed: {detail}")
+        self._configure_write_target(self.db_path, self.vault_dir)
+        self._enable_extraction()
 
         # Start the daemon
         self._daemon_output = []
@@ -100,7 +113,10 @@ class SharedDaemon:
         )
         self._drain_thread.start()
 
-        print(f"[SharedDaemon] daemon ready, db={self.db_path}", file=sys.stderr)
+        print(
+            f"[SharedDaemon] daemon ready, db={self.db_path}, vault={self.vault_dir}",
+            file=sys.stderr,
+        )
         return self
 
     def __exit__(self, *_) -> None:
@@ -110,6 +126,51 @@ class SharedDaemon:
                 Path(self.db_path).unlink(missing_ok=True)
             except Exception:
                 pass
+
+    def _configure_write_target(self, db_path: str, vault_dir: Path) -> None:
+        with sqlite3.connect(db_path, timeout=30) as conn:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO collections
+                    (id, name, root_path, state, writable, is_write_target, needs_full_sync)
+                VALUES (1, 'default', '', 'detached', 1, 1, 0)
+                """
+            )
+            conn.execute("UPDATE collections SET is_write_target = 0 WHERE name <> 'default'")
+            conn.execute(
+                """
+                UPDATE collections
+                   SET root_path = ?,
+                       state = 'active',
+                       writable = 1,
+                       is_write_target = 1,
+                       needs_full_sync = 0
+                 WHERE name = 'default'
+                """,
+                (str(vault_dir),),
+            )
+
+    def _enable_extraction(self) -> None:
+        result = subprocess.run(
+            ["quaid", "extraction", "enable"],
+            env=self._env,
+            capture_output=True,
+            text=True,
+            timeout=900,
+        )
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout).strip()
+            print(f"Warning: quaid extraction enable failed: {detail}", file=sys.stderr)
+        self._enable_extraction_config()
+
+    def _enable_extraction_config(self) -> None:
+        with sqlite3.connect(self.db_path, timeout=30) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO config(key, value) VALUES ('extraction.enabled', 'true')"
+            )
+            conn.execute(
+                "INSERT OR REPLACE INTO config(key, value) VALUES ('extraction.model_alias', 'phi-3.5-mini')"
+            )
 
     def _wait_for_daemon_ready(self, timeout_s: int) -> None:
         if self._daemon is None or self._daemon.stdout is None:
@@ -279,29 +340,24 @@ class QuaidBackend:
     Daemon lifecycle is managed externally by :class:`SharedDaemon`.
     """
 
-    _extraction_cache_checked = False
-
-    def __init__(self, db_path: str, namespace: str | None = None):
+    def __init__(
+        self,
+        db_path: str,
+        namespace: str | None = None,
+        vault_dir: Path = Path("/tmp/lme-quaid-shared-vault"),
+    ):
         self.db_path = db_path
         self.namespace = namespace
-        self._workspace_dir = Path(tempfile.mkdtemp(prefix="lme-quaid-"))
-        self._vault_dir = self._workspace_dir / "vault"
+        self.vault_dir = vault_dir
         self._page_count = 0
         self._sessions: set[str] = set()
         self._env = {**os.environ, "QUAID_DB": db_path}
 
     def init(self):
-        self._vault_dir.mkdir(parents=True, exist_ok=True)
-        self._configure_write_target()
-        if not QuaidBackend._extraction_cache_checked:
-            result = self._run_quaid(["extraction", "enable"], timeout=900)
-            if result.returncode != 0:
-                detail = (result.stderr or result.stdout).strip()
-                print(f"Warning: quaid extraction enable failed: {detail}", file=sys.stderr)
-            else:
-                QuaidBackend._extraction_cache_checked = True
-        else:
-            self._enable_extraction_config()
+        self.vault_dir.mkdir(parents=True, exist_ok=True)
+        if self.namespace:
+            (self.vault_dir / self.namespace).mkdir(parents=True, exist_ok=True)
+        self._enable_extraction_config()
 
     def _run_quaid(self, args: list[str], timeout: int = 120) -> subprocess.CompletedProcess:
         return subprocess.run(
@@ -311,29 +367,6 @@ class QuaidBackend:
             text=True,
             timeout=timeout,
         )
-
-    def _configure_write_target(self) -> None:
-        with sqlite3.connect(self.db_path, timeout=30) as conn:
-            conn.execute(
-                """
-                INSERT OR IGNORE INTO collections
-                    (id, name, root_path, state, writable, is_write_target, needs_full_sync)
-                VALUES (1, 'default', '', 'detached', 1, 1, 0)
-                """
-            )
-            conn.execute("UPDATE collections SET is_write_target = 0 WHERE name <> 'default'")
-            conn.execute(
-                """
-                UPDATE collections
-                   SET root_path = ?1,
-                       state = 'active',
-                       writable = 1,
-                       is_write_target = 1,
-                       needs_full_sync = 0
-                 WHERE name = 'default'
-                """,
-                (str(self._vault_dir),),
-            )
 
     def _enable_extraction_config(self) -> None:
         with sqlite3.connect(self.db_path, timeout=30) as conn:
@@ -404,6 +437,12 @@ class QuaidBackend:
                     session_ids=self._sessions if self._sessions else None,
                     timeout_s=300,
                 )
+                # Embed newly extracted pages so semantic search can find them
+                embed_result = self._run_quaid(["embed", "--stale"], timeout=120)
+                if embed_result.returncode != 0:
+                    print(f"Warning: embed --stale failed: {(embed_result.stderr or embed_result.stdout).strip()}", file=sys.stderr)
+                else:
+                    print(f"[Debug] embed --stale completed", file=sys.stderr)
             except Exception as e:
                 print(f"Warning: Quaid extraction queue did not drain: {e}", file=sys.stderr)
                 ok = False
@@ -430,13 +469,16 @@ class QuaidBackend:
                 timeout=30,
             )
         else:
-            # For QA mode: search without namespace restriction so extracted
-            # conversation facts (which land in the default namespace) are
-            # returned alongside any per-question namespace pages.
+            # For QA mode: use memory_search with namespace - Quaid should abstract
+            # storage details and return relevant conversation facts.
+            payload = {"query": query, "limit": top_k}
+            if self.namespace:
+                payload["namespace"] = self.namespace
             result = self._run_quaid(
-                ["query", query, "--json", "--limit", str(top_k)],
+                ["call", "memory_search", json.dumps(payload)],
                 timeout=30,
             )
+            print(f"[Debug] memory_search ns={self.namespace} result_len={len(result.stdout)}", file=__import__("sys").stderr)
         if result.returncode != 0:
             return []
         try:
@@ -742,10 +784,11 @@ def run_longmemeval(
     metric_label = f"recall_at_{top_k}" if metric == "recall" else "qa"
     print(f"Evaluating {len(questions)} questions (metric={metric_label}, shared daemon, per-question namespaces)...")
 
-    # ONE shared DB + ONE daemon for the full run
+    # ONE shared DB + ONE stable vault + ONE daemon for the full run
     shared_db_path = f"{quaid_db_base}.db"
+    shared_vault_dir = Path("/tmp/lme-quaid-shared-vault")
 
-    with SharedDaemon(shared_db_path) as daemon:
+    with SharedDaemon(shared_db_path, vault_dir=shared_vault_dir) as daemon:
         for i, qa in enumerate(questions):
             q_id = qa.get("question_id", str(i))
 
@@ -760,7 +803,11 @@ def run_longmemeval(
             answer_session_ids = qa.get("answer_session_ids", [])
 
             namespace = f"q{i:04d}"
-            backend = QuaidBackend(daemon.db_path, namespace=namespace)
+            backend = QuaidBackend(
+                daemon.db_path,
+                namespace=namespace,
+                vault_dir=daemon.vault_dir,
+            )
             try:
                 backend.init()
 
@@ -790,11 +837,14 @@ def run_longmemeval(
                                 })
 
                 # Close sessions so the daemon extraction worker drains queued jobs.
+                print(f"[Debug] sessions={len(backend._sessions)}, flushing...", file=__import__("sys").stderr)
                 flushed = backend.flush_to_quaid(skip_embed=skip_embed)
+                print(f"[Debug] flushed={flushed}, retrieved_count will follow", file=__import__("sys").stderr)
 
                 retrieved = []
                 if flushed:
                     retrieved = backend.search(question, top_k=top_k, recall=(metric == "recall"))
+                    print(f"[Debug] retrieved {len(retrieved)} results for question", file=__import__("sys").stderr)
 
                 if metric == "recall":
                     score, expected_session_ids, retrieved_session_ids = recall_score(
