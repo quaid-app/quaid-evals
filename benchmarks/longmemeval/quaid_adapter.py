@@ -469,11 +469,11 @@ class QuaidBackend:
                 timeout=30,
             )
         else:
-            # For QA mode: use memory_search which is designed for conversation
-            # memory and knows how to search across extracted conversation pages.
-            payload = {"query": query, "limit": top_k}
+            # For QA mode: try quaid list to see what pages exist, then search
+            list_result = self._run_quaid(["list", "--json", "--limit", "5"], timeout=30)
+            print(f"[Debug] list result: {list_result.stdout[:200]}", file=__import__("sys").stderr)
             result = self._run_quaid(
-                ["call", "memory_search", json.dumps(payload)],
+                ["search", query, "--json", "--limit", str(top_k)],
                 timeout=30,
             )
         if result.returncode != 0:
