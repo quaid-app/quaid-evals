@@ -834,7 +834,9 @@ def run_longmemeval(
                                 })
 
                 # Close sessions so the daemon extraction worker drains queued jobs.
+                print(f"[Debug] sessions={len(backend._sessions)}, flushing...", file=__import__("sys").stderr)
                 flushed = backend.flush_to_quaid(skip_embed=skip_embed)
+                print(f"[Debug] flushed={flushed}, retrieved_count will follow", file=__import__("sys").stderr)
 
                 retrieved = []
                 if flushed:
