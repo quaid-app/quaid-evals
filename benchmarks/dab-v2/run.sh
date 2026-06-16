@@ -15,13 +15,26 @@
 
 set -euo pipefail
 
-SYSTEM="${MEMORY_CMD:-quaid}"
-QUAID_VERSION=$(${SYSTEM} --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SYSTEM_NAME="${MEMORY_CMD:-quaid}"
+if [ "$SYSTEM_NAME" = "quaid" ]; then
+  QUAID_BIN="${QUAID_BIN:-quaid}"
+  SYSTEM="$QUAID_BIN"
+else
+  SYSTEM="$SYSTEM_NAME"
+fi
 DATE=$(date +%Y-%m-%d)
-DB_PATH="/tmp/dab-v2-${SYSTEM}-${DATE}.db"
+DB_PATH="${DB_PATH:-/tmp/dab-v2-${SYSTEM_NAME}-${DATE}.db}"
 CORPUS_DIR="${CORPUS_DIR:-/tmp/quaid-bench-corpus}"
 RESULTS_DIR="${RESULTS_DIR:-results}"
-OUTPUT="${RESULTS_DIR}/dab-v2-${SYSTEM}-${QUAID_VERSION}-${DATE}.json"
+if [ "$SYSTEM_NAME" = "quaid" ]; then
+  python3 "$SCRIPT_DIR/../common/preflight.py" \
+    --quaid-bin "$QUAID_BIN" \
+    --db "$DB_PATH" \
+    --corpus "$CORPUS_DIR"
+fi
+QUAID_VERSION=$(${SYSTEM} --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
+OUTPUT="${RESULTS_DIR}/dab-v2-${SYSTEM_NAME}-${QUAID_VERSION}-${DATE}.json"
 EXPECTED_VERSION="${EXPECTED_VERSION:-$QUAID_VERSION}"
 
 mkdir -p "$RESULTS_DIR"
@@ -42,13 +55,40 @@ apply_penalty() {
 }
 
 echo "=== DAB v2.1 Benchmark (Phase 1: §1+§2) ==="
-echo "System: $SYSTEM $QUAID_VERSION"
+echo "System: $SYSTEM_NAME $QUAID_VERSION"
 echo "DB: $DB_PATH"
 echo "Corpus: $CORPUS_DIR"
 
 S1_SCORE=0
 S2_SCORE=0
 LATENCY_LOG=""
+
+json_has_relevant_hit() {
+  local query="$1"
+  python3 -c '
+import json, re, sys
+query = sys.argv[1].lower()
+tokens = {t for t in re.findall(r"[a-z0-9]+", query) if len(t) > 3}
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    print("invalid")
+    raise SystemExit(0)
+if isinstance(data, dict):
+    data = data.get("results") or data.get("items") or data.get("matches") or []
+if not isinstance(data, list) or not data:
+    print("miss")
+    raise SystemExit(0)
+for item in data[:5]:
+    if not isinstance(item, dict):
+        continue
+    text = " ".join(str(item.get(k, "")) for k in ("title", "slug", "summary", "snippet", "content", "text")).lower()
+    if not tokens or any(t in text for t in tokens):
+        print("hit")
+        raise SystemExit(0)
+print("miss")
+' "$query"
+}
 
 # ── §1 Infrastructure (40 pts) ────────────────────────────────────────────────
 
@@ -64,21 +104,21 @@ echo "[S1.1] Install: $BINARY_VER (expected: $EXPECTED_VERSION) → $S1_1/5"
 S1_SCORE=$((S1_SCORE + S1_1))
 
 # S1.2 Corpus ingestion (10 pts)
-if [ "$SYSTEM" = "quaid" ]; then
-  quaid init "$DB_PATH" 2>/dev/null || true
+if [ "$SYSTEM_NAME" = "quaid" ]; then
+  "$SYSTEM" init "$DB_PATH" 2>/dev/null || true
   START=$(python3 -c "import time; print(int(time.time()*1000))")
-  if quaid collection add docs "$CORPUS_DIR" --db "$DB_PATH" 2>&1 | grep -q "status=\"ok\""; then
+  if "$SYSTEM" collection add docs "$CORPUS_DIR" --db "$DB_PATH" 2>&1 | grep -q "status=\"ok\""; then
     END=$(python3 -c "import time; print(int(time.time()*1000))")
     IMPORT_MS=$((END - START))
     echo "  Generating embeddings..."
-    quaid embed --db "$DB_PATH" 2>&1 | tail -1
+    "$SYSTEM" embed --db "$DB_PATH" 2>&1 | tail -1
     S1_2=8
     [ "$IMPORT_MS" -lt 180000 ] && S1_2=10
     echo "  Ingest: ${IMPORT_MS}ms → $S1_2/10"
   else
     IMPORT_MS=999999; S1_2=0; echo "  Ingest FAILED → 0/10"
   fi
-elif [ "$SYSTEM" = "qmd" ]; then
+elif [ "$SYSTEM_NAME" = "qmd" ]; then
   export PATH="$HOME/.bun/bin:$PATH"
   if qmd collection add "$CORPUS_DIR" --name dab-v2 2>/dev/null; then
     qmd update 2>/dev/null | tail -1
@@ -98,9 +138,10 @@ FTS_QUERIES=("bitcoin blockchain" "python programming" "machine learning" "stabl
 FTS_HITS=0
 for Q in "${FTS_QUERIES[@]}"; do
   T_START=$(python3 -c "import time; print(int(time.time()*1000))")
-  if [ "$SYSTEM" = "quaid" ]; then
-    RESULT=$(quaid search "$Q" --db "$DB_PATH" --limit 1 --json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print('hit' if d else 'miss')" 2>/dev/null || echo "miss")
-  elif [ "$SYSTEM" = "qmd" ]; then
+  if [ "$SYSTEM_NAME" = "quaid" ]; then
+    RAW=$("$SYSTEM" search "$Q" --db "$DB_PATH" --limit 5 --json 2>/dev/null || echo "")
+    RESULT=$(printf '%s' "$RAW" | json_has_relevant_hit "$Q")
+  elif [ "$SYSTEM_NAME" = "qmd" ]; then
     export PATH="$HOME/.bun/bin:$PATH"
     RESULT=$(qmd search "$Q" -c dab-v2 -n 1 --json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print('hit' if d else 'miss')" 2>/dev/null || echo "miss")
   else
@@ -122,9 +163,10 @@ SEM_QUERIES=("how do automated market makers work" "what is liquid staking" "exp
 SEM_HITS=0
 for Q in "${SEM_QUERIES[@]}"; do
   T_START=$(python3 -c "import time; print(int(time.time()*1000))")
-  if [ "$SYSTEM" = "quaid" ]; then
-    RESULT=$(quaid query "$Q" --db "$DB_PATH" --limit 1 --json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print('hit' if d else 'miss')" 2>/dev/null || echo "miss")
-  elif [ "$SYSTEM" = "qmd" ]; then
+  if [ "$SYSTEM_NAME" = "quaid" ]; then
+    RAW=$("$SYSTEM" query "$Q" --db "$DB_PATH" --limit 5 --json 2>/dev/null || echo "")
+    RESULT=$(printf '%s' "$RAW" | json_has_relevant_hit "$Q")
+  elif [ "$SYSTEM_NAME" = "qmd" ]; then
     export PATH="$HOME/.bun/bin:$PATH"
     RESULT=$(qmd query "$Q" -c dab-v2 -n 1 --json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print('hit' if d else 'miss')" 2>/dev/null || echo "miss")
   else
@@ -143,7 +185,7 @@ S1_SCORE=$((S1_SCORE + S1_4))
 
 # S1.5 API surface + schema migration (5 pts)
 S1_5=0
-[ "$SYSTEM" = "quaid" ] && quaid --help 2>/dev/null | grep -q "search" && S1_5=$((S1_5 + 1))
+[ "$SYSTEM_NAME" = "quaid" ] && "$SYSTEM" --help 2>/dev/null | grep -q "search" && S1_5=$((S1_5 + 1))
 MCP_RESP=$(printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}\n' | QUAID_DB="$DB_PATH" timeout 5 ${SYSTEM} serve 2>/dev/null || echo "")
 echo "$MCP_RESP" | grep -q '"result"' && S1_5=$((S1_5 + 2))
 # Schema migration test: try opening a non-existent/wrong-version DB
@@ -168,9 +210,10 @@ run_query() {
   local Q="$1" DB="$2" LIMIT="${3:-5}"
   local T_START T_END T_MS RESULT
   T_START=$(python3 -c "import time; print(int(time.time()*1000))")
-  if [ "$SYSTEM" = "quaid" ]; then
-    RESULT=$(quaid query "$Q" --db "$DB" --limit "$LIMIT" --json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print('hit' if d else 'miss')" 2>/dev/null || echo "miss")
-  elif [ "$SYSTEM" = "qmd" ]; then
+  if [ "$SYSTEM_NAME" = "quaid" ]; then
+    RAW=$("$SYSTEM" query "$Q" --db "$DB" --limit "$LIMIT" --json 2>/dev/null || echo "")
+    RESULT=$(printf '%s' "$RAW" | json_has_relevant_hit "$Q")
+  elif [ "$SYSTEM_NAME" = "qmd" ]; then
     export PATH="$HOME/.bun/bin:$PATH"
     RESULT=$(qmd query "$Q" -c dab-v2 -n "$LIMIT" --json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print('hit' if d else 'miss')" 2>/dev/null || echo "miss")
   else
@@ -234,8 +277,8 @@ S2_SCORE=$((S2_SCORE + S2_2))
 TEMPORAL_QUERIES=("latest DAB benchmark results" "most recent Quaid version benchmark" "current quaid benchmark score" "latest benchmark run results" "most recent DAB test")
 TEMPORAL_HITS=0
 for Q in "${TEMPORAL_QUERIES[@]}"; do
-  if [ "$SYSTEM" = "quaid" ]; then
-    TOP=$(quaid query "$Q" --db "$DB_PATH" --limit 3 --json 2>/dev/null | python3 -c "
+  if [ "$SYSTEM_NAME" = "quaid" ]; then
+    TOP=$("$SYSTEM" query "$Q" --db "$DB_PATH" --limit 3 --json 2>/dev/null | python3 -c "
 import json,sys; d=json.load(sys.stdin)
 if d:
     titles=[x.get('title','') for x in d[:3]]
@@ -261,8 +304,8 @@ NEGATIVE_QUERIES=(
 )
 NEGATIVE_HITS=0
 for Q in "${NEGATIVE_QUERIES[@]}"; do
-  if [ "$SYSTEM" = "quaid" ]; then
-    RESULT=$(quaid query "$Q" --db "$DB_PATH" --limit 1 --json 2>/dev/null | python3 -c "
+  if [ "$SYSTEM_NAME" = "quaid" ]; then
+    RESULT=$("$SYSTEM" query "$Q" --db "$DB_PATH" --limit 1 --json 2>/dev/null | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
 if not d: print('correct')
@@ -300,10 +343,10 @@ echo "§4 Knowledge Graph:      0/100 (Phase 3 - requires #107)"
 echo "§5 Agent Intelligence:   TBD/80 (Phase 4)"
 echo "Full DAB v2.1 est:       $TOTAL/420 ($(python3 -c "print(round($TOTAL/420*100))")%)"
 
-rm -f "$RESULTS_DIR/dab-v2-${SYSTEM}-${QUAID_VERSION}-${DATE}.json" 2>/dev/null
+rm -f "$RESULTS_DIR/dab-v2-${SYSTEM_NAME}-${QUAID_VERSION}-${DATE}.json" 2>/dev/null
 cat > "$OUTPUT" << JSONEOF
 {
-  "system": "${SYSTEM}",
+  "system": "${SYSTEM_NAME}",
   "quaid_version": "${QUAID_VERSION}",
   "date": "${DATE}",
   "benchmark": "dab-v2-phase1",

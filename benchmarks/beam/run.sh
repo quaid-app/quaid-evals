@@ -8,11 +8,20 @@
 
 set -euo pipefail
 
-QUAID_VERSION=$(quaid --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+QUAID_BIN="${QUAID_BIN:-quaid}"
 DATE=$(date +%Y-%m-%d)
 RESULTS_DIR="${RESULTS_DIR:-results}"
 SPLIT="${BEAM_SPLIT:-100K}"   # override with BEAM_SPLIT=1M etc
 MAX_CONV="${MAX_CONVERSATIONS:-}"
+
+python3 "$SCRIPT_DIR/../common/preflight.py" \
+  --quaid-bin "$QUAID_BIN" \
+  --db "/tmp/quaid-beam-${SPLIT,,}-0000.db" \
+  --provider "${LLM_PROVIDER:-openai}" \
+  --needs-llm
+
+QUAID_VERSION=$("$QUAID_BIN" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
 
 mkdir -p "$RESULTS_DIR"
 OUTPUT="${RESULTS_DIR}/beam-${SPLIT,,}-${QUAID_VERSION}-${DATE}.json"
@@ -21,7 +30,7 @@ echo "=== BEAM Benchmark (${SPLIT}) ==="
 echo "Quaid version: $QUAID_VERSION"
 echo "Provider: ${LLM_PROVIDER:-openai} | Model: ${ANSWERER_MODEL:-gpt-4o}"
 
-python3 "$(dirname "$0")/beam_adapter.py" \
+QUAID_BIN="$QUAID_BIN" python3 "$SCRIPT_DIR/beam_adapter.py" \
   --split "$SPLIT" \
   --output "$OUTPUT" \
   --quaid-version "$QUAID_VERSION" \

@@ -10,13 +10,23 @@
 
 set -euo pipefail
 
-QUAID_VERSION=$(quaid --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+QUAID_BIN="${QUAID_BIN:-quaid}"
 DATE=$(date +%Y-%m-%d)
 DB_PATH="/tmp/quaid-eval-locomo-${DATE}.db"
 CORPUS_DIR="/tmp/quaid-bench-corpus"
 RESULTS_DIR="results"
-OUTPUT="${RESULTS_DIR}/locomo-${QUAID_VERSION}-${DATE}.json"
 BENCHMARKS_DIR="/tmp/memory-benchmarks"
+
+python3 "$SCRIPT_DIR/../common/preflight.py" \
+  --quaid-bin "$QUAID_BIN" \
+  --db "$DB_PATH" \
+  --provider "${LLM_PROVIDER:-openai}" \
+  --needs-llm \
+  --needs-extraction
+
+QUAID_VERSION=$("$QUAID_BIN" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
+OUTPUT="${RESULTS_DIR}/locomo-${QUAID_VERSION}-${DATE}.json"
 
 mkdir -p "$RESULTS_DIR"
 
@@ -34,7 +44,7 @@ pip install -r requirements.txt -q
 
 # Run LoCoMo via the Quaid adapter
 echo "Running LoCoMo adapter..."
-python3 "$OLDPWD/benchmarks/locomo/quaid_adapter.py" \
+QUAID_BIN="$QUAID_BIN" python3 "$OLDPWD/benchmarks/locomo/quaid_adapter.py" \
   --db "$DB_PATH" \
   --benchmarks-dir "$BENCHMARKS_DIR" \
   --output "$OLDPWD/$OUTPUT" \

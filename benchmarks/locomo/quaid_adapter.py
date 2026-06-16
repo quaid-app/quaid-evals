@@ -22,15 +22,181 @@ Usage:
 import argparse
 import json
 import os
+import select
 import sqlite3
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 from pathlib import Path
 from datetime import date, datetime, timedelta, timezone
 
 
 # ─── Quaid backend ────────────────────────────────────────────────────────────
+
+def extraction_counts(db_path: str, session_ids: set[str] | None = None) -> dict[str, int]:
+    """Return extraction queue counts for the given sessions."""
+    with sqlite3.connect(db_path, timeout=30) as conn:
+        if session_ids:
+            placeholders = ",".join("?" for _ in session_ids)
+            row = conn.execute(
+                f"""
+                SELECT
+                    COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0)
+                FROM extraction_queue
+                WHERE session_id IN ({placeholders})
+                """,
+                list(session_ids),
+            ).fetchone()
+        else:
+            row = conn.execute(
+                """
+                SELECT
+                    COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0)
+                FROM extraction_queue
+                """
+            ).fetchone()
+    pending, running, done, failed = row or (0, 0, 0, 0)
+    return {"pending": int(pending), "running": int(running), "done": int(done), "failed": int(failed)}
+
+
+def recent_failed_jobs(db_path: str, session_ids: set[str] | None = None) -> list[dict]:
+    with sqlite3.connect(db_path, timeout=30) as conn:
+        conn.row_factory = sqlite3.Row
+        if session_ids:
+            placeholders = ",".join("?" for _ in session_ids)
+            rows = conn.execute(
+                f"""
+                SELECT session_id, attempts, COALESCE(last_error, '') AS last_error
+                FROM extraction_queue
+                WHERE status = 'failed' AND session_id IN ({placeholders})
+                ORDER BY id DESC
+                LIMIT 5
+                """,
+                list(session_ids),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT session_id, attempts, COALESCE(last_error, '') AS last_error
+                FROM extraction_queue
+                WHERE status = 'failed'
+                ORDER BY id DESC
+                LIMIT 5
+                """
+            ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def wait_for_extraction_completion(
+    db_path: str,
+    session_ids: set[str],
+    timeout_s: int = 300,
+    poll_interval_s: float = 0.5,
+    settle_s: float = 2.0,
+) -> dict[str, int]:
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        counts = extraction_counts(db_path, session_ids)
+        if counts["failed"] > 0:
+            raise RuntimeError(
+                "Extraction worker reported failed jobs: "
+                + json.dumps(recent_failed_jobs(db_path, session_ids), indent=2)
+            )
+        if counts["pending"] == 0 and counts["running"] == 0:
+            time.sleep(settle_s)
+            return extraction_counts(db_path, session_ids)
+        time.sleep(poll_interval_s)
+    raise TimeoutError(f"Timed out waiting for extraction queue: {extraction_counts(db_path, session_ids)}")
+
+
+class QuaidDaemon:
+    """Own the Quaid daemon so conversation extraction actually runs."""
+
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self.quaid_bin = os.environ.get("QUAID_BIN") or "quaid"
+        self._env = {**os.environ, "QUAID_DB": db_path}
+        self._daemon: subprocess.Popen[str] | None = None
+        self._output: list[str] = []
+        self._drain_thread: threading.Thread | None = None
+
+    def __enter__(self) -> "QuaidDaemon":
+        self._daemon = subprocess.Popen(
+            [self.quaid_bin, "daemon", "run", "--http", "--trust-loopback"],
+            env=self._env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        try:
+            self._wait_ready(timeout_s=60)
+        except Exception:
+            self._stop()
+            raise
+        self._drain_thread = threading.Thread(target=self._drain, name="locomo-quaid-daemon", daemon=True)
+        self._drain_thread.start()
+        print("[QuaidDaemon] daemon ready", file=sys.stderr)
+        return self
+
+    def __exit__(self, *_) -> None:
+        self._stop()
+
+    def _wait_ready(self, timeout_s: int) -> None:
+        if self._daemon is None or self._daemon.stdout is None:
+            raise RuntimeError("quaid daemon stdout was not captured")
+        deadline = time.monotonic() + timeout_s
+        poller = select.poll()
+        poller.register(self._daemon.stdout.fileno(), select.POLLIN)
+        while time.monotonic() < deadline:
+            if self._daemon.poll() is not None:
+                detail = "\n".join(self._output[-20:])
+                raise RuntimeError(f"quaid daemon exited before daemon_ready\n{detail}")
+            events = poller.poll(max(0, int(min(500, (deadline - time.monotonic()) * 1000))))
+            if not events:
+                continue
+            line = self._daemon.stdout.readline()
+            if not line:
+                continue
+            self._record(line)
+            if "daemon_ready" in line:
+                return
+        detail = "\n".join(self._output[-20:])
+        raise TimeoutError(f"Timed out waiting for quaid daemon_ready\n{detail}")
+
+    def _drain(self) -> None:
+        process = self._daemon
+        if process is None or process.stdout is None:
+            return
+        for line in process.stdout:
+            self._record(line)
+
+    def _record(self, line: str) -> None:
+        self._output.append(line.rstrip())
+        if len(self._output) > 200:
+            del self._output[: len(self._output) - 200]
+
+    def _stop(self) -> None:
+        process = self._daemon
+        drain_thread = self._drain_thread
+        self._daemon = None
+        self._drain_thread = None
+        if process and process.poll() is None:
+            process.kill()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                pass
+        if drain_thread and drain_thread.is_alive():
+            drain_thread.join(timeout=1)
 
 class QuaidBackend:
     """Quaid memory backend using the conversation memory pipeline."""
@@ -39,6 +205,7 @@ class QuaidBackend:
 
     def __init__(self, db_path: str):
         self.db_path = db_path
+        self.quaid_bin = os.environ.get("QUAID_BIN") or "quaid"
         self._env = {**os.environ, "QUAID_DB": db_path}
         self._workspace_dir = Path(tempfile.mkdtemp(prefix="locomo-quaid-"))
         self._vault_dir = self._workspace_dir / "vault"
@@ -49,7 +216,7 @@ class QuaidBackend:
 
     def _run_quaid(self, args: list[str], timeout: int = 120) -> subprocess.CompletedProcess:
         return subprocess.run(
-            ["quaid", *args],
+            [self.quaid_bin, *args],
             env=self._env,
             capture_output=True,
             text=True,
@@ -59,7 +226,10 @@ class QuaidBackend:
     def init(self) -> None:
         """Initialize a DB, configure a writable memory root, and enable extraction."""
         self._vault_dir.mkdir(parents=True, exist_ok=True)
-        self._run_quaid(["init", self.db_path], timeout=60)
+        result = self._run_quaid(["init", self.db_path], timeout=60)
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout).strip()
+            raise RuntimeError(f"quaid init failed: {detail}")
         self._configure_write_target()
 
         result = self._run_quaid(["extraction", "enable"], timeout=900)
@@ -131,18 +301,27 @@ class QuaidBackend:
         return True
 
     def flush_to_quaid(self) -> bool:
-        """Enqueue extraction for each ingested conversation session."""
+        """Close sessions and wait for daemon extraction to finish."""
         ok = True
         for session_id in sorted(self._sessions):
             try:
-                result = self._run_quaid(["extract", session_id], timeout=120)
+                result = self._run_quaid(
+                    ["call", "memory_close_session", json.dumps({"session_id": session_id})],
+                    timeout=30,
+                )
             except Exception as e:
-                print(f"Error triggering extraction for {session_id}: {e}", file=sys.stderr)
+                print(f"Error closing session for {session_id}: {e}", file=sys.stderr)
                 ok = False
                 continue
             if result.returncode != 0:
                 detail = (result.stderr or result.stdout).strip()
-                print(f"Error triggering extraction for {session_id}: {detail}", file=sys.stderr)
+                print(f"Error closing session for {session_id}: {detail}", file=sys.stderr)
+                ok = False
+        if ok and self._sessions:
+            try:
+                wait_for_extraction_completion(self.db_path, self._sessions, timeout_s=300)
+            except Exception as e:
+                print(f"Error waiting for extraction: {e}", file=sys.stderr)
                 ok = False
         return ok
 
@@ -323,12 +502,8 @@ Score the predicted answer on a scale from 0 to 1:
 - 0.0: Incorrect or missing key information
 
 Respond with ONLY a number between 0 and 1."""
-    try:
-        score_str = call_llm(prompt, model, provider).strip()
-        return float(score_str)
-    except (ValueError, Exception):
-        # Fallback: exact match check
-        return 1.0 if predicted.lower().strip() == ground_truth.lower().strip() else 0.0
+    score_str = call_llm(prompt, model, provider).strip()
+    return float(score_str)
 
 
 # ─── LoCoMo dataset loading ───────────────────────────────────────────────────
@@ -478,9 +653,9 @@ def run_locomo(
                     })
 
     print(f"  Added {backend._page_count} conversation turns")
-    print("  Triggering Quaid extraction...")
+    print("  Closing sessions and waiting for Quaid extraction...")
     if not backend.flush_to_quaid():
-        print("  WARNING: Quaid extraction trigger failed - results may be empty")
+        raise RuntimeError("Quaid extraction failed; refusing to record benchmark zeros")
 
     # Stage 2 & 3: Search + Evaluate
     questions = qa_pairs[:max_questions] if max_questions else qa_pairs
@@ -502,18 +677,8 @@ def run_locomo(
         context = backend.get_context(retrieved)
 
         # Answer
-        try:
-            predicted = generate_answer(context, question, answerer_model, provider)
-        except Exception as e:
-            print(f"  Warning: answer generation failed for q{i}: {e}", file=sys.stderr)
-            predicted = "I don't know"
-
-        # Judge
-        try:
-            score = judge_answer(question, predicted, ground_truth, judge_model, provider)
-        except Exception as e:
-            print(f"  Warning: judge failed for q{i}: {e}", file=sys.stderr)
-            score = 0.0
+        predicted = generate_answer(context, question, answerer_model, provider)
+        score = judge_answer(question, predicted, ground_truth, judge_model, provider)
 
         all_scores.append(score)
 
@@ -574,12 +739,13 @@ def main():
 
     print(f"Loaded: {len(conversations)} conversations, {len(qa_pairs)} QA pairs")
 
-    scores = run_locomo(
-        backend, conversations, qa_pairs,
-        args.answerer_model, args.judge_model, args.provider,
-        top_k=args.top_k,
-        max_questions=args.max_questions,
-    )
+    with QuaidDaemon(args.db):
+        scores = run_locomo(
+            backend, conversations, qa_pairs,
+            args.answerer_model, args.judge_model, args.provider,
+            top_k=args.top_k,
+            max_questions=args.max_questions,
+        )
 
     output = {
         "quaid_version": args.quaid_version,

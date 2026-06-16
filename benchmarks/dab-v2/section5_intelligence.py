@@ -13,6 +13,7 @@ Usage:
 
 import argparse
 import json
+import os
 import subprocess
 from pathlib import Path
 from datetime import date
@@ -126,7 +127,7 @@ def setup_contradiction_corpus(system: str, db: str) -> bool:
     if system == "quaid":
         try:
             r = subprocess.run(
-                ["quaid", "collection", "add", "contradictions", str(tmpdir), "--db", db],
+                [os.environ.get("QUAID_BIN") or "quaid", "collection", "add", "contradictions", str(tmpdir), "--db", db],
                 capture_output=True, text=True, timeout=30
             )
             return r.returncode == 0
@@ -142,7 +143,7 @@ def check_contradictions(system: str, db: str) -> int:
     
     try:
         r = subprocess.run(
-            ["quaid", "check", "--all", "--db", db, "--json"],
+            [os.environ.get("QUAID_BIN") or "quaid", "check", "--all", "--db", db, "--json"],
             capture_output=True, text=True, timeout=30
         )
         if r.returncode == 0 and r.stdout.strip():
@@ -168,14 +169,14 @@ def check_gap_tracking(system: str, db: str) -> dict:
     # Run a query about something not in DB to trigger gap logging
     try:
         subprocess.run(
-            ["quaid", "query", "nonexistent topic XYZ123 that definitely is not in corpus",
+            [os.environ.get("QUAID_BIN") or "quaid", "query", "nonexistent topic XYZ123 that definitely is not in corpus",
              "--db", db, "--limit", "1", "--json"],
             capture_output=True, text=True, timeout=10
         )
         
         # Check if gaps are logged
         r = subprocess.run(
-            ["quaid", "gaps", "--db", db, "--json"],
+            [os.environ.get("QUAID_BIN") or "quaid", "gaps", "--db", db, "--json"],
             capture_output=True, text=True, timeout=10
         )
         logged = r.returncode == 0 and r.stdout.strip() not in ("", "[]")
@@ -197,13 +198,13 @@ def check_write_safety(system: str, db: str) -> dict:
         slug = "test/write-safety-test"
         content1 = "---\ntitle: Write Safety Test\n---\n\nVersion 1 content."
         subprocess.run(
-            ["quaid", "put", slug, "--db", db],
+            [os.environ.get("QUAID_BIN") or "quaid", "put", slug, "--db", db],
             input=content1, capture_output=True, text=True, timeout=10
         )
         
         # Get the version
         r = subprocess.run(
-            ["quaid", "get", slug, "--db", db, "--json"],
+            [os.environ.get("QUAID_BIN") or "quaid", "get", slug, "--db", db, "--json"],
             capture_output=True, text=True, timeout=10
         )
         version = None
@@ -220,14 +221,14 @@ def check_write_safety(system: str, db: str) -> dict:
         # Try to update with wrong version - should fail
         content2 = "---\ntitle: Write Safety Test\nexpected_version: 99999\n---\n\nVersion 2 - wrong version."
         r_conflict = subprocess.run(
-            ["quaid", "put", slug, "--db", db, "--expected-version", "99999"],
+            [os.environ.get("QUAID_BIN") or "quaid", "put", slug, "--db", db, "--expected-version", "99999"],
             input=content2, capture_output=True, text=True, timeout=10
         )
         version_conflict_rejected = r_conflict.returncode != 0
         
         # Verify original content is intact
         r_check = subprocess.run(
-            ["quaid", "get", slug, "--db", db, "--json"],
+            [os.environ.get("QUAID_BIN") or "quaid", "get", slug, "--db", db, "--json"],
             capture_output=True, text=True, timeout=10
         )
         no_corruption = "Version 2" not in r_check.stdout
@@ -243,8 +244,16 @@ def check_mcp_tools(system: str, db: str) -> dict:
         return {"read": 0, "write": 0, "intelligence": 0, "metadata": 0}
     
     try:
+        quaid_bin = os.environ.get("QUAID_BIN") or "quaid"
         resp = subprocess.run(
-            ["sh", "-c", 'printf \'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}\n{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}\n{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}\n\' | QUAID_DB="' + db + '" timeout 5 quaid serve 2>/dev/null'],
+            [
+                "sh",
+                "-c",
+                'printf \'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}\n{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}\n{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}\n\' | QUAID_DB="$1" timeout 5 "$2" serve 2>/dev/null',
+                "sh",
+                db,
+                quaid_bin,
+            ],
             capture_output=True, text=True, timeout=10
         )
         

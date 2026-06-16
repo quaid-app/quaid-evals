@@ -14,8 +14,15 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SYSTEM="${MEMORY_CMD:-quaid}"
-VERSION=$(${SYSTEM} --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
+if [ "$SYSTEM" = "quaid" ]; then
+  QUAID_BIN="${QUAID_BIN:-quaid}"
+  SYSTEM_CMD="$QUAID_BIN"
+else
+  SYSTEM_CMD="$SYSTEM"
+fi
+VERSION=$(${SYSTEM_CMD} --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
 DATE=$(date +%Y-%m-%d)
 DB_PATH="/tmp/dab-v2-full-${SYSTEM}-${DATE}.db"
 CORPUS_DIR="/tmp/quaid-bench-corpus"
@@ -36,13 +43,20 @@ if [ ! -f "$CORPUS_DIR/passages/1. Projects/crypto/btc-price-analysis.md" ] 2>/d
   bash scripts/setup-corpus.sh
 fi
 
+if [ "$SYSTEM" = "quaid" ]; then
+  python3 "$SCRIPT_DIR/../common/preflight.py" \
+    --quaid-bin "$QUAID_BIN" \
+    --db "$DB_PATH" \
+    --corpus "$CORPUS_DIR"
+fi
+
 # Initialize DB
-[ "$SYSTEM" = "quaid" ] && quaid init "$DB_PATH" 2>/dev/null || true
+[ "$SYSTEM" = "quaid" ] && "$SYSTEM_CMD" init "$DB_PATH" 2>/dev/null || true
 
 # Run §1 + §2 (Phase 1 script)
 echo ""
 echo "Running §1 + §2 (Phase 1)..."
-MEMORY_CMD="$SYSTEM" DB_PATH="$DB_PATH" CORPUS_DIR="$CORPUS_DIR" \
+MEMORY_CMD="$SYSTEM" QUAID_BIN="${QUAID_BIN:-}" DB_PATH="$DB_PATH" CORPUS_DIR="$CORPUS_DIR" \
   bash benchmarks/dab-v2/run.sh 2>&1
 
 # Capture Phase 1 results
@@ -55,7 +69,7 @@ fi
 
 # Run §3 Conversation Memory
 echo ""
-/opt/homebrew/bin/python3 benchmarks/dab-v2/section3_conversation.py \
+QUAID_BIN="${QUAID_BIN:-}" /opt/homebrew/bin/python3 benchmarks/dab-v2/section3_conversation.py \
   --system "$SYSTEM" \
   --db "$DB_PATH" \
   --output "$RESULTS_DIR/s3-${SYSTEM}-${VERSION}-${DATE}.json" 2>&1
@@ -63,7 +77,7 @@ S3_SCORE=$(python3 -c "import json; d=json.load(open('$RESULTS_DIR/s3-${SYSTEM}-
 
 # Run §4 Knowledge Graph
 echo ""
-/opt/homebrew/bin/python3 benchmarks/dab-v2/section4_graph.py \
+QUAID_BIN="${QUAID_BIN:-}" /opt/homebrew/bin/python3 benchmarks/dab-v2/section4_graph.py \
   --system "$SYSTEM" \
   --db "$DB_PATH" \
   --output "$RESULTS_DIR/s4-${SYSTEM}-${VERSION}-${DATE}.json" 2>&1
@@ -71,7 +85,7 @@ S4_SCORE=$(python3 -c "import json; d=json.load(open('$RESULTS_DIR/s4-${SYSTEM}-
 
 # Run §5 Agent Intelligence
 echo ""
-/opt/homebrew/bin/python3 benchmarks/dab-v2/section5_intelligence.py \
+QUAID_BIN="${QUAID_BIN:-}" /opt/homebrew/bin/python3 benchmarks/dab-v2/section5_intelligence.py \
   --system "$SYSTEM" \
   --db "$DB_PATH" \
   --output "$RESULTS_DIR/s5-${SYSTEM}-${VERSION}-${DATE}.json" 2>&1
