@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import urllib.error
 from pathlib import Path
 import unittest
 
@@ -25,6 +26,7 @@ class BenchmarkHelperTests(unittest.TestCase):
         cls.lme = load_module("longmemeval_adapter", "benchmarks/longmemeval/quaid_adapter.py")
         cls.locomo = load_module("locomo_adapter", "benchmarks/locomo/quaid_adapter.py")
         cls.gbrain = load_module("gbrain_quaid_adapter", "benchmarks/gbrain-evals/quaid_adapter.py")
+        cls.collector = load_module("artifact_collector", "scripts/collect-benchmark-artifacts.py")
 
     def test_beam_context_uses_quaid_summary_fields(self):
         backend = self.beam.QuaidBackend("/tmp/unused.db")
@@ -145,6 +147,59 @@ class BenchmarkHelperTests(unittest.TestCase):
         self.assertEqual([text for text, _ in backend.added], ["useful"])
         self.assertEqual(scores["total_questions"], 1)
         self.assertEqual(scores["overall"], 1.0)
+
+    def test_artifact_download_drops_auth_after_redirect(self):
+        requests = []
+
+        class FakeOpener:
+            def open(self, request, timeout=30):
+                requests.append(request)
+                raise urllib.error.HTTPError(
+                    request.full_url,
+                    302,
+                    "Found",
+                    {"Location": "https://blob.example/artifact.zip?sig=abc"},
+                    None,
+                )
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return b"zip-bytes"
+
+        original_build_opener = self.collector.urllib.request.build_opener
+        original_urlopen = self.collector.urllib.request.urlopen
+        try:
+            self.collector.urllib.request.build_opener = lambda *_args: FakeOpener()
+
+            def fake_urlopen(request, timeout=120):
+                requests.append(request)
+                return FakeResponse()
+
+            self.collector.urllib.request.urlopen = fake_urlopen
+            dest = ROOT / ".tmp-artifact-test.zip"
+            try:
+                self.collector.download_zip(
+                    "https://api.github.com/repos/o/r/actions/artifacts/1/zip",
+                    "secret-token",
+                    dest,
+                )
+                self.assertEqual(dest.read_bytes(), b"zip-bytes")
+            finally:
+                if dest.exists():
+                    dest.unlink()
+        finally:
+            self.collector.urllib.request.build_opener = original_build_opener
+            self.collector.urllib.request.urlopen = original_urlopen
+
+        self.assertTrue(requests[0].has_header("Authorization"))
+        self.assertFalse(requests[1].has_header("Authorization"))
+        self.assertEqual(requests[1].full_url, "https://blob.example/artifact.zip?sig=abc")
 
 
 if __name__ == "__main__":

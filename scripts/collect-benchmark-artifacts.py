@@ -12,6 +12,7 @@ import os
 import shutil
 import tempfile
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -33,6 +34,13 @@ RESULT_PREFIXES = (
     "beam-",
 )
 
+REDIRECT_CODES = {301, 302, 303, 307, 308}
+
+
+class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
 
 def github_request(url: str, token: str) -> urllib.request.Request:
     return urllib.request.Request(
@@ -46,6 +54,25 @@ def github_request(url: str, token: str) -> urllib.request.Request:
     )
 
 
+def artifact_redirect_request(url: str, token: str) -> urllib.request.Request:
+    return urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {token}",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "User-Agent": "quaid-evals-artifact-collector",
+        },
+    )
+
+
+def plain_download_request(url: str) -> urllib.request.Request:
+    return urllib.request.Request(
+        url,
+        headers={"User-Agent": "quaid-evals-artifact-collector"},
+    )
+
+
 def read_json(url: str, token: str) -> dict:
     import json
 
@@ -54,7 +81,22 @@ def read_json(url: str, token: str) -> dict:
 
 
 def download_zip(url: str, token: str, dest: Path) -> None:
-    with urllib.request.urlopen(github_request(url, token), timeout=120) as response:
+    # GitHub's artifact API returns a 302 to a signed blob-storage URL. Keep the
+    # bearer token on the GitHub API request, then drop it for the signed URL.
+    opener = urllib.request.build_opener(NoRedirectHandler)
+    try:
+        with opener.open(artifact_redirect_request(url, token), timeout=30) as response:
+            dest.write_bytes(response.read())
+            return
+    except urllib.error.HTTPError as exc:
+        if exc.code not in REDIRECT_CODES:
+            raise
+        location = exc.headers.get("Location")
+        if not location:
+            raise RuntimeError(f"Artifact download redirect for {url} did not include Location") from exc
+        download_url = urllib.parse.urljoin(url, location)
+
+    with urllib.request.urlopen(plain_download_request(download_url), timeout=120) as response:
         dest.write_bytes(response.read())
 
 
