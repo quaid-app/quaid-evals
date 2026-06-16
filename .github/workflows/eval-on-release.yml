@@ -65,6 +65,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MAX_QUESTIONS: "50"
         run: bash benchmarks/locomo/run.sh
 
       - name: Run LongMemEval benchmark

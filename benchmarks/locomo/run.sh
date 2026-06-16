@@ -27,6 +27,10 @@ python3 "$SCRIPT_DIR/../common/preflight.py" \
 
 QUAID_VERSION=$("$QUAID_BIN" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
 OUTPUT="${RESULTS_DIR}/locomo-${QUAID_VERSION}-${DATE}.json"
+MAX_QUESTIONS_ARG=()
+if [ -n "${MAX_QUESTIONS:-}" ]; then
+  MAX_QUESTIONS_ARG=(--max-questions "$MAX_QUESTIONS")
+fi
 
 mkdir -p "$RESULTS_DIR"
 
@@ -52,6 +56,7 @@ QUAID_BIN="$QUAID_BIN" python3 "$OLDPWD/benchmarks/locomo/quaid_adapter.py" \
   --answerer-model "${ANSWERER_MODEL:-gpt-4o}" \
   --judge-model "${JUDGE_MODEL:-gpt-4o}" \
   --provider "${LLM_PROVIDER:-openai}" \
-  --top-k 50
+  --top-k 50 \
+  "${MAX_QUESTIONS_ARG[@]}"
 
 echo "Results written to: $OUTPUT"

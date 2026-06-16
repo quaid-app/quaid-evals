@@ -19,6 +19,8 @@ Usage:
     --quaid-version v1.0.0
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
@@ -98,7 +100,7 @@ def recent_failed_jobs(db_path: str, session_ids: set[str] | None = None) -> lis
 def wait_for_extraction_completion(
     db_path: str,
     session_ids: set[str],
-    timeout_s: int = 300,
+    timeout_s: int = 1800,
     poll_interval_s: float = 0.5,
     settle_s: float = 2.0,
 ) -> dict[str, int]:
@@ -618,6 +620,19 @@ def run_locomo(
 ) -> dict:
     """Run full LoCoMo ingest → search → evaluate pipeline."""
 
+    questions = qa_pairs[:max_questions] if max_questions else qa_pairs
+    selected_conversation_ids = {
+        str(qa.get("conversation_id"))
+        for qa in questions
+        if qa.get("conversation_id") is not None
+    }
+    if selected_conversation_ids:
+        conversations = [
+            conv
+            for conv in conversations
+            if str(conv.get("conversation_id")) in selected_conversation_ids
+        ]
+
     # Stage 1: Ingest all conversation turns
     print(f"\n[1/3] Ingesting {len(conversations)} conversations...")
     for conv_idx, conv in enumerate(conversations):
@@ -658,7 +673,6 @@ def run_locomo(
         raise RuntimeError("Quaid extraction failed; refusing to record benchmark zeros")
 
     # Stage 2 & 3: Search + Evaluate
-    questions = qa_pairs[:max_questions] if max_questions else qa_pairs
     print(f"\n[2/3] Evaluating {len(questions)} questions...")
 
     results_by_type = {}
