@@ -13,6 +13,10 @@ on:
         description: 'LoCoMo max questions (default: 50 for regular runs; leave blank for full set)'
         required: false
         default: '50'
+      locomo_extraction_timeout_seconds:
+        description: 'Seconds to wait for Quaid extraction before failing honestly'
+        required: false
+        default: '1800'
 
 concurrency:
   group: benchmark-locomo-${{ github.event.client_payload.version || inputs.quaid_version || github.run_id }}
@@ -47,6 +51,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           MAX_QUESTIONS: ${{ github.event.client_payload.locomo_max_questions || inputs.locomo_max_questions || '50' }}
+          LOCOMO_EXTRACTION_TIMEOUT_SECONDS: ${{ github.event.client_payload.locomo_extraction_timeout_seconds || inputs.locomo_extraction_timeout_seconds || '1800' }}
         run: bash benchmarks/locomo/run.sh
 
       - name: Generate report snapshot

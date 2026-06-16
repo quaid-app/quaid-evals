@@ -105,6 +105,8 @@ def wait_for_extraction_completion(
     settle_s: float = 2.0,
 ) -> dict[str, int]:
     deadline = time.time() + timeout_s
+    last_counts: dict[str, int] | None = None
+    last_report = 0.0
     while time.time() < deadline:
         counts = extraction_counts(db_path, session_ids)
         if counts["failed"] > 0:
@@ -112,6 +114,12 @@ def wait_for_extraction_completion(
                 "Extraction worker reported failed jobs: "
                 + json.dumps(recent_failed_jobs(db_path, session_ids), indent=2)
             )
+        now = time.time()
+        if counts != last_counts or now - last_report >= 30:
+            remaining = max(0, int(deadline - now))
+            print(f"  Extraction queue: {counts} ({remaining}s remaining)", flush=True)
+            last_counts = counts
+            last_report = now
         if counts["pending"] == 0 and counts["running"] == 0:
             time.sleep(settle_s)
             return extraction_counts(db_path, session_ids)
@@ -321,7 +329,8 @@ class QuaidBackend:
                 ok = False
         if ok and self._sessions:
             try:
-                wait_for_extraction_completion(self.db_path, self._sessions, timeout_s=300)
+                timeout_s = int(os.environ.get("LOCOMO_EXTRACTION_TIMEOUT_SECONDS", "1800"))
+                wait_for_extraction_completion(self.db_path, self._sessions, timeout_s=timeout_s)
             except Exception as e:
                 print(f"Error waiting for extraction: {e}", file=sys.stderr)
                 ok = False
