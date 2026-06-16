@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-16T09:12:15.886323Z",
+  "generated_at": "2026-06-16T09:24:52.453086Z",
   "latest": {
     "version": "0.23.0",
     "date": "2026-06-16",
@@ -12,6 +12,11 @@
       "gbrain_evals": {
         "p_at_5": 17.36,
         "r_at_5": 38.88
+      },
+      "longmemeval": {
+        "overall": 10.4,
+        "pass_rate": 18.8,
+        "status": "measured"
       }
     },
     "dab": {
@@ -3567,6 +3572,46 @@
           "r_at_k": 0.0
         }
       ]
+    },
+    "longmemeval": {
+      "metric": "qa",
+      "overall": 0.1042,
+      "pass_rate": 0.1875,
+      "total_questions": 48,
+      "by_type": {
+        "single-session-user": {
+          "avg": 0.0625,
+          "count": 8
+        },
+        "multi-session": {
+          "avg": 0.0,
+          "count": 8
+        },
+        "single-session-preference": {
+          "avg": 0.375,
+          "count": 8
+        },
+        "temporal-reasoning": {
+          "avg": 0.0,
+          "count": 8
+        },
+        "knowledge-update": {
+          "avg": 0.0625,
+          "count": 8
+        },
+        "single-session-assistant": {
+          "avg": 0.125,
+          "count": 8
+        }
+      },
+      "reference": {
+        "mem0_v3": {
+          "overall": 0.934,
+          "temporal_reasoning": 0.93,
+          "agent_recall": 1.0,
+          "source": "mem0ai/memory-benchmarks release notes"
+        }
+      }
     }
   },
   "history": [
@@ -47246,6 +47291,11 @@
         "gbrain_evals": {
           "p_at_5": 17.36,
           "r_at_5": 38.88
+        },
+        "longmemeval": {
+          "overall": 10.4,
+          "pass_rate": 18.8,
+          "status": "measured"
         }
       },
       "dab": {
@@ -50801,6 +50851,46 @@
             "r_at_k": 0.0
           }
         ]
+      },
+      "longmemeval": {
+        "metric": "qa",
+        "overall": 0.1042,
+        "pass_rate": 0.1875,
+        "total_questions": 48,
+        "by_type": {
+          "single-session-user": {
+            "avg": 0.0625,
+            "count": 8
+          },
+          "multi-session": {
+            "avg": 0.0,
+            "count": 8
+          },
+          "single-session-preference": {
+            "avg": 0.375,
+            "count": 8
+          },
+          "temporal-reasoning": {
+            "avg": 0.0,
+            "count": 8
+          },
+          "knowledge-update": {
+            "avg": 0.0625,
+            "count": 8
+          },
+          "single-session-assistant": {
+            "avg": 0.125,
+            "count": 8
+          }
+        },
+        "reference": {
+          "mem0_v3": {
+            "overall": 0.934,
+            "temporal_reasoning": 0.93,
+            "agent_recall": 1.0,
+            "source": "mem0ai/memory-benchmarks release notes"
+          }
+        }
       }
     }
   ],
@@ -50849,11 +50939,11 @@
     ]
   },
   "longmemeval": {
-    "version": "0.22.3",
-    "date": "2026-05-16",
+    "version": "0.23.0",
+    "date": "2026-06-16",
     "scores": {
-      "overall": 0.0,
-      "pass_rate": 0.0,
+      "overall": 10.4,
+      "pass_rate": 18.8,
       "total_questions": 48,
       "by_type": {
         "multi-session": {
@@ -50865,19 +50955,19 @@
           "count": 8
         },
         "knowledge-update": {
-          "score": 0.0,
+          "score": 6.2,
           "count": 8
         },
         "single-session-user": {
-          "score": 0.0,
+          "score": 6.2,
           "count": 8
         },
         "single-session-assistant": {
-          "score": 0.0,
+          "score": 12.5,
           "count": 8
         },
         "single-session-preference": {
-          "score": 0.0,
+          "score": 37.5,
           "count": 8
         }
       }
@@ -51094,6 +51184,42 @@
             },
             "single-session-preference": {
               "score": 0.0,
+              "count": 8
+            }
+          }
+        },
+        "status": "measured"
+      },
+      {
+        "version": "0.23.0",
+        "date": "2026-06-16",
+        "scores": {
+          "overall": 10.4,
+          "pass_rate": 18.8,
+          "total_questions": 48,
+          "by_type": {
+            "multi-session": {
+              "score": 0.0,
+              "count": 8
+            },
+            "temporal-reasoning": {
+              "score": 0.0,
+              "count": 8
+            },
+            "knowledge-update": {
+              "score": 6.2,
+              "count": 8
+            },
+            "single-session-user": {
+              "score": 6.2,
+              "count": 8
+            },
+            "single-session-assistant": {
+              "score": 12.5,
+              "count": 8
+            },
+            "single-session-preference": {
+              "score": 37.5,
               "count": 8
             }
           }
