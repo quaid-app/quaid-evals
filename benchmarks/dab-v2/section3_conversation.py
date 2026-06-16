@@ -19,6 +19,7 @@ Usage:
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -126,37 +127,51 @@ S3_4_PREFERENCES = [
 ]
 
 
+def run_quaid(db: str, args: list[str], **kwargs) -> subprocess.CompletedProcess:
+    env = {**os.environ, "QUAID_DB": db}
+    return subprocess.run([os.environ.get("QUAID_BIN") or "quaid", *args], env=env, **kwargs)
+
+
 def ingest_conversations(system: str, db: str, conversations: list) -> bool:
     """Try to ingest conversations into the memory system."""
     if system == "quaid":
-        # Try memory_add_turn via MCP if available, else skip
         try:
-            test = subprocess.run(
-                ["quaid", "memory_search", "test", "--db", db, "--limit", "1", "--json"],
-                capture_output=True, text=True, timeout=10
+            test_payload = {"session_id": "dab-v2-preflight", "role": "user", "content": "preflight"}
+            test = run_quaid(
+                db,
+                ["call", "memory_add_turn", json.dumps(test_payload)],
+                capture_output=True, text=True, timeout=10,
             )
             if test.returncode != 0:
+                detail = (test.stderr or test.stdout).strip()
+                print(f"  memory_add_turn unavailable: {detail}", file=sys.stderr)
                 return False
-            
-            # Write conversation turns as pages directly (pre-#105 workaround)
-            import tempfile, os
+
             for conv in conversations:
                 for i, turn in enumerate(conv["turns"]):
-                    slug = f"conversations/{conv['id']}/turn-{i:03d}"
-                    content = f"""---
-session_id: "{conv['id']}"
-turn_index: {i}
-role: "{turn['role']}"
-type: conversation_turn
----
-
-**{turn['role'].capitalize()}:** {turn['content']}
-"""
-                    # Use quaid put
-                    proc = subprocess.run(
-                        ["quaid", "put", slug, "--db", db],
-                        input=content, capture_output=True, text=True, timeout=10
+                    payload = {
+                        "session_id": conv["id"],
+                        "role": turn["role"],
+                        "content": turn["content"],
+                        "metadata": {
+                            "benchmark": "dab-v2",
+                            "turn_index": i,
+                        },
+                    }
+                    proc = run_quaid(
+                        db,
+                        ["call", "memory_add_turn", json.dumps(payload)],
+                        capture_output=True, text=True, timeout=10,
                     )
+                    if proc.returncode != 0:
+                        detail = (proc.stderr or proc.stdout).strip()
+                        print(f"  memory_add_turn failed for {conv['id']}#{i}: {detail}", file=sys.stderr)
+                        return False
+                run_quaid(
+                    db,
+                    ["call", "memory_close_session", json.dumps({"session_id": conv["id"]})],
+                    capture_output=True, text=True, timeout=10,
+                )
             return True
         except Exception:
             return False
@@ -179,14 +194,33 @@ type: conversation_turn
 def query_memory(system: str, db: str, query: str) -> str:
     """Query the memory system and return the top result text."""
     if system == "quaid":
-        result = subprocess.run(
-            ["quaid", "query", query, "--db", db, "--limit", "3", "--json"],
+        result = run_quaid(
+            db,
+            ["call", "memory_query", json.dumps({"query": query, "limit": 3}), "--json"],
             capture_output=True, text=True, timeout=15
         )
         if result.returncode == 0 and result.stdout.strip():
             try:
-                items = json.loads(result.stdout)
-                return " ".join(x.get("summary", x.get("title", "")) for x in items[:3])
+                parsed = json.loads(result.stdout)
+                if isinstance(parsed, dict):
+                    items = (
+                        parsed.get("results")
+                        or parsed.get("items")
+                        or parsed.get("memories")
+                        or parsed.get("matches")
+                        or [parsed]
+                    )
+                else:
+                    items = parsed
+                return " ".join(
+                    x.get("summary")
+                    or x.get("snippet")
+                    or x.get("content")
+                    or x.get("text")
+                    or x.get("title", "")
+                    for x in items[:3]
+                    if isinstance(x, dict)
+                )
             except Exception:
                 pass
     
@@ -276,6 +310,12 @@ def main():
     parser.add_argument("--db", default="/tmp/dab-v2-test.db")
     parser.add_argument("--output", default="results/s3-test.json")
     args = parser.parse_args()
+
+    if args.system == "quaid":
+        init = run_quaid(args.db, ["init", args.db], capture_output=True, text=True, timeout=30)
+        if init.returncode != 0:
+            detail = (init.stderr or init.stdout).strip()
+            raise RuntimeError(f"quaid init failed: {detail}")
 
     result = run_s3(args.system, args.db)
     result["system"] = args.system

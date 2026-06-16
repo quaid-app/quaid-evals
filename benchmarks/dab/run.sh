@@ -4,11 +4,23 @@
 
 set -euo pipefail
 
-QUAID_VERSION=$(quaid --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+QUAID_BIN="${QUAID_BIN:-quaid}"
 DATE=$(date +%Y-%m-%d)
 DB_PATH="/tmp/quaid-eval-dab-${DATE}.db"
 CORPUS_DIR="/tmp/quaid-bench-corpus"
 RESULTS_DIR="results"
+
+if [ ! -f "$CORPUS_DIR/queries.json" ]; then
+  CORPUS_DIR="$CORPUS_DIR" bash "$SCRIPT_DIR/../../scripts/setup-corpus.sh"
+fi
+
+python3 "$SCRIPT_DIR/../common/preflight.py" \
+  --quaid-bin "$QUAID_BIN" \
+  --db "$DB_PATH" \
+  --corpus "$CORPUS_DIR"
+
+QUAID_VERSION=$("$QUAID_BIN" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
 OUTPUT="${RESULTS_DIR}/dab-${QUAID_VERSION}-${DATE}.json"
 
 mkdir -p "$RESULTS_DIR"
@@ -18,24 +30,52 @@ echo "Quaid version: $QUAID_VERSION"
 echo "DB: $DB_PATH"
 echo "Corpus: $CORPUS_DIR"
 
+json_has_relevant_hit() {
+  local query="$1"
+  python3 -c '
+import json, re, sys
+query = sys.argv[1].lower()
+tokens = {t for t in re.findall(r"[a-z0-9]+", query) if len(t) > 3}
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    print("invalid")
+    raise SystemExit(0)
+if isinstance(data, dict):
+    data = data.get("results") or data.get("items") or data.get("matches") or []
+if not isinstance(data, list) or not data:
+    print("miss")
+    raise SystemExit(0)
+for item in data[:5]:
+    if not isinstance(item, dict):
+        continue
+    text = " ".join(str(item.get(k, "")) for k in ("title", "slug", "summary", "snippet", "content", "text")).lower()
+    if not tokens or any(t in text for t in tokens):
+        print("hit")
+        raise SystemExit(0)
+print("miss")
+' "$query"
+}
+
 # Section 1: Install check (already installed)
 echo ""
 echo "[1/8] Install check..."
-quaid --version && INSTALL_SCORE=10 || INSTALL_SCORE=0
+"$QUAID_BIN" --version && INSTALL_SCORE=10 || INSTALL_SCORE=0
 echo "Install score: $INSTALL_SCORE/10"
 
 # Section 2: Collection add
 echo ""
 echo "[2/8] Collection add..."
+"$QUAID_BIN" init "$DB_PATH" >/dev/null
 START=$(date +%s%3N)
-if quaid collection add docs "$CORPUS_DIR" --db "$DB_PATH" 2>&1; then
+if "$QUAID_BIN" collection add docs "$CORPUS_DIR" --db "$DB_PATH" 2>&1; then
   END=$(date +%s%3N)
   COLLECTION_ELAPSED=$(( END - START ))
   IMPORT_SCORE=30
   echo "Collection add: ${COLLECTION_ELAPSED}ms"
   # Generate embeddings for semantic search
   echo "  Generating embeddings..."
-  quaid embed --db "$DB_PATH" 2>&1 | tail -1
+  "$QUAID_BIN" embed --db "$DB_PATH" 2>&1 | tail -1
 else
   COLLECTION_ELAPSED=99999
   IMPORT_SCORE=0
@@ -57,11 +97,11 @@ FTS_QUERIES=(
 FTS_PASS=0
 for QUERY in "${FTS_QUERIES[@]}"; do
   START=$(date +%s%3N)
-  RESULT=$(quaid search "$QUERY" --db "$DB_PATH" --limit 5 --json 2>/dev/null || echo "")
+  RESULT=$("$QUAID_BIN" search "$QUERY" --db "$DB_PATH" --limit 5 --json 2>/dev/null || echo "")
   END=$(date +%s%3N)
   ELAPSED=$(( END - START ))
   FTS_LATENCY=$(( FTS_LATENCY + ELAPSED ))
-  if [ -n "$RESULT" ]; then
+  if [ "$(printf '%s' "$RESULT" | json_has_relevant_hit "$QUERY")" = "hit" ]; then
     FTS_PASS=$(( FTS_PASS + 1 ))
   fi
 done
@@ -85,11 +125,11 @@ SEM_QUERIES=(
 SEM_PASS=0
 for QUERY in "${SEM_QUERIES[@]}"; do
   START=$(date +%s%3N)
-  RESULT=$(quaid query "$QUERY" --db "$DB_PATH" --limit 5 --json 2>/dev/null || echo "")
+  RESULT=$("$QUAID_BIN" query "$QUERY" --db "$DB_PATH" --limit 5 --json 2>/dev/null || echo "")
   END=$(date +%s%3N)
   ELAPSED=$(( END - START ))
   SEM_LATENCY=$(( SEM_LATENCY + ELAPSED ))
-  if [ -n "$RESULT" ]; then
+  if [ "$(printf '%s' "$RESULT" | json_has_relevant_hit "$QUERY")" = "hit" ]; then
     SEM_PASS=$(( SEM_PASS + 1 ))
   fi
 done
@@ -109,7 +149,7 @@ echo "Performance score: $PERF_SCORE/30"
 # Section 6: Integrity
 echo ""
 echo "[6/8] Integrity check..."
-PAGE_COUNT=$(quaid list --db "$DB_PATH" --limit 99999 --json 2>/dev/null | python3 -c "import json,sys; data=json.load(sys.stdin); print(len(data))" 2>/dev/null || echo "0")
+PAGE_COUNT=$("$QUAID_BIN" list --db "$DB_PATH" --limit 99999 --json 2>/dev/null | python3 -c "import json,sys; data=json.load(sys.stdin); print(len(data))" 2>/dev/null || echo "0")
 if [ "$PAGE_COUNT" -gt 0 ]; then
   INTEGRITY_SCORE=20
   echo "Integrity: $PAGE_COUNT pages indexed"
@@ -121,7 +161,7 @@ fi
 # Section 7: Collections
 echo ""
 echo "[7/8] Collections check..."
-if quaid collection list --db "$DB_PATH" 2>/dev/null | grep -q "docs"; then
+if "$QUAID_BIN" collection list --db "$DB_PATH" 2>/dev/null | grep -q "docs"; then
   COLLECTIONS_SCORE=15
   echo "Collections: docs collection found"
 else
@@ -133,10 +173,10 @@ fi
 echo ""
 echo "[8/8] MCP server check..."
 MCP_SCORE=0
-if command -v quaid &>/dev/null; then
+if command -v "$QUAID_BIN" &>/dev/null; then
   # MCP stdio server: send a JSON-RPC initialize request, check for valid response
   MCP_REQUEST='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
-  MCP_RESPONSE=$(echo "$MCP_REQUEST" | QUAID_DB="$DB_PATH" timeout 5 quaid serve 2>/dev/null || echo "")
+  MCP_RESPONSE=$(echo "$MCP_REQUEST" | QUAID_DB="$DB_PATH" timeout 5 "$QUAID_BIN" serve 2>/dev/null || echo "")
   if echo "$MCP_RESPONSE" | grep -q '"result"'; then
     MCP_SCORE=20
     echo "MCP: server responded to initialize (20/20)"

@@ -39,12 +39,13 @@ from pathlib import Path
 class QuaidBackend:
     def __init__(self, db_path: str):
         self.db_path = db_path
+        self.quaid_bin = os.environ.get("QUAID_BIN") or "quaid"
         self._tmp_dir = None
         self._page_count = 0
         self._env = {**os.environ, "QUAID_DB": db_path}
 
     def init(self):
-        subprocess.run(["quaid", "init", self.db_path], env=self._env, capture_output=True)
+        subprocess.run([self.quaid_bin, "init", self.db_path], env=self._env, capture_output=True)
 
     def reset(self):
         """Clear DB for a fresh per-conversation ingest."""
@@ -67,20 +68,20 @@ class QuaidBackend:
         if not self._tmp_dir or self._page_count == 0:
             return False
         r = subprocess.run(
-            ["quaid", "collection", "add", "beam", self._tmp_dir, "--db", self.db_path],
+            [self.quaid_bin, "collection", "add", "beam", self._tmp_dir, "--db", self.db_path],
             env=self._env, capture_output=True, text=True, timeout=300
         )
         if r.returncode != 0:
             return False
         e = subprocess.run(
-            ["quaid", "embed", "--db", self.db_path],
+            [self.quaid_bin, "embed", "--db", self.db_path],
             env=self._env, capture_output=True, text=True, timeout=300
         )
         return e.returncode == 0
 
     def query(self, q: str, top_k: int = 20) -> list:
         r = subprocess.run(
-            ["quaid", "query", q, "--db", self.db_path, "--limit", str(top_k), "--json"],
+            [self.quaid_bin, "query", q, "--db", self.db_path, "--limit", str(top_k), "--json"],
             env=self._env, capture_output=True, text=True, timeout=30
         )
         if r.returncode != 0:
@@ -91,7 +92,11 @@ class QuaidBackend:
             return []
 
     def get_context(self, results: list) -> str:
-        parts = [r.get("content", r.get("text", "")).strip() for r in results if r.get("content") or r.get("text")]
+        parts = []
+        for r in results:
+            content = result_text(r)
+            if content:
+                parts.append(content)
         return "\n\n".join(parts[:15]) or "No relevant memories found."
 
     def token_count(self, results: list) -> int:
@@ -123,6 +128,21 @@ def call_llm(prompt: str, model: str, provider: str) -> str:
     raise ValueError(f"Unknown provider: {provider}")
 
 
+def result_text(result: dict) -> str:
+    """Return the most useful text payload from a Quaid result."""
+    for key in ("content", "text", "compiled_truth", "summary", "snippet", "title"):
+        value = result.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    metadata = result.get("metadata")
+    if isinstance(metadata, dict):
+        for key in ("content", "text", "summary", "snippet", "title"):
+            value = metadata.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return ""
+
+
 def generate_answer(context: str, question: str, model: str, provider: str) -> str:
     prompt = f"""You are answering a question based on conversation memories.
 
@@ -132,10 +152,7 @@ Memories:
 Question: {question}
 
 Answer concisely (1-2 sentences):"""
-    try:
-        return call_llm(prompt, model, provider)
-    except Exception as e:
-        return f"Error: {e}"
+    return call_llm(prompt, model, provider)
 
 
 def judge_answer(question: str, predicted: str, ground_truth: str, model: str, provider: str) -> float:
@@ -146,10 +163,7 @@ Ground truth: {ground_truth}
 Predicted: {predicted}
 
 Score 0-1 (0=wrong, 0.5=partial, 1=correct). Reply with only the number:"""
-    try:
-        return float(call_llm(prompt, model, provider).strip())
-    except Exception:
-        return 0.0
+    return float(call_llm(prompt, model, provider).strip())
 
 
 # ─── Dataset loading ──────────────────────────────────────────────────────────

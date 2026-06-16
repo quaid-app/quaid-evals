@@ -19,6 +19,7 @@ Usage:
 
 import argparse
 import json
+import os
 import subprocess
 from pathlib import Path
 from datetime import date
@@ -123,11 +124,11 @@ def setup_graph_corpus(system: str, db: str) -> bool:
     if system == "quaid":
         try:
             r = subprocess.run(
-                ["quaid", "collection", "add", "graph-test", tmpdir, "--db", db],
+                [os.environ.get("QUAID_BIN") or "quaid", "collection", "add", "graph-test", tmpdir, "--db", db],
                 capture_output=True, text=True, timeout=30
             )
             if r.returncode == 0:
-                subprocess.run(["quaid", "embed", "--db", db], capture_output=True, timeout=60)
+                subprocess.run([os.environ.get("QUAID_BIN") or "quaid", "embed", "--db", db], capture_output=True, timeout=60)
                 return True
         except Exception:
             pass
@@ -149,7 +150,7 @@ def graph_query(system: str, db: str, query: str) -> str:
     """Run a query and return text of results."""
     cmd = None
     if system == "quaid":
-        cmd = ["quaid", "query", query, "--db", db, "--limit", "3", "--json"]
+        cmd = [os.environ.get("QUAID_BIN") or "quaid", "query", query, "--db", db, "--limit", "3", "--json"]
     elif system == "gbrain":
         cmd = ["gbrain", "query", query, "--db", db, "--limit", "3", "--json"]
     
@@ -173,7 +174,7 @@ def check_graph_edges(system: str, db: str) -> float:
             for slug in GRAPH_PAGES:
                 # Check if any links exist for this page
                 r = subprocess.run(
-                    ["quaid", "graph", slug, "--db", db, "--depth", "1", "--json"],
+                    [os.environ.get("QUAID_BIN") or "quaid", "graph", slug, "--db", db, "--depth", "1", "--json"],
                     capture_output=True, text=True, timeout=10
                 )
                 if r.returncode == 0 and r.stdout.strip():

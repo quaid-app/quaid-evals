@@ -12,7 +12,8 @@
 
 set -euo pipefail
 
-QUAID_VERSION=$(quaid --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+QUAID_BIN="${QUAID_BIN:-quaid}"
 DATE=$(date +%Y-%m-%d)
 METRIC="${METRIC:-qa}"
 if [[ "$METRIC" == "recall" ]]; then
@@ -23,6 +24,19 @@ fi
 TOP_K="${TOP_K:-$DEFAULT_TOP_K}"
 DB_BASE="/tmp/quaid-eval-lme-${DATE}"
 RESULTS_DIR="${RESULTS_DIR:-results}"
+
+PREFLIGHT_ARGS=(
+  --quaid-bin "$QUAID_BIN"
+  --db "${DB_BASE}.db"
+  --provider "${LLM_PROVIDER:-openai}"
+  --needs-extraction
+)
+if [[ "$METRIC" == "qa" ]]; then
+  PREFLIGHT_ARGS+=(--needs-llm)
+fi
+python3 "$SCRIPT_DIR/../common/preflight.py" "${PREFLIGHT_ARGS[@]}"
+
+QUAID_VERSION=$("$QUAID_BIN" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
 OUTPUT="${RESULTS_DIR}/longmemeval-${METRIC}-${QUAID_VERSION}-${DATE}.json"
 
 mkdir -p "$RESULTS_DIR"
@@ -36,17 +50,7 @@ else
   echo "Provider: not used in recall mode"
 fi
 
-# Download and cache the extraction model (Phi-3.5 Mini) before running the benchmark.
-# quaid extraction enable requires a DB - create a temp one just for model priming.
-# Without this the daemon extraction worker silently idles (model binary missing).
-echo "Priming extraction model cache (downloads Phi-3.5 Mini if not cached)..."
-PRIME_DB="/tmp/quaid-model-prime.db"
-quaid --db "$PRIME_DB" init "$PRIME_DB" 2>/dev/null || true
-quaid --db "$PRIME_DB" extraction enable || { echo "ERROR: quaid extraction enable failed - extraction will not work"; exit 1; }
-rm -f "$PRIME_DB"
-echo "Model ready."
-
-python3 "$(dirname "$0")/quaid_adapter.py" \
+QUAID_BIN="$QUAID_BIN" python3 "$SCRIPT_DIR/quaid_adapter.py" \
   --db "$DB_BASE" \
   --output "$OUTPUT" \
   --quaid-version "$QUAID_VERSION" \

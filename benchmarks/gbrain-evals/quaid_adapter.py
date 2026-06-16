@@ -25,13 +25,14 @@ class QuaidBackend:
 
     def __init__(self, db_path: str):
         self.db_path = db_path
+        self.quaid_bin = os.environ.get("QUAID_BIN") or "quaid"
 
     def search(self, query: str, top_k: int = 5) -> list[dict]:
         """Run hybrid search via Quaid CLI. Returns list of result dicts with slug/title."""
         # Try semantic query first (requires embeddings), fall back to FTS search
         for cmd in [
-            ["quaid", "query", query, "--db", self.db_path, "--limit", str(top_k), "--json"],
-            ["quaid", "search", query, "--db", self.db_path, "--limit", str(top_k), "--json"],
+            [self.quaid_bin, "query", query, "--db", self.db_path, "--limit", str(top_k), "--json"],
+            [self.quaid_bin, "search", query, "--db", self.db_path, "--limit", str(top_k), "--json"],
         ]:
             try:
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -131,12 +132,12 @@ def run_evaluation(backend, queries: list[dict], k: int = 5) -> dict:
         if all_relevant:
             hits = set(r for r in retrieved if r in all_relevant)
             hit_count = len(hits)  # unique hits only
-            p = hit_count / k
-            r = hit_count / len(relevant_ids) if relevant_ids else (1.0 if retrieved else 0.0)
+            p = min(hit_count / k, 1.0)
+            r = min(hit_count / len(all_relevant), 1.0)
         else:
-            # No ground truth: score 1.0 if any results returned
-            p = 1.0 if pages else 0.0
-            r = 1.0 if pages else 0.0
+            raise ValueError(
+                f"Query {q.get('id')} has no ground truth; refusing fallback score from non-empty results"
+            )
 
         p_scores.append(p)
         r_scores.append(r)

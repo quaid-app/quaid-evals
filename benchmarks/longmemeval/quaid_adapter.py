@@ -57,6 +57,7 @@ class SharedDaemon:
 
     def __init__(self, db_path: str, cleanup_on_exit: bool = False):
         self.db_path = db_path
+        self.quaid_bin = os.environ.get("QUAID_BIN") or "quaid"
         self._cleanup_on_exit = cleanup_on_exit
         self._daemon: subprocess.Popen[str] | None = None
         self._daemon_output: list[str] = []
@@ -66,7 +67,7 @@ class SharedDaemon:
     def __enter__(self) -> "SharedDaemon":
         # Init the shared DB
         result = subprocess.run(
-            ["quaid", "init", self.db_path],
+            [self.quaid_bin, "init", self.db_path],
             env=self._env,
             capture_output=True,
             text=True,
@@ -79,7 +80,7 @@ class SharedDaemon:
         # Start the daemon
         self._daemon_output = []
         self._daemon = subprocess.Popen(
-            ["quaid", "daemon", "run", "--http", "--trust-loopback"],
+            [self.quaid_bin, "daemon", "run", "--http", "--trust-loopback"],
             env=self._env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -284,6 +285,7 @@ class QuaidBackend:
     def __init__(self, db_path: str, namespace: str | None = None):
         self.db_path = db_path
         self.namespace = namespace
+        self.quaid_bin = os.environ.get("QUAID_BIN") or "quaid"
         self._workspace_dir = Path(tempfile.mkdtemp(prefix="lme-quaid-"))
         self._vault_dir = self._workspace_dir / "vault"
         self._page_count = 0
@@ -305,7 +307,7 @@ class QuaidBackend:
 
     def _run_quaid(self, args: list[str], timeout: int = 120) -> subprocess.CompletedProcess:
         return subprocess.run(
-            ["quaid", *args],
+            [self.quaid_bin, *args],
             env=self._env,
             capture_output=True,
             text=True,
@@ -421,22 +423,13 @@ class QuaidBackend:
             pass
 
     def search(self, query: str, top_k: int = 20, recall: bool = False) -> list:
-        if recall:
-            payload: dict = {"query": query, "limit": top_k}
-            if self.namespace:
-                payload["namespace"] = self.namespace
-            result = self._run_quaid(
-                ["call", "memory_query", json.dumps(payload), "--json"],
-                timeout=30,
-            )
-        else:
-            # For QA mode: search without namespace restriction so extracted
-            # conversation facts (which land in the default namespace) are
-            # returned alongside any per-question namespace pages.
-            result = self._run_quaid(
-                ["query", query, "--json", "--limit", str(top_k)],
-                timeout=30,
-            )
+        payload: dict = {"query": query, "limit": top_k}
+        if self.namespace:
+            payload["namespace"] = self.namespace
+        result = self._run_quaid(
+            ["call", "memory_query", json.dumps(payload), "--json"],
+            timeout=30,
+        )
         if result.returncode != 0:
             return []
         try:
@@ -481,7 +474,10 @@ class QuaidBackend:
 
     def _session_id(self, metadata: dict) -> str:
         session_id = metadata.get("session_id", "unknown")
-        return f"lme-session-{session_id}"
+        normalized = f"lme-session-{session_id}"
+        if self.namespace:
+            return f"{self.namespace}-{normalized}"
+        return normalized
 
     def _role_for(self, role: str) -> str:
         normalized = str(role or "").strip().lower()
@@ -557,10 +553,7 @@ Memories:
 Question: {question}
 
 Answer concisely (1-2 sentences max):"""
-    try:
-        return call_llm(prompt, model, provider)
-    except Exception as e:
-        return f"Error: {e}"
+    return call_llm(prompt, model, provider)
 
 
 def judge_answer(question: str, predicted: str, ground_truth: str, model: str, provider: str) -> float:
@@ -571,11 +564,8 @@ Ground truth: {ground_truth}
 Predicted: {predicted}
 
 Score from 0 to 1 (0=wrong, 0.5=partial, 1=correct). Reply with only the number:"""
-    try:
-        score_str = call_llm(prompt, model, provider).strip()
-        return float(score_str)
-    except Exception:
-        return 0.0
+    score_str = call_llm(prompt, model, provider).strip()
+    return float(score_str)
 
 
 # ─── Dataset loading ──────────────────────────────────────────────────────────
@@ -621,6 +611,9 @@ CONVERSATION_PATH_SESSION_RE = re.compile(
 
 def normalize_lme_session_id(session_id) -> str:
     value = str(session_id).strip()
+    marker = "lme-session-"
+    if marker in value and not value.startswith(marker):
+        value = value[value.index(marker):]
     if value.startswith("lme-session-"):
         return value
     return f"lme-session-{value}"
@@ -906,7 +899,7 @@ def main():
     if args.metric == "recall":
         print("NOTE: Uses Quaid conversation memory: memory_add_turn -> daemon extraction -> memory_query")
     else:
-        print("NOTE: Uses Quaid conversation memory: memory_add_turn -> daemon extraction -> query")
+        print("NOTE: Uses Quaid conversation memory: memory_add_turn -> daemon extraction -> memory_query")
     print()
 
     questions = load_longmemeval(args.max_questions)
