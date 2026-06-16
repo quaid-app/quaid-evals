@@ -2,7 +2,7 @@
   <h1>Quaid Evals</h1>
   <p><strong>Automated benchmark suite for <a href="https://quaid.app">Quaid</a> — the local-first persistent memory system for AI agents.</strong></p>
 
-  <a href="https://github.com/quaid-app/quaid-evals/actions"><img src="https://github.com/quaid-app/quaid-evals/workflows/Run%20Benchmarks%20(Manual)/badge.svg" alt="Benchmarks"></a>
+  <a href="https://github.com/quaid-app/quaid-evals/actions"><img src="https://github.com/quaid-app/quaid-evals/workflows/Publish%20Benchmark%20Dashboard/badge.svg" alt="Benchmark dashboard"></a>
   <a href="https://github.com/quaid-app/quaid-evals/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
   <a href="https://quaid-app.github.io/quaid-evals"><img src="https://img.shields.io/badge/results-live-brightgreen" alt="Live Results"></a>
   <a href="https://github.com/quaid-app/quaid"><img src="https://img.shields.io/badge/quaid-v0.9.9-orange" alt="Quaid Version"></a>
@@ -101,10 +101,11 @@ bash benchmarks/locomo/run.sh
 
 Benchmarks run automatically via GitHub Actions:
 
-- **On demand**: [Run Benchmarks (Manual)](https://github.com/quaid-app/quaid-evals/actions/workflows/eval-manual.yml) — pick a version, pick which benchmarks
-- **On release**: Triggered via `repository_dispatch` when Quaid ships a new release
+- **On demand**: Run the individual benchmark workflow for [DAB](https://github.com/quaid-app/quaid-evals/actions/workflows/benchmark-dab.yml), [gbrain-evals](https://github.com/quaid-app/quaid-evals/actions/workflows/benchmark-gbrain-evals.yml), [LoCoMo](https://github.com/quaid-app/quaid-evals/actions/workflows/benchmark-locomo.yml), [LongMemEval](https://github.com/quaid-app/quaid-evals/actions/workflows/benchmark-longmemeval.yml), or [BEAM](https://github.com/quaid-app/quaid-evals/actions/workflows/benchmark-beam.yml)
+- **On release**: `repository_dispatch` starts the matching independent benchmark workflows when Quaid ships a new release
+- **Dashboard publish**: [Publish Benchmark Dashboard](https://github.com/quaid-app/quaid-evals/actions/workflows/deploy-site.yml) can be run manually and also runs after each benchmark workflow completes
 
-Results are committed to `results/` and the site redeploys automatically to [quaid-app.github.io/quaid-evals](https://quaid-app.github.io/quaid-evals).
+Each benchmark uploads its JSON result and report snapshot as an artifact. The dashboard workflow downloads the latest available artifacts, merges any new JSON into `results/`, regenerates `site/src/data/report.json`, commits those files, and deploys [benchmark.quaid.app](https://benchmark.quaid.app). A slow or failed benchmark no longer blocks fresh results from the others.
 
 ---
 
@@ -116,6 +117,7 @@ quaid-evals/
 │   ├── dab/            DAB: FTS + semantic + MCP + performance (215 pts max)
 │   ├── gbrain-evals/   P@5 / R@5 on MSMARCO dev (same harness as GBrain)
 │   ├── locomo/         Multi-session conversational memory recall
+│   ├── longmemeval/    Long-range conversational memory QA and recall
 │   └── beam/           Extreme-scale memory (100K–10M tokens)
 ├── scripts/
 │   ├── install-quaid.sh        Download binary or build from source

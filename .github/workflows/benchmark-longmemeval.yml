@@ -1,0 +1,70 @@
+name: Benchmark - LongMemEval
+
+on:
+  repository_dispatch:
+    types: [quaid-released]
+  workflow_dispatch:
+    inputs:
+      quaid_version:
+        description: 'Quaid version to test (e.g. v1.0.0 or "latest")'
+        required: false
+        default: 'latest'
+      lme_max_questions:
+        description: 'LongMemEval max questions (default: 50 for regular runs; leave blank for full 500)'
+        required: false
+        default: '50'
+      lme_metric:
+        description: 'LongMemEval metric: qa (default) or recall (R@5 retrieval recall, no LLM needed)'
+        required: false
+        default: 'qa'
+
+concurrency:
+  group: benchmark-longmemeval-${{ github.event.client_payload.version || inputs.quaid_version || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    if: github.event_name == 'workflow_dispatch' || github.event.client_payload.benchmarks == null || github.event.client_payload.benchmarks == '' || contains(github.event.client_payload.benchmarks, 'longmemeval')
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Quaid
+        run: bash scripts/install-quaid.sh "${{ github.event.client_payload.version || inputs.quaid_version || 'latest' }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Run LongMemEval benchmark
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MAX_QUESTIONS: ${{ github.event.client_payload.lme_max_questions || inputs.lme_max_questions || '50' }}
+          METRIC: ${{ github.event.client_payload.lme_metric || inputs.lme_metric || 'qa' }}
+        run: bash benchmarks/longmemeval/run.sh
+
+      - name: Generate report snapshot
+        if: always()
+        run: python scripts/generate-report.py
+
+      - name: Upload benchmark outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-longmemeval
+          path: |
+            results/longmemeval-*.json
+            site/src/data/report.json
+          if-no-files-found: warn
+          retention-days: 30
