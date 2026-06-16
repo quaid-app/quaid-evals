@@ -1,12 +1,25 @@
-name: Deploy Site
+name: Publish Benchmark Dashboard
 
 on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Benchmark - DAB
+      - Benchmark - gbrain-evals
+      - Benchmark - LoCoMo
+      - Benchmark - LongMemEval
+      - Benchmark - BEAM
+    types: [completed]
   push:
     branches: [main]
     paths:
       - 'site/**'
       - 'scripts/generate-report.py'
-  workflow_dispatch:
+      - 'scripts/collect-benchmark-artifacts.py'
+
+concurrency:
+  group: publish-benchmark-dashboard
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -15,24 +28,41 @@ jobs:
       contents: write
       pages: write
       id-token: write
+      actions: read
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install Python dependencies
         run: pip install -r scripts/requirements.txt
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - name: Collect latest benchmark artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python scripts/collect-benchmark-artifacts.py
 
       - name: Generate report
         run: python scripts/generate-report.py
+
+      - name: Commit results
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "benchmark: publish latest dashboard results [skip ci]"
+          file_pattern: 'results/*.json site/src/data/*.json'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Install site dependencies
         working-directory: site
@@ -46,7 +76,7 @@ jobs:
         run: echo "benchmark.quaid.app" > site/dist/CNAME
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: site/dist

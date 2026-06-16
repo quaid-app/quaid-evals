@@ -1,0 +1,60 @@
+name: Benchmark - gbrain-evals
+
+on:
+  repository_dispatch:
+    types: [quaid-released]
+  workflow_dispatch:
+    inputs:
+      quaid_version:
+        description: 'Quaid version to test (e.g. v1.0.0 or "latest")'
+        required: false
+        default: 'latest'
+
+concurrency:
+  group: benchmark-gbrain-evals-${{ github.event.client_payload.version || inputs.quaid_version || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    if: github.event_name == 'workflow_dispatch' || github.event.client_payload.benchmarks == null || github.event.client_payload.benchmarks == '' || contains(github.event.client_payload.benchmarks, 'gbrain-evals')
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Quaid
+        run: bash scripts/install-quaid.sh "${{ github.event.client_payload.version || inputs.quaid_version || 'latest' }}"
+
+      - name: Set up corpus
+        run: bash scripts/setup-corpus.sh
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Run gbrain-evals benchmark
+        run: bash benchmarks/gbrain-evals/run.sh
+
+      - name: Generate report snapshot
+        if: always()
+        run: python scripts/generate-report.py
+
+      - name: Upload benchmark outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-gbrain-evals
+          path: |
+            results/gbrain-evals-*.json
+            site/src/data/report.json
+          if-no-files-found: warn
+          retention-days: 30
