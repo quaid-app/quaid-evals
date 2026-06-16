@@ -23,6 +23,7 @@ class BenchmarkHelperTests(unittest.TestCase):
     def setUpClass(cls):
         cls.beam = load_module("beam_adapter", "benchmarks/beam/beam_adapter.py")
         cls.lme = load_module("longmemeval_adapter", "benchmarks/longmemeval/quaid_adapter.py")
+        cls.locomo = load_module("locomo_adapter", "benchmarks/locomo/quaid_adapter.py")
         cls.gbrain = load_module("gbrain_quaid_adapter", "benchmarks/gbrain-evals/quaid_adapter.py")
 
     def test_beam_context_uses_quaid_summary_fields(self):
@@ -81,6 +82,69 @@ class BenchmarkHelperTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             self.gbrain.run_evaluation(Backend(), [{"id": "q1", "query": "fallback"}], k=5)
+
+    def test_locomo_max_questions_filters_ingested_conversations(self):
+        class Backend:
+            def __init__(self):
+                self.added = []
+                self._page_count = 0
+
+            def add(self, text, metadata):
+                self.added.append((text, metadata))
+                self._page_count += 1
+                return True
+
+            def flush_to_quaid(self):
+                return True
+
+            def search(self, _question, top_k=50):
+                return [{"summary": "answer is red"}]
+
+            def get_context(self, results):
+                return results[0]["summary"]
+
+        backend = Backend()
+        conversations = [
+            {
+                "conversation_id": "keep",
+                "sessions": [{
+                    "session_id": 1,
+                    "turns": [{"speaker": "A", "text": "useful"}],
+                }],
+            },
+            {
+                "conversation_id": "skip",
+                "sessions": [{
+                    "session_id": 1,
+                    "turns": [{"speaker": "A", "text": "expensive"}],
+                }],
+            },
+        ]
+        qa_pairs = [
+            {"conversation_id": "keep", "question": "color?", "answer": "red", "type": "single-hop"},
+        ]
+
+        original_generate = self.locomo.generate_answer
+        original_judge = self.locomo.judge_answer
+        try:
+            self.locomo.generate_answer = lambda *_args, **_kwargs: "red"
+            self.locomo.judge_answer = lambda *_args, **_kwargs: 1.0
+            scores = self.locomo.run_locomo(
+                backend,
+                conversations,
+                qa_pairs,
+                "unused-answerer",
+                "unused-judge",
+                "openai",
+                max_questions=1,
+            )
+        finally:
+            self.locomo.generate_answer = original_generate
+            self.locomo.judge_answer = original_judge
+
+        self.assertEqual([text for text, _ in backend.added], ["useful"])
+        self.assertEqual(scores["total_questions"], 1)
+        self.assertEqual(scores["overall"], 1.0)
 
 
 if __name__ == "__main__":
