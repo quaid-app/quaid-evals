@@ -148,6 +148,41 @@ class BenchmarkHelperTests(unittest.TestCase):
         self.assertEqual(scores["total_questions"], 1)
         self.assertEqual(scores["overall"], 1.0)
 
+    def test_locomo_evidence_scope_filters_ingested_sessions(self):
+        conversations = [
+            {
+                "conversation_id": "conv-1",
+                "sessions": [
+                    {"session_id": 1, "turns": [{"speaker": "A", "text": "needed"}]},
+                    {"session_id": 2, "turns": [{"speaker": "A", "text": "also needed"}]},
+                    {"session_id": 3, "turns": [{"speaker": "A", "text": "expensive"}]},
+                ],
+            },
+            {
+                "conversation_id": "conv-2",
+                "sessions": [{"session_id": 1, "turns": [{"speaker": "A", "text": "skip"}]}],
+            },
+        ]
+        qa_pairs = [{
+            "conversation_id": "conv-1",
+            "question": "what mattered?",
+            "answer": "needed",
+            "evidence": ["D1:3", "D2:8"],
+        }]
+
+        filtered = self.locomo.filter_conversations_for_questions(
+            conversations,
+            qa_pairs,
+            "evidence",
+        )
+
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0]["conversation_id"], "conv-1")
+        self.assertEqual(
+            [session["session_id"] for session in filtered[0]["sessions"]],
+            [1, 2],
+        )
+
     def test_artifact_download_drops_auth_after_redirect(self):
         requests = []
 

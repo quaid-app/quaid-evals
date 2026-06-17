@@ -69,6 +69,37 @@ def extraction_counts(db_path: str, session_ids: set[str] | None = None) -> dict
     return {"pending": int(pending), "running": int(running), "done": int(done), "failed": int(failed)}
 
 
+def recent_queue_jobs(db_path: str, session_ids: set[str] | None = None, limit: int = 10) -> list[dict]:
+    """Return recent extraction queue rows for diagnostics."""
+    with sqlite3.connect(db_path, timeout=30) as conn:
+        conn.row_factory = sqlite3.Row
+        if session_ids:
+            placeholders = ",".join("?" for _ in session_ids)
+            rows = conn.execute(
+                f"""
+                SELECT id, session_id, status, attempts, scheduled_for,
+                       COALESCE(last_error, '') AS last_error
+                FROM extraction_queue
+                WHERE session_id IN ({placeholders})
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                [*session_ids, limit],
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT id, session_id, status, attempts, scheduled_for,
+                       COALESCE(last_error, '') AS last_error
+                FROM extraction_queue
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                [limit],
+            ).fetchall()
+    return [dict(row) for row in rows]
+
+
 def recent_failed_jobs(db_path: str, session_ids: set[str] | None = None) -> list[dict]:
     with sqlite3.connect(db_path, timeout=30) as conn:
         conn.row_factory = sqlite3.Row
@@ -103,6 +134,7 @@ def wait_for_extraction_completion(
     timeout_s: int = 1800,
     poll_interval_s: float = 0.5,
     settle_s: float = 2.0,
+    diagnostics=None,
 ) -> dict[str, int]:
     deadline = time.time() + timeout_s
     last_counts: dict[str, int] | None = None
@@ -124,7 +156,14 @@ def wait_for_extraction_completion(
             time.sleep(settle_s)
             return extraction_counts(db_path, session_ids)
         time.sleep(poll_interval_s)
-    raise TimeoutError(f"Timed out waiting for extraction queue: {extraction_counts(db_path, session_ids)}")
+    counts = extraction_counts(db_path, session_ids)
+    details = {
+        "counts": counts,
+        "recent_jobs": recent_queue_jobs(db_path, session_ids),
+    }
+    if diagnostics is not None:
+        details["daemon_tail"] = diagnostics()
+    raise TimeoutError("Timed out waiting for extraction queue: " + json.dumps(details, indent=2))
 
 
 class QuaidDaemon:
@@ -159,6 +198,9 @@ class QuaidDaemon:
 
     def __exit__(self, *_) -> None:
         self._stop()
+
+    def tail(self, limit: int = 80) -> list[str]:
+        return self._output[-limit:]
 
     def _wait_ready(self, timeout_s: int) -> None:
         if self._daemon is None or self._daemon.stdout is None:
@@ -222,6 +264,7 @@ class QuaidBackend:
         self._page_count = 0
         self._sessions: set[str] = set()
         self._speaker_roles: dict[tuple[str, str], str] = {}
+        self._diagnostics = None
         self.init()
 
     def _run_quaid(self, args: list[str], timeout: int = 120) -> subprocess.CompletedProcess:
@@ -310,6 +353,9 @@ class QuaidBackend:
         self._page_count += 1
         return True
 
+    def set_diagnostics(self, diagnostics) -> None:
+        self._diagnostics = diagnostics
+
     def flush_to_quaid(self) -> bool:
         """Close sessions and wait for daemon extraction to finish."""
         ok = True
@@ -330,7 +376,12 @@ class QuaidBackend:
         if ok and self._sessions:
             try:
                 timeout_s = int(os.environ.get("LOCOMO_EXTRACTION_TIMEOUT_SECONDS", "1800"))
-                wait_for_extraction_completion(self.db_path, self._sessions, timeout_s=timeout_s)
+                wait_for_extraction_completion(
+                    self.db_path,
+                    self._sessions,
+                    timeout_s=timeout_s,
+                    diagnostics=self._diagnostics,
+                )
             except Exception as e:
                 print(f"Error waiting for extraction: {e}", file=sys.stderr)
                 ok = False
@@ -617,6 +668,62 @@ def _load_locomo_data_legacy(benchmarks_dir: str) -> tuple[list, list]:
 
 # ─── Main evaluation loop ─────────────────────────────────────────────────────
 
+def evidence_session_ids(qa: dict) -> set[str]:
+    """Extract LoCoMo evidence session ids like D1:3 from a QA row."""
+    session_ids: set[str] = set()
+    evidence = qa.get("evidence", [])
+    if isinstance(evidence, str):
+        evidence = [evidence]
+    for item in evidence or []:
+        if not isinstance(item, str):
+            continue
+        marker = item.split(":", 1)[0].strip()
+        if marker.startswith("D") and marker[1:].isdigit():
+            session_ids.add(marker[1:])
+    return session_ids
+
+
+def filter_conversations_for_questions(conversations: list, questions: list, ingest_scope: str) -> list:
+    """Limit LoCoMo ingest for capped smoke runs without changing full-run behavior."""
+    selected_conversation_ids = {
+        str(qa.get("conversation_id"))
+        for qa in questions
+        if qa.get("conversation_id") is not None
+    }
+    if not selected_conversation_ids:
+        return conversations
+
+    selected_sessions_by_conversation: dict[str, set[str]] = {}
+    if ingest_scope == "evidence":
+        for qa in questions:
+            conv_id = qa.get("conversation_id")
+            if conv_id is None:
+                continue
+            session_ids = evidence_session_ids(qa)
+            if session_ids:
+                selected_sessions_by_conversation.setdefault(str(conv_id), set()).update(session_ids)
+
+    filtered = []
+    for conv in conversations:
+        conv_id = str(conv.get("conversation_id"))
+        if conv_id not in selected_conversation_ids:
+            continue
+        if ingest_scope != "evidence":
+            filtered.append(conv)
+            continue
+        selected_sessions = selected_sessions_by_conversation.get(conv_id)
+        if not selected_sessions:
+            filtered.append(conv)
+            continue
+        sessions = [
+            session
+            for session in conv.get("sessions", [])
+            if str(session.get("session_id")) in selected_sessions
+        ]
+        filtered.append({**conv, "sessions": sessions})
+    return filtered
+
+
 def run_locomo(
     backend: QuaidBackend,
     conversations: list,
@@ -626,21 +733,12 @@ def run_locomo(
     provider: str,
     top_k: int = 50,
     max_questions: int = None,
+    ingest_scope: str = "full",
 ) -> dict:
     """Run full LoCoMo ingest → search → evaluate pipeline."""
 
     questions = qa_pairs[:max_questions] if max_questions else qa_pairs
-    selected_conversation_ids = {
-        str(qa.get("conversation_id"))
-        for qa in questions
-        if qa.get("conversation_id") is not None
-    }
-    if selected_conversation_ids:
-        conversations = [
-            conv
-            for conv in conversations
-            if str(conv.get("conversation_id")) in selected_conversation_ids
-        ]
+    conversations = filter_conversations_for_questions(conversations, questions, ingest_scope)
 
     # Stage 1: Ingest all conversation turns
     print(f"\n[1/3] Ingesting {len(conversations)} conversations...")
@@ -732,7 +830,12 @@ def run_locomo(
         "by_type": by_type,
         "reference": {
             "mem0_v3": {"overall": 0.916, "source": "mem0ai/memory-benchmarks"},
-        }
+        },
+        "scope": {
+            "ingest_scope": ingest_scope,
+            "max_questions": max_questions,
+            "comparable_to_full_locomo": max_questions is None and ingest_scope == "full",
+        },
     }
 
 
@@ -748,6 +851,8 @@ def main():
     parser.add_argument("--top-k", type=int, default=50)
     parser.add_argument("--max-questions", type=int, default=None,
                         help="Limit questions for faster test runs (e.g. 50)")
+    parser.add_argument("--ingest-scope", choices=["full", "evidence"], default="full",
+                        help="Use full conversations or only evidence sessions for capped smoke runs")
     args = parser.parse_args()
 
     print(f"LoCoMo benchmark adapter - Quaid {args.quaid_version}")
@@ -762,12 +867,14 @@ def main():
 
     print(f"Loaded: {len(conversations)} conversations, {len(qa_pairs)} QA pairs")
 
-    with QuaidDaemon(args.db):
+    with QuaidDaemon(args.db) as daemon:
+        backend.set_diagnostics(daemon.tail)
         scores = run_locomo(
             backend, conversations, qa_pairs,
             args.answerer_model, args.judge_model, args.provider,
             top_k=args.top_k,
             max_questions=args.max_questions,
+            ingest_scope=args.ingest_scope,
         )
 
     output = {
@@ -780,6 +887,8 @@ def main():
             "judge_model": args.judge_model,
             "provider": args.provider,
             "top_k": args.top_k,
+            "ingest_scope": args.ingest_scope,
+            "max_questions": args.max_questions,
         }
     }
 

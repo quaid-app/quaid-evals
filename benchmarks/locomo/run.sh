@@ -31,6 +31,7 @@ MAX_QUESTIONS_ARG=()
 if [ -n "${MAX_QUESTIONS:-}" ]; then
   MAX_QUESTIONS_ARG=(--max-questions "$MAX_QUESTIONS")
 fi
+INGEST_SCOPE="${LOCOMO_INGEST_SCOPE:-full}"
 
 mkdir -p "$RESULTS_DIR"
 
@@ -57,6 +58,7 @@ QUAID_BIN="$QUAID_BIN" python3 "$OLDPWD/benchmarks/locomo/quaid_adapter.py" \
   --judge-model "${JUDGE_MODEL:-gpt-4o}" \
   --provider "${LLM_PROVIDER:-openai}" \
   --top-k 50 \
+  --ingest-scope "$INGEST_SCOPE" \
   "${MAX_QUESTIONS_ARG[@]}"
 
 echo "Results written to: $OUTPUT"

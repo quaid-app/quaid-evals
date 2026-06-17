@@ -10,9 +10,13 @@ on:
         required: false
         default: 'latest'
       locomo_max_questions:
-        description: 'LoCoMo max questions (default: 50 for regular runs; leave blank for full set)'
+        description: 'LoCoMo max questions (default: 5 for CI smoke; leave blank for full set)'
         required: false
-        default: '50'
+        default: '5'
+      locomo_ingest_scope:
+        description: 'LoCoMo ingest scope: evidence for capped smoke, full for comparable runs'
+        required: false
+        default: 'evidence'
       locomo_extraction_timeout_seconds:
         description: 'Seconds to wait for Quaid extraction before failing honestly'
         required: false
@@ -50,7 +54,8 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          MAX_QUESTIONS: ${{ github.event.client_payload.locomo_max_questions || inputs.locomo_max_questions || '50' }}
+          MAX_QUESTIONS: ${{ github.event.client_payload.locomo_max_questions || inputs.locomo_max_questions || '5' }}
+          LOCOMO_INGEST_SCOPE: ${{ github.event.client_payload.locomo_ingest_scope || inputs.locomo_ingest_scope || 'evidence' }}
           LOCOMO_EXTRACTION_TIMEOUT_SECONDS: ${{ github.event.client_payload.locomo_extraction_timeout_seconds || inputs.locomo_extraction_timeout_seconds || '1800' }}
         run: bash benchmarks/locomo/run.sh
 
