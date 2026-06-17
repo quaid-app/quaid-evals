@@ -423,6 +423,7 @@ def main():
             "judge_model": args.judge_model,
             "provider": args.provider,
             "top_k": args.top_k,
+            "max_conversations": args.max_conversations,
         }
     }
 

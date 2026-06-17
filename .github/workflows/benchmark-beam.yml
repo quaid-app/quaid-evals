@@ -14,9 +14,9 @@ on:
         required: false
         default: '100K'
       beam_max_conversations:
-        description: 'BEAM max conversations (leave blank for full split)'
+        description: 'BEAM max conversations (3 for CI smoke; use all for full split)'
         required: false
-        default: ''
+        default: '3'
 
 concurrency:
   group: benchmark-beam-${{ github.event.client_payload.version || inputs.quaid_version || github.run_id }}
@@ -51,7 +51,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           BEAM_SPLIT: ${{ github.event.client_payload.beam_split || inputs.beam_split || '100K' }}
-          MAX_CONVERSATIONS: ${{ github.event.client_payload.beam_max_conversations || inputs.beam_max_conversations || '' }}
+          MAX_CONVERSATIONS: ${{ github.event.client_payload.beam_max_conversations || inputs.beam_max_conversations || '3' }}
         run: bash benchmarks/beam/run.sh
 
       - name: Generate report snapshot

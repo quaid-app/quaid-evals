@@ -16,10 +16,11 @@ BEAM is Mem0's open-source benchmark where context stuffing is physically imposs
 
 BEAM requires an LLM judge (OpenAI API) for scoring. Set `OPENAI_API_KEY` in CI secrets.
 
-The `run.sh` script is scaffolded but requires the official BEAM corpus to be released by Mem0.
+GitHub Actions runs a small smoke slice by default because the current adapter uses a fresh Quaid DB and embedding pass per conversation. Use `MAX_CONVERSATIONS=all` when you explicitly want the full split.
 
 ## Running
 
 ```bash
 OPENAI_API_KEY=sk-... bash benchmarks/beam/run.sh
+MAX_CONVERSATIONS=all OPENAI_API_KEY=sk-... bash benchmarks/beam/run.sh
 ```
