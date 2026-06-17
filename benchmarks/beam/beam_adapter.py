@@ -34,6 +34,15 @@ from datetime import date
 from pathlib import Path
 
 
+def log(message: str = "") -> None:
+    print(message, flush=True)
+
+
+def last_line(output: str | None) -> str:
+    lines = (output or "").strip().splitlines()
+    return lines[-1] if lines else "no output"
+
+
 # ─── Quaid backend ────────────────────────────────────────────────────────────
 
 class QuaidBackend:
@@ -67,16 +76,23 @@ class QuaidBackend:
     def flush(self) -> bool:
         if not self._tmp_dir or self._page_count == 0:
             return False
+        log(f"    indexing {self._page_count} turns")
         r = subprocess.run(
             [self.quaid_bin, "collection", "add", "beam", self._tmp_dir, "--db", self.db_path],
             env=self._env, capture_output=True, text=True, timeout=300
         )
         if r.returncode != 0:
+            detail = last_line(r.stderr or r.stdout)
+            log(f"    collection add failed: {detail}")
             return False
+        log("    embedding collection")
         e = subprocess.run(
             [self.quaid_bin, "embed", "--db", self.db_path],
             env=self._env, capture_output=True, text=True, timeout=300
         )
+        if e.returncode != 0:
+            detail = last_line(e.stderr or e.stdout)
+            log(f"    embed failed: {detail}")
         return e.returncode == 0
 
     def query(self, q: str, top_k: int = 20) -> list:
@@ -173,12 +189,12 @@ def load_beam(split: str, max_conversations: int | None = None) -> list:
     try:
         from datasets import load_dataset
     except ImportError:
-        print("Installing datasets library...")
+        log("Installing datasets library...")
         subprocess.run([sys.executable, "-m", "pip", "install", "datasets", "-q"])
         from datasets import load_dataset
 
     split_upper = split.upper()
-    print(f"Loading BEAM {split_upper} from HuggingFace...")
+    log(f"Loading BEAM {split_upper} from HuggingFace...")
 
     if split_upper == "10M":
         ds = load_dataset("Mohammadta/BEAM-10M", split="10M", trust_remote_code=True)
@@ -188,7 +204,7 @@ def load_beam(split: str, max_conversations: int | None = None) -> list:
     data = list(ds)
     if max_conversations:
         data = data[:max_conversations]
-    print(f"Loaded {len(data)} conversations for BEAM {split_upper}")
+    log(f"Loaded {len(data)} conversations for BEAM {split_upper}")
     return data
 
 
@@ -262,11 +278,14 @@ def run_beam(
         for questions in parse_probing_questions(conv.get("probing_questions", {})).values()
         for q in [questions]
     )
-    print(f"BEAM {split}: {len(conversations)} conversations, ~{total_q} questions")
+    log(f"BEAM {split}: {len(conversations)} conversations, ~{total_q} questions")
 
     for i, conv in enumerate(conversations):
         conv_id = conv.get("conversation_id", str(i))
         chat = conv.get("chat", [])
+        questions_by_cat = parse_probing_questions(conv.get("probing_questions", {}))
+        conv_q = sum(len(questions) for questions in questions_by_cat.values())
+        log(f"  Conv {i+1}/{len(conversations)} ({conv_id}): ingesting {len(chat)} turns, {conv_q} questions")
 
         # Per-conversation fresh DB
         db_path = f"{quaid_db_base}-{split}-{i:04d}.db"
@@ -296,15 +315,21 @@ def run_beam(
                         backend.add(str(content), {"role": role, "plan_id": plan_idx, "turn_id": turn_idx})
 
         flushed = backend.flush()
+        if not flushed:
+            log(f"  Conv {i+1}/{len(conversations)}: no indexed context, scoring as unknown")
 
         # Evaluate probing questions
-        questions_by_cat = parse_probing_questions(conv.get("probing_questions", {}))
+        conv_scores: list[float] = []
+        conv_question_count = 0
         for category, questions in questions_by_cat.items():
             for qa in questions:
                 question = qa.get("question", "")
                 ground_truth = qa.get("answer", qa.get("ground_truth", ""))
                 if not question or not ground_truth:
                     continue
+                conv_question_count += 1
+                if conv_question_count == 1 or conv_question_count % 10 == 0:
+                    log(f"    question {conv_question_count}/{conv_q}: {category}")
 
                 if flushed:
                     retrieved = backend.query(question, top_k=top_k)
@@ -320,6 +345,7 @@ def run_beam(
                 if category not in by_category:
                     by_category[category] = []
                 by_category[category].append(score)
+                conv_scores.append(score)
 
         # Cleanup
         try:
@@ -327,19 +353,22 @@ def run_beam(
         except Exception:
             pass
 
-        if (i + 1) % 5 == 0 or i == len(conversations) - 1:
-            avg = sum(all_scores) / len(all_scores) if all_scores else 0
-            print(f"  Conv {i+1}/{len(conversations)}: running avg={avg:.3f} ({len(all_scores)} questions)")
+        avg = sum(all_scores) / len(all_scores) if all_scores else 0
+        conv_avg = sum(conv_scores) / len(conv_scores) if conv_scores else 0
+        log(
+            f"  Conv {i+1}/{len(conversations)} done: "
+            f"conv avg={conv_avg:.3f}, running avg={avg:.3f} ({len(all_scores)} questions)"
+        )
 
     overall = sum(all_scores) / len(all_scores) if all_scores else 0.0
     avg_tokens = sum(token_counts) / len(token_counts) if token_counts else 0
 
-    print(f"\nBEAM {split} Results:")
-    print(f"  Overall: {overall:.3f} ({overall*100:.1f}%)")
+    log(f"\nBEAM {split} Results:")
+    log(f"  Overall: {overall:.3f} ({overall*100:.1f}%)")
     for cat, scores in sorted(by_category.items()):
         avg = sum(scores) / len(scores)
-        print(f"  {cat}: {avg:.3f} ({len(scores)} questions)")
-    print(f"  Avg retrieved tokens: {avg_tokens:.0f} (Mem0 reference: ~7K)")
+        log(f"  {cat}: {avg:.3f} ({len(scores)} questions)")
+    log(f"  Avg retrieved tokens: {avg_tokens:.0f} (Mem0 reference: ~7K)")
 
     return {
         "overall": round(overall, 4),
@@ -367,10 +396,10 @@ def main():
                         help="Limit conversations (e.g. 5 for quick test)")
     args = parser.parse_args()
 
-    print(f"BEAM adapter - Quaid {args.quaid_version} | Split: {args.split}")
-    print(f"Provider: {args.provider} | Answerer: {args.answerer_model}")
-    print(f"NOTE: Per-conversation ingest. Scores expected to be low until issue #105.")
-    print()
+    log(f"BEAM adapter - Quaid {args.quaid_version} | Split: {args.split}")
+    log(f"Provider: {args.provider} | Answerer: {args.answerer_model}")
+    log(f"NOTE: Per-conversation ingest. Scores expected to be low until issue #105.")
+    log()
 
     conversations = load_beam(args.split, args.max_conversations)
     scores = run_beam(
@@ -398,9 +427,9 @@ def main():
     }
 
     Path(args.output).write_text(json.dumps(output, indent=2))
-    print(f"\nResults written to: {args.output}")
+    log(f"\nResults written to: {args.output}")
     ref = 0.641 if args.split == "1M" else 0.486 if args.split == "10M" else "n/a"
-    print(f"Score: {scores['overall']:.3f} (Mem0 v3 ref: {ref})")
+    log(f"Score: {scores['overall']:.3f} (Mem0 v3 ref: {ref})")
 
 
 if __name__ == "__main__":
