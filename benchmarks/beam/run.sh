@@ -30,7 +30,7 @@ echo "=== BEAM Benchmark (${SPLIT}) ==="
 echo "Quaid version: $QUAID_VERSION"
 echo "Provider: ${LLM_PROVIDER:-openai} | Model: ${ANSWERER_MODEL:-gpt-4o}"
 
-QUAID_BIN="$QUAID_BIN" python3 "$SCRIPT_DIR/beam_adapter.py" \
+PYTHONUNBUFFERED=1 QUAID_BIN="$QUAID_BIN" python3 "$SCRIPT_DIR/beam_adapter.py" \
   --split "$SPLIT" \
   --output "$OUTPUT" \
   --quaid-version "$QUAID_VERSION" \
