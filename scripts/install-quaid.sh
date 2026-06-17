@@ -20,6 +20,24 @@ REPO="quaid-app/quaid"
 
 echo "Installing Quaid ${VERSION}..."
 
+curl_json() {
+  curl -sfL \
+    --connect-timeout 20 \
+    --max-time 120 \
+    --retry 3 \
+    --retry-delay 2 \
+    "$@"
+}
+
+curl_asset() {
+  curl -sL \
+    --connect-timeout 20 \
+    --max-time 180 \
+    --retry 3 \
+    --retry-delay 2 \
+    "$@"
+}
+
 # Detect OS and arch
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
@@ -39,7 +57,7 @@ esac
 
 # Resolve "latest" to actual version tag
 if [ "$VERSION" = "latest" ]; then
-  VERSION=$(curl -sf \
+  VERSION=$(curl_json \
     -H "Accept: application/vnd.github.v3+json" \
     "https://api.github.com/repos/${REPO}/releases/latest" \
     | grep '"tag_name"' | cut -d'"' -f4 || echo "")
@@ -57,7 +75,7 @@ if [ "$VERSION" != "source" ] && [ -n "$BINARY_NAME" ]; then
   DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${BINARY_NAME}"
   echo "Downloading: $DOWNLOAD_URL"
 
-  HTTP_CODE=$(curl -sL -w "%{http_code}" "$DOWNLOAD_URL" -o /tmp/quaid_candidate 2>/dev/null)
+  HTTP_CODE=$(curl_asset -w "%{http_code}" "$DOWNLOAD_URL" -o /tmp/quaid_candidate 2>/dev/null || echo "000")
 
   if [ "$HTTP_CODE" = "200" ]; then
     FILETYPE=$(file /tmp/quaid_candidate 2>/dev/null | head -1)
@@ -68,10 +86,20 @@ if [ "$VERSION" != "source" ] && [ -n "$BINARY_NAME" ]; then
       quaid --version
       exit 0
     else
-      echo "Downloaded file is not a valid binary (type: $FILETYPE) - falling back to source build."
+      echo "Downloaded file is not a valid binary (type: $FILETYPE)."
+      if [ "${CI:-}" = "true" ]; then
+        echo "CI requires a release binary; refusing slow source-build fallback."
+        exit 1
+      fi
+      echo "Falling back to source build."
     fi
   else
-    echo "Binary download failed (HTTP $HTTP_CODE) - falling back to source build."
+    echo "Binary download failed (HTTP $HTTP_CODE)."
+    if [ "${CI:-}" = "true" ]; then
+      echo "CI requires a release binary; refusing slow source-build fallback."
+      exit 1
+    fi
+    echo "Falling back to source build."
   fi
 fi
 
