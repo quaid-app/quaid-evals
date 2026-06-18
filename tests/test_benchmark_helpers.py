@@ -183,6 +183,54 @@ class BenchmarkHelperTests(unittest.TestCase):
             [1, 2],
         )
 
+    def test_locomo_evidence_turn_scope_trims_sessions_to_cited_turns(self):
+        conversations = [
+            {
+                "conversation_id": "conv-1",
+                "sessions": [
+                    {
+                        "session_id": 1,
+                        "turns": [
+                            {"speaker": "A", "text": "before"},
+                            {"speaker": "A", "text": "needed"},
+                            {"speaker": "A", "text": "after"},
+                            {"speaker": "A", "text": "drop"},
+                        ],
+                    },
+                    {
+                        "session_id": 2,
+                        "turns": [
+                            {"speaker": "A", "text": "skip"},
+                            {"speaker": "A", "text": "also needed"},
+                            {"speaker": "A", "text": "also after"},
+                        ],
+                    },
+                ],
+            },
+        ]
+        qa_pairs = [{
+            "conversation_id": "conv-1",
+            "question": "what mattered?",
+            "answer": "needed",
+            "evidence": ["D1:2", "D2:2"],
+        }]
+
+        filtered = self.locomo.filter_conversations_for_questions(
+            conversations,
+            qa_pairs,
+            "evidence-turns",
+            evidence_context_turns=1,
+        )
+
+        sessions = filtered[0]["sessions"]
+        self.assertEqual(
+            [[turn["text"] for turn in session["turns"]] for session in sessions],
+            [
+                ["before", "needed", "after"],
+                ["skip", "also needed", "also after"],
+            ],
+        )
+
     def test_artifact_download_drops_auth_after_redirect(self):
         requests = []
 

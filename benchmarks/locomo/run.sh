@@ -32,6 +32,7 @@ if [ -n "${MAX_QUESTIONS:-}" ]; then
   MAX_QUESTIONS_ARG=(--max-questions "$MAX_QUESTIONS")
 fi
 INGEST_SCOPE="${LOCOMO_INGEST_SCOPE:-full}"
+EVIDENCE_CONTEXT_TURNS="${LOCOMO_EVIDENCE_CONTEXT_TURNS:-1}"
 
 mkdir -p "$RESULTS_DIR"
 
@@ -59,6 +60,7 @@ QUAID_BIN="$QUAID_BIN" python3 "$OLDPWD/benchmarks/locomo/quaid_adapter.py" \
   --provider "${LLM_PROVIDER:-openai}" \
   --top-k 50 \
   --ingest-scope "$INGEST_SCOPE" \
+  --evidence-context-turns "$EVIDENCE_CONTEXT_TURNS" \
   "${MAX_QUESTIONS_ARG[@]}"
 
 echo "Results written to: $OUTPUT"
