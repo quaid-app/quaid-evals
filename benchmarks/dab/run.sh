@@ -8,11 +8,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 QUAID_BIN="${QUAID_BIN:-quaid}"
 DATE=$(date +%Y-%m-%d)
 DB_PATH="/tmp/quaid-eval-dab-${DATE}.db"
-CORPUS_DIR="/tmp/quaid-bench-corpus"
+CORPUS_DIR="${CORPUS_DIR:-/tmp/quaid-dab-corpus}"
 RESULTS_DIR="results"
+DAB_CORPUS_PAGES="${DAB_CORPUS_PAGES:-350}"
 
-if [ ! -f "$CORPUS_DIR/queries.json" ]; then
-  CORPUS_DIR="$CORPUS_DIR" bash "$SCRIPT_DIR/../../scripts/setup-corpus.sh"
+if ! find "$CORPUS_DIR" -type f -name '*.md' -print -quit 2>/dev/null | grep -q .; then
+  python3 "$SCRIPT_DIR/../../scripts/generate-corpus.py" --output "$CORPUS_DIR" --pages "$DAB_CORPUS_PAGES"
 fi
 
 python3 "$SCRIPT_DIR/../common/preflight.py" \
@@ -29,6 +30,10 @@ echo "=== DAB Benchmark ==="
 echo "Quaid version: $QUAID_VERSION"
 echo "DB: $DB_PATH"
 echo "Corpus: $CORPUS_DIR"
+
+now_ms() {
+  python3 -c 'import time; print(time.time_ns() // 1_000_000)'
+}
 
 json_has_relevant_hit() {
   local query="$1"
@@ -67,9 +72,9 @@ echo "Install score: $INSTALL_SCORE/10"
 echo ""
 echo "[2/8] Collection add..."
 "$QUAID_BIN" init "$DB_PATH" >/dev/null
-START=$(date +%s%3N)
+START=$(now_ms)
 if "$QUAID_BIN" collection add docs "$CORPUS_DIR" --db "$DB_PATH" 2>&1; then
-  END=$(date +%s%3N)
+  END=$(now_ms)
   COLLECTION_ELAPSED=$(( END - START ))
   IMPORT_SCORE=30
   echo "Collection add: ${COLLECTION_ELAPSED}ms"
@@ -96,9 +101,9 @@ FTS_QUERIES=(
 )
 FTS_PASS=0
 for QUERY in "${FTS_QUERIES[@]}"; do
-  START=$(date +%s%3N)
+  START=$(now_ms)
   RESULT=$("$QUAID_BIN" search "$QUERY" --db "$DB_PATH" --limit 5 --json 2>/dev/null || echo "")
-  END=$(date +%s%3N)
+  END=$(now_ms)
   ELAPSED=$(( END - START ))
   FTS_LATENCY=$(( FTS_LATENCY + ELAPSED ))
   if [ "$(printf '%s' "$RESULT" | json_has_relevant_hit "$QUERY")" = "hit" ]; then
@@ -116,17 +121,17 @@ SEM_SCORE=0
 SEM_LATENCY=0
 SEM_QUERIES=(
   "how do agents remember things across sessions"
-  "decentralized exchange mechanics"
-  "memory efficient retrieval at scale"
-  "organizing knowledge for productivity"
-  "cross-chain bridge security"
-  "token supply and demand dynamics"
+  "automated market maker liquidity pools"
+  "memory retrieval augmented generation"
+  "organizing knowledge with PARA method"
+  "smart contract security auditing"
+  "token supply velocity utility"
 )
 SEM_PASS=0
 for QUERY in "${SEM_QUERIES[@]}"; do
-  START=$(date +%s%3N)
+  START=$(now_ms)
   RESULT=$("$QUAID_BIN" query "$QUERY" --db "$DB_PATH" --limit 5 --json 2>/dev/null || echo "")
-  END=$(date +%s%3N)
+  END=$(now_ms)
   ELAPSED=$(( END - START ))
   SEM_LATENCY=$(( SEM_LATENCY + ELAPSED ))
   if [ "$(printf '%s' "$RESULT" | json_has_relevant_hit "$QUERY")" = "hit" ]; then
@@ -174,17 +179,43 @@ echo ""
 echo "[8/8] MCP server check..."
 MCP_SCORE=0
 if command -v "$QUAID_BIN" &>/dev/null; then
-  # MCP stdio server: send a JSON-RPC initialize request, check for valid response
-  MCP_REQUEST='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
-  MCP_RESPONSE=$(echo "$MCP_REQUEST" | QUAID_DB="$DB_PATH" timeout 5 "$QUAID_BIN" serve 2>/dev/null || echo "")
-  if echo "$MCP_RESPONSE" | grep -q '"result"'; then
+  MCP_RESULT=$(QUAID_BIN="$QUAID_BIN" QUAID_DB="$DB_PATH" python3 - <<'PY'
+import os
+import subprocess
+
+request = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}\n'
+try:
+    proc = subprocess.Popen(
+        [os.environ["QUAID_BIN"], "serve"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=os.environ.copy(),
+    )
+    stdout, stderr = proc.communicate(request, timeout=5)
+except subprocess.TimeoutExpired:
+    proc.kill()
+    stdout, stderr = proc.communicate()
+
+response = stdout or ""
+if '"result"' in response:
+    print("20")
+elif '"jsonrpc"' in response:
+    print("10")
+else:
+    detail = (response or stderr or "").replace("\n", " ")[:100]
+    print(f"0:{detail}")
+PY
+)
+  if [ "$MCP_RESULT" = "20" ]; then
     MCP_SCORE=20
     echo "MCP: server responded to initialize (20/20)"
-  elif echo "$MCP_RESPONSE" | grep -q '"jsonrpc"'; then
+  elif [ "$MCP_RESULT" = "10" ]; then
     MCP_SCORE=10
     echo "MCP: server started and returned JSON-RPC (10/20)"
   else
-    echo "MCP: no valid response (got: ${MCP_RESPONSE:0:100})"
+    echo "MCP: no valid response (got: ${MCP_RESULT#0:})"
   fi
 fi
 

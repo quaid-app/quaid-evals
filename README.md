@@ -45,8 +45,8 @@ Quaid Evals runs industry-standard benchmarks (MSMARCO, LoCoMo, BEAM) alongside 
 
 | Benchmark | Corpus | What it measures | Ground truth |
 |-----------|--------|-----------------|--------------|
-| **[DAB](benchmarks/dab/README.md)** | MSMARCO dev (4K passages) | FTS, semantic, MCP, performance, integrity | ✅ Human qrels |
-| **[gbrain-evals](benchmarks/gbrain-evals/README.md)** | MSMARCO dev (500 queries) | P@5, R@5 — same harness as GBrain | ✅ Human qrels |
+| **[DAB](benchmarks/dab/README.md)** | Generated 350-page PARA/topic corpus | FTS, semantic, MCP, performance, integrity | ✅ Deterministic topical probes |
+| **[gbrain-evals](benchmarks/gbrain-evals/README.md)** | MSMARCO dev or FiQA fallback (500 queries) | P@5, R@5 — same metric family as GBrain | ✅ Human qrels |
 | **[LoCoMo](benchmarks/locomo/README.md)** | 10 dialogues, ~300 questions | Multi-session conversational recall | ✅ Human labels |
 | **[BEAM](benchmarks/beam/README.md)** | 100K / 1M / 10M tokens | Extreme-scale memory retrieval | ✅ LLM-as-judge |
 

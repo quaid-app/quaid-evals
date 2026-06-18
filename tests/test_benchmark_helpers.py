@@ -56,6 +56,14 @@ class BenchmarkHelperTests(unittest.TestCase):
         self.assertEqual(expected, ["lme-session-abc"])
         self.assertIn("lme-session-abc", retrieved)
 
+    def test_longmemeval_namespace_queue_ids_match_quaid_rows(self):
+        backend = self.lme.QuaidBackend("/tmp/unused.db", namespace="q0042")
+        backend._sessions = {"q0042-lme-session-abc"}
+        self.assertEqual(
+            backend._queue_session_ids(),
+            {"q0042::q0042-lme-session-abc"},
+        )
+
     def test_gbrain_recall_is_bounded_by_full_relevance_set(self):
         class Backend:
             def search(self, _query, top_k=5):
