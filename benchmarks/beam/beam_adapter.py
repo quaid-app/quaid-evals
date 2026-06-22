@@ -43,6 +43,17 @@ def last_line(output: str | None) -> str:
     return lines[-1] if lines else "no output"
 
 
+def env_int(name: str, default: int) -> int:
+    value = os.environ.get(name)
+    if not value:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        log(f"Warning: invalid {name}={value!r}; using {default}")
+        return default
+
+
 # ─── Quaid backend ────────────────────────────────────────────────────────────
 
 class QuaidBackend:
@@ -52,6 +63,8 @@ class QuaidBackend:
         self._tmp_dir = None
         self._page_count = 0
         self._env = {**os.environ, "QUAID_DB": db_path}
+        self.collection_timeout = env_int("BEAM_COLLECTION_TIMEOUT_SECONDS", 300)
+        self.embed_timeout = env_int("BEAM_EMBED_TIMEOUT_SECONDS", 1800)
 
     def init(self):
         subprocess.run([self.quaid_bin, "init", self.db_path], env=self._env, capture_output=True)
@@ -77,19 +90,27 @@ class QuaidBackend:
         if not self._tmp_dir or self._page_count == 0:
             return False
         log(f"    indexing {self._page_count} turns")
-        r = subprocess.run(
-            [self.quaid_bin, "collection", "add", "beam", self._tmp_dir, "--db", self.db_path],
-            env=self._env, capture_output=True, text=True, timeout=300
-        )
+        try:
+            r = subprocess.run(
+                [self.quaid_bin, "collection", "add", "beam", self._tmp_dir, "--db", self.db_path],
+                env=self._env, capture_output=True, text=True, timeout=self.collection_timeout
+            )
+        except subprocess.TimeoutExpired:
+            log(f"    collection add timed out after {self.collection_timeout}s")
+            return False
         if r.returncode != 0:
             detail = last_line(r.stderr or r.stdout)
             log(f"    collection add failed: {detail}")
             return False
         log("    embedding collection")
-        e = subprocess.run(
-            [self.quaid_bin, "embed", "--db", self.db_path],
-            env=self._env, capture_output=True, text=True, timeout=300
-        )
+        try:
+            e = subprocess.run(
+                [self.quaid_bin, "embed", "--db", self.db_path],
+                env=self._env, capture_output=True, text=True, timeout=self.embed_timeout
+            )
+        except subprocess.TimeoutExpired:
+            log(f"    embed timed out after {self.embed_timeout}s")
+            return False
         if e.returncode != 0:
             detail = last_line(e.stderr or e.stdout)
             log(f"    embed failed: {detail}")
