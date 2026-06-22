@@ -10,6 +10,8 @@ import random
 import argparse
 from pathlib import Path
 
+random.seed(42)
+
 PARA_STRUCTURE = {
     "1. Projects": ["project-alpha", "project-beta", "project-gamma"],
     "2. Areas": ["engineering", "finance", "health", "learning"],

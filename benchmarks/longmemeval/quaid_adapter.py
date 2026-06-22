@@ -403,7 +403,7 @@ class QuaidBackend:
                 # filtering by session_id is more precise.
                 wait_for_extraction_completion(
                     self.db_path,
-                    session_ids=self._sessions if self._sessions else None,
+                    session_ids=self._queue_session_ids() if self._sessions else None,
                     timeout_s=300,
                 )
             except Exception as e:
@@ -415,6 +415,11 @@ class QuaidBackend:
         """Clean up per-question resources. Daemon is NOT stopped here."""
         # Nothing to stop - daemon lifecycle is owned by SharedDaemon.
         pass
+
+    def _queue_session_ids(self) -> set[str]:
+        if not self.namespace:
+            return set(self._sessions)
+        return {f"{self.namespace}::{session_id}" for session_id in self._sessions}
 
     def __del__(self):
         try:

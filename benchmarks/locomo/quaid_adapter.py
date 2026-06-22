@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import select
 import sqlite3
 import subprocess
@@ -668,22 +669,56 @@ def _load_locomo_data_legacy(benchmarks_dir: str) -> tuple[list, list]:
 
 # ─── Main evaluation loop ─────────────────────────────────────────────────────
 
-def evidence_session_ids(qa: dict) -> set[str]:
-    """Extract LoCoMo evidence session ids like D1:3 from a QA row."""
-    session_ids: set[str] = set()
+EVIDENCE_REF_RE = re.compile(r"\bD(?P<session>\d+):(?P<turn>\d+)\b")
+
+
+def evidence_refs(qa: dict) -> dict[str, set[int]]:
+    """Extract LoCoMo evidence refs like D1:3 as session -> 1-based turn ordinals."""
+    refs: dict[str, set[int]] = {}
     evidence = qa.get("evidence", [])
     if isinstance(evidence, str):
         evidence = [evidence]
     for item in evidence or []:
         if not isinstance(item, str):
             continue
-        marker = item.split(":", 1)[0].strip()
-        if marker.startswith("D") and marker[1:].isdigit():
-            session_ids.add(marker[1:])
-    return session_ids
+        for match in EVIDENCE_REF_RE.finditer(item):
+            refs.setdefault(match.group("session"), set()).add(int(match.group("turn")))
+    return refs
 
 
-def filter_conversations_for_questions(conversations: list, questions: list, ingest_scope: str) -> list:
+def evidence_session_ids(qa: dict) -> set[str]:
+    """Extract LoCoMo evidence session ids like D1:3 from a QA row."""
+    return set(evidence_refs(qa))
+
+
+def trim_session_to_evidence_turns(session: dict, turn_ordinals: set[int], context_turns: int) -> dict:
+    """Return a copy of a LoCoMo session containing cited turns plus nearby context."""
+    turns = session.get("turns", [])
+    if not turn_ordinals or not turns:
+        return session
+
+    keep_indices: set[int] = set()
+    for ordinal in turn_ordinals:
+        idx = ordinal - 1
+        for keep_idx in range(idx - context_turns, idx + context_turns + 1):
+            if 0 <= keep_idx < len(turns):
+                keep_indices.add(keep_idx)
+
+    if not keep_indices:
+        return session
+
+    return {
+        **session,
+        "turns": [turn for idx, turn in enumerate(turns) if idx in keep_indices],
+    }
+
+
+def filter_conversations_for_questions(
+    conversations: list,
+    questions: list,
+    ingest_scope: str,
+    evidence_context_turns: int = 1,
+) -> list:
     """Limit LoCoMo ingest for capped smoke runs without changing full-run behavior."""
     selected_conversation_ids = {
         str(qa.get("conversation_id"))
@@ -694,21 +729,27 @@ def filter_conversations_for_questions(conversations: list, questions: list, ing
         return conversations
 
     selected_sessions_by_conversation: dict[str, set[str]] = {}
-    if ingest_scope == "evidence":
+    selected_turns_by_conversation: dict[str, dict[str, set[int]]] = {}
+    if ingest_scope in {"evidence", "evidence-turns"}:
         for qa in questions:
             conv_id = qa.get("conversation_id")
             if conv_id is None:
                 continue
-            session_ids = evidence_session_ids(qa)
+            refs = evidence_refs(qa)
+            session_ids = set(refs)
             if session_ids:
-                selected_sessions_by_conversation.setdefault(str(conv_id), set()).update(session_ids)
+                conv_key = str(conv_id)
+                selected_sessions_by_conversation.setdefault(conv_key, set()).update(session_ids)
+                turns_by_session = selected_turns_by_conversation.setdefault(conv_key, {})
+                for session_id, turn_ordinals in refs.items():
+                    turns_by_session.setdefault(session_id, set()).update(turn_ordinals)
 
     filtered = []
     for conv in conversations:
         conv_id = str(conv.get("conversation_id"))
         if conv_id not in selected_conversation_ids:
             continue
-        if ingest_scope != "evidence":
+        if ingest_scope not in {"evidence", "evidence-turns"}:
             filtered.append(conv)
             continue
         selected_sessions = selected_sessions_by_conversation.get(conv_id)
@@ -720,6 +761,16 @@ def filter_conversations_for_questions(conversations: list, questions: list, ing
             for session in conv.get("sessions", [])
             if str(session.get("session_id")) in selected_sessions
         ]
+        if ingest_scope == "evidence-turns":
+            turns_by_session = selected_turns_by_conversation.get(conv_id, {})
+            sessions = [
+                trim_session_to_evidence_turns(
+                    session,
+                    turns_by_session.get(str(session.get("session_id")), set()),
+                    evidence_context_turns,
+                )
+                for session in sessions
+            ]
         filtered.append({**conv, "sessions": sessions})
     return filtered
 
@@ -734,11 +785,17 @@ def run_locomo(
     top_k: int = 50,
     max_questions: int = None,
     ingest_scope: str = "full",
+    evidence_context_turns: int = 1,
 ) -> dict:
     """Run full LoCoMo ingest → search → evaluate pipeline."""
 
     questions = qa_pairs[:max_questions] if max_questions else qa_pairs
-    conversations = filter_conversations_for_questions(conversations, questions, ingest_scope)
+    conversations = filter_conversations_for_questions(
+        conversations,
+        questions,
+        ingest_scope,
+        evidence_context_turns=evidence_context_turns,
+    )
 
     # Stage 1: Ingest all conversation turns
     print(f"\n[1/3] Ingesting {len(conversations)} conversations...")
@@ -833,6 +890,7 @@ def run_locomo(
         },
         "scope": {
             "ingest_scope": ingest_scope,
+            "evidence_context_turns": evidence_context_turns if ingest_scope == "evidence-turns" else None,
             "max_questions": max_questions,
             "comparable_to_full_locomo": max_questions is None and ingest_scope == "full",
         },
@@ -851,8 +909,10 @@ def main():
     parser.add_argument("--top-k", type=int, default=50)
     parser.add_argument("--max-questions", type=int, default=None,
                         help="Limit questions for faster test runs (e.g. 50)")
-    parser.add_argument("--ingest-scope", choices=["full", "evidence"], default="full",
-                        help="Use full conversations or only evidence sessions for capped smoke runs")
+    parser.add_argument("--ingest-scope", choices=["full", "evidence", "evidence-turns"], default="full",
+                        help="Use full conversations, evidence sessions, or evidence turns for capped smoke runs")
+    parser.add_argument("--evidence-context-turns", type=int, default=1,
+                        help="Adjacent turns to retain around cited evidence turns when --ingest-scope=evidence-turns")
     args = parser.parse_args()
 
     print(f"LoCoMo benchmark adapter - Quaid {args.quaid_version}")
@@ -875,6 +935,7 @@ def main():
             top_k=args.top_k,
             max_questions=args.max_questions,
             ingest_scope=args.ingest_scope,
+            evidence_context_turns=max(0, args.evidence_context_turns),
         )
 
     output = {
@@ -888,6 +949,8 @@ def main():
             "provider": args.provider,
             "top_k": args.top_k,
             "ingest_scope": args.ingest_scope,
+            "evidence_context_turns": max(0, args.evidence_context_turns)
+                if args.ingest_scope == "evidence-turns" else None,
             "max_questions": args.max_questions,
         }
     }

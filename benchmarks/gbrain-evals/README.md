@@ -10,9 +10,9 @@ Runs [Garry Tan's gbrain-evals](https://github.com/garrytan/gbrain-evals) eval h
 ## How it works
 
 1. Clones `garrytan/gbrain-evals`
-2. Indexes the DAB corpus into a fresh Quaid DB
-3. Runs the 145 eval queries via `QuaidBackend` adapter (`quaid memory_query --json`)
-4. Computes P@5 and R@5
+2. Indexes the qrels corpus from `scripts/setup-corpus.sh` into a fresh Quaid DB
+3. Runs 500 queries with human relevance labels via the Quaid CLI adapter
+4. Computes P@5 and R@5 from passage IDs or relevant file paths
 5. Outputs JSON with per-query breakdown + summary
 
 ## Running
@@ -25,5 +25,5 @@ Output: `results/gbrain-evals-<version>-<date>.json`
 
 ## Notes
 
-- When gbrain-evals has no ground-truth relevance labels for a query, falls back to binary (results returned = pass)
-- The corpus used here (350 PARA pages) differs from GBrain's corpus (17,888 wiki pages) - scores are not directly comparable but show relative trends
+- Queries without ground-truth labels now fail the run instead of falling back to result-count scoring.
+- The corpus used here is MSMARCO when HuggingFace streaming succeeds, or the FiQA fallback corpus otherwise. Scores are not directly comparable to GBrain's published corpus, but they are grounded in real qrels.

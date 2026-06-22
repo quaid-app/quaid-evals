@@ -56,6 +56,14 @@ class BenchmarkHelperTests(unittest.TestCase):
         self.assertEqual(expected, ["lme-session-abc"])
         self.assertIn("lme-session-abc", retrieved)
 
+    def test_longmemeval_namespace_queue_ids_match_quaid_rows(self):
+        backend = self.lme.QuaidBackend("/tmp/unused.db", namespace="q0042")
+        backend._sessions = {"q0042-lme-session-abc"}
+        self.assertEqual(
+            backend._queue_session_ids(),
+            {"q0042::q0042-lme-session-abc"},
+        )
+
     def test_gbrain_recall_is_bounded_by_full_relevance_set(self):
         class Backend:
             def search(self, _query, top_k=5):
@@ -181,6 +189,54 @@ class BenchmarkHelperTests(unittest.TestCase):
         self.assertEqual(
             [session["session_id"] for session in filtered[0]["sessions"]],
             [1, 2],
+        )
+
+    def test_locomo_evidence_turn_scope_trims_sessions_to_cited_turns(self):
+        conversations = [
+            {
+                "conversation_id": "conv-1",
+                "sessions": [
+                    {
+                        "session_id": 1,
+                        "turns": [
+                            {"speaker": "A", "text": "before"},
+                            {"speaker": "A", "text": "needed"},
+                            {"speaker": "A", "text": "after"},
+                            {"speaker": "A", "text": "drop"},
+                        ],
+                    },
+                    {
+                        "session_id": 2,
+                        "turns": [
+                            {"speaker": "A", "text": "skip"},
+                            {"speaker": "A", "text": "also needed"},
+                            {"speaker": "A", "text": "also after"},
+                        ],
+                    },
+                ],
+            },
+        ]
+        qa_pairs = [{
+            "conversation_id": "conv-1",
+            "question": "what mattered?",
+            "answer": "needed",
+            "evidence": ["D1:2", "D2:2"],
+        }]
+
+        filtered = self.locomo.filter_conversations_for_questions(
+            conversations,
+            qa_pairs,
+            "evidence-turns",
+            evidence_context_turns=1,
+        )
+
+        sessions = filtered[0]["sessions"]
+        self.assertEqual(
+            [[turn["text"] for turn in session["turns"]] for session in sessions],
+            [
+                ["before", "needed", "after"],
+                ["skip", "also needed", "also after"],
+            ],
         )
 
     def test_artifact_download_drops_auth_after_redirect(self):
