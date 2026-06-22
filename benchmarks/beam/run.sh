@@ -14,6 +14,9 @@ DATE=$(date +%Y-%m-%d)
 RESULTS_DIR="${RESULTS_DIR:-results}"
 SPLIT="${BEAM_SPLIT:-100K}"   # override with BEAM_SPLIT=1M etc
 MAX_CONV="${MAX_CONVERSATIONS:-}"
+if [[ "${MAX_CONV,,}" == "all" || "${MAX_CONV,,}" == "full" || "$MAX_CONV" == "0" ]]; then
+  MAX_CONV=""
+fi
 
 python3 "$SCRIPT_DIR/../common/preflight.py" \
   --quaid-bin "$QUAID_BIN" \
@@ -29,6 +32,7 @@ OUTPUT="${RESULTS_DIR}/beam-${SPLIT,,}-${QUAID_VERSION}-${DATE}.json"
 echo "=== BEAM Benchmark (${SPLIT}) ==="
 echo "Quaid version: $QUAID_VERSION"
 echo "Provider: ${LLM_PROVIDER:-openai} | Model: ${ANSWERER_MODEL:-gpt-4o}"
+echo "Max conversations: ${MAX_CONV:-full split}"
 
 PYTHONUNBUFFERED=1 QUAID_BIN="$QUAID_BIN" python3 "$SCRIPT_DIR/beam_adapter.py" \
   --split "$SPLIT" \
