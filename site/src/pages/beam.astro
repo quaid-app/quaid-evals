@@ -50,6 +50,7 @@ const statusTone = currentStatus === 'measured' ? 'is-success' : 'is-warning';
           <thead>
             <tr>
               <th>System</th>
+              <th>BEAM 100K</th>
               <th>BEAM 1M</th>
               <th>BEAM 10M</th>
             </tr>
@@ -57,11 +58,13 @@ const statusTone = currentStatus === 'measured' ? 'is-success' : 'is-warning';
           <tbody>
             <tr>
               <td>Mem0 v3</td>
+              <td>{formatPercent(mem0.score_100k)}</td>
               <td>{formatPercent(mem0.score_1m)}</td>
               <td>{formatPercent(mem0.score_10m)}</td>
             </tr>
             <tr>
               <td>Hindsight</td>
+              <td>TBD</td>
               <td>TBD</td>
               <td>SOTA</td>
             </tr>
@@ -69,23 +72,25 @@ const statusTone = currentStatus === 'measured' ? 'is-success' : 'is-warning';
               <td>GBrain</td>
               <td>{gbrain.beam?.status ?? 'pending'}</td>
               <td>{gbrain.beam?.status ?? 'pending'}</td>
+              <td>{gbrain.beam?.status ?? 'pending'}</td>
             </tr>
             <tr>
               <td>Quaid</td>
+              <td>{currentStatus === 'measured' ? formatPercent(currentScores.score_100k) : 'pending'}</td>
               <td>{currentStatus === 'measured' ? formatPercent(currentScores.score_1m) : 'pending'}</td>
               <td>{currentStatus === 'measured' ? formatPercent(currentScores.score_10m) : 'pending'}</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="note">Reference values come from published materials. GBrain has no public BEAM run. Quaid remains unmeasured until results land in this repo.</p>
+      <p class="note">Reference values come from published materials. GBrain has no public BEAM run.</p>
     </section>
 
     <section class="panel">
       <div class="section-heading">
         <h2>Status</h2>
       </div>
-      <p>BEAM corpus released by Mem0. Scaffold ready, CI support in place, runs pending OPENAI_API_KEY in CI secrets.</p>
+      <p>BEAM corpus released by Mem0. Quaid has a published 100K run; larger corpus runs remain pending.</p>
       <div class={`pill ${statusTone}`}>{currentStatus}</div>
       <div class="metric-sub">{currentVersion}</div>
       <div class="metric-sub">{currentDate}</div>

@@ -280,11 +280,13 @@ const leaderboardCharts = {
         ghostVar: '--q-bronze-08',
         points: [
           {
-            value: 0,
-            display: 'tbd',
-            badge: 'tbd',
-            status: 'tbd',
-            note: 'No published Quaid BEAM 100K run yet.',
+            value: beamScores.score_100k ?? 0,
+            display: beamScores.score_100k != null ? formatPercent(beamScores.score_100k) : 'pending',
+            badge: beamScores.score_100k != null ? formatPercent(beamScores.score_100k) : 'pending',
+            status: beamScores.score_100k != null ? 'measured' : 'pending',
+            note: beamScores.score_100k != null
+              ? 'Measured Quaid BEAM 100K run.'
+              : 'Waiting for a published Quaid BEAM 100K run.',
           },
           {
             value: beamScores.score_1m ?? 0,
